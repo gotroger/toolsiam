@@ -1,0 +1,52 @@
+# push ขึ้น main → ตรวจ typecheck + เทสต์ → build → deploy ขึ้น Cloudflare Workers
+#
+# ต้องตั้ง secret สองตัวใน repo ก่อนใช้งาน (ดู README ของ workflow นี้ในคำสั่ง gh secret set):
+#   CLOUDFLARE_API_TOKEN   token ที่มีสิทธิ์ Workers Scripts:Edit + Workers Routes:Edit
+#   CLOUDFLARE_ACCOUNT_ID  account id ของ Cloudflare
+#
+# ตั้งใจให้ deploy เฉพาะเมื่อ typecheck และเทสต์ผ่านเท่านั้น — ถ้าเทสต์แดง
+# งานจะหยุดก่อนถึงขั้น deploy ของบน production จึงไม่ถูกแตะ
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # ปุ่มสั่ง deploy เองจากหน้า Actions เผื่อกรณีอยาก redeploy โดยไม่มี commit ใหม่
+  workflow_dispatch:
+
+# ถ้า push รัวหลายครั้ง ให้ยกเลิกคิวเก่าแล้วเอาตัวล่าสุดขึ้นแทน
+# แต่ไม่ยกเลิกตัวที่ deploy ไปแล้วระหว่างทาง (cancel-in-progress: false)
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: ตรวจชนิดข้อมูล
+        run: npm run typecheck
+
+      - name: รันเทสต์
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy ขึ้น Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # build ไปแล้วข้างบน ไม่ต้องให้ action สั่ง build ซ้ำ
+          command: deploy
