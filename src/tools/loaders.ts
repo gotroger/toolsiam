@@ -14,6 +14,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'thai-numerals': () => import('./text/thai-numerals/Tool'),
   'text-lines': () => import('./text/text-lines/Tool'),
   'thai-id-check': () => import('./text/thai-id-check/Tool'),
+  'age-days': () => import('./date/age-days/Tool'),
   'promptpay-qr': () => import('./qr/promptpay-qr/Tool'),
   'json-formatter': () => import('./dev/json-formatter/Tool'),
 };
