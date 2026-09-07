@@ -36,4 +36,11 @@ describe('calculateLoan', () => {
     expect(z.totalInterest).toBe(0);
     expect(z.schedule.every((row) => row.interest === 0)).toBe(true);
   });
+  it('ปิดยอดก่อนครบงวดแล้วไม่มีแถวศูนย์ต่อท้าย', () => {
+    const r = calculateLoan({ principal: 1_000, annualRatePercent: 4.5, months: 480 });
+    expect(r.schedule.length).toBeLessThanOrEqual(480);
+    expect(r.schedule[r.schedule.length - 1].balance).toBe(0);
+    expect(r.schedule.every((row) => row.payment > 0)).toBe(true);
+    expect(r.schedule.filter((row) => row.balance === 0)).toHaveLength(1);
+  });
 });

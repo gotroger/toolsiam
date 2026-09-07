@@ -54,6 +54,7 @@ export function calculateLoan(input: LoanInput): LoanResult {
     totalInterest = round2(totalInterest + interest);
     totalPayment = round2(totalPayment + payment);
     schedule.push({ period, payment, interest, principal: principalPart, balance });
+    if (balance === 0) break;
   }
 
   return { monthlyPayment: pay, totalPayment, totalInterest, schedule };
