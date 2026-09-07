@@ -18,5 +18,6 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'thai-year-convert': () => import('./date/thai-year-convert/Tool'),
   'thai-holidays': () => import('./date/thai-holidays/Tool'),
   'promptpay-qr': () => import('./qr/promptpay-qr/Tool'),
+  'qr-generator': () => import('./qr/qr-generator/Tool'),
   'json-formatter': () => import('./dev/json-formatter/Tool'),
 };

@@ -14,6 +14,7 @@ import { ageDaysMeta } from './date/age-days/meta';
 import { thaiYearConvertMeta } from './date/thai-year-convert/meta';
 import { thaiHolidaysMeta } from './date/thai-holidays/meta';
 import { promptpayQrMeta } from './qr/promptpay-qr/meta';
+import { qrGeneratorMeta } from './qr/qr-generator/meta';
 import { jsonFormatterMeta } from './dev/json-formatter/meta';
 
 export { categories };
@@ -35,6 +36,7 @@ export const tools: ToolMeta[] = [
   thaiYearConvertMeta,
   thaiHolidaysMeta,
   promptpayQrMeta,
+  qrGeneratorMeta,
   jsonFormatterMeta,
 ];
 
