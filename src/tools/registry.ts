@@ -12,6 +12,7 @@ import { textLinesMeta } from './text/text-lines/meta';
 import { thaiIdCheckMeta } from './text/thai-id-check/meta';
 import { ageDaysMeta } from './date/age-days/meta';
 import { thaiYearConvertMeta } from './date/thai-year-convert/meta';
+import { thaiHolidaysMeta } from './date/thai-holidays/meta';
 import { promptpayQrMeta } from './qr/promptpay-qr/meta';
 import { jsonFormatterMeta } from './dev/json-formatter/meta';
 
@@ -32,6 +33,7 @@ export const tools: ToolMeta[] = [
   thaiIdCheckMeta,
   ageDaysMeta,
   thaiYearConvertMeta,
+  thaiHolidaysMeta,
   promptpayQrMeta,
   jsonFormatterMeta,
 ];
