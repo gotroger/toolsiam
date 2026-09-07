@@ -9,7 +9,7 @@ export function getStaticPaths() {
 const { category } = Astro.props;
 const list = getToolsByCategory(category.id);
 ---
-<Base title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`}>
+<Base title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`} noindex={list.length === 0}>
   <h1 class="text-3xl font-bold">{category.icon} {category.name}</h1>
   <p class="mt-2 text-slate-600">{category.description}</p>
   {list.length === 0 ? (

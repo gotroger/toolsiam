@@ -5,6 +5,7 @@ import { Button, Field, Input, ResultBox } from '@/components/ui';
 export default function BahtTextTool() {
   const [value, setValue] = useState('1,234.50');
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState('');
 
   let result = '';
   let error = '';
@@ -17,9 +18,14 @@ export default function BahtTextTool() {
   }
 
   async function copy() {
-    await navigator.clipboard.writeText(result);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    try {
+      await navigator.clipboard.writeText(result);
+      setCopyError('');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopyError('คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง');
+    }
   }
 
   return (
@@ -30,6 +36,7 @@ export default function BahtTextTool() {
       {error && <p className="text-sm text-red-600">{error}</p>}
       <ResultBox label="คำอ่านภาษาไทย">{result || '—'}</ResultBox>
       <Button onClick={copy} disabled={!result}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
+      {copyError && <p className="text-sm text-red-600">{copyError}</p>}
     </div>
   );
 }

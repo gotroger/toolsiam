@@ -7,15 +7,22 @@ export default function JsonFormatterTool() {
   const [indent, setIndent] = useState<Indent>(2);
   const [result, setResult] = useState<JsonResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState('');
 
   function run(fn: () => JsonResult) {
     setResult(fn());
     setCopied(false);
+    setCopyError('');
   }
   async function copy() {
     if (result?.ok) {
-      await navigator.clipboard.writeText(result.output);
-      setCopied(true);
+      try {
+        await navigator.clipboard.writeText(result.output);
+        setCopyError('');
+        setCopied(true);
+      } catch {
+        setCopyError('คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง');
+      }
     }
   }
 
@@ -41,6 +48,7 @@ export default function JsonFormatterTool() {
         </p>
       )}
       {result?.ok && <p className="text-sm text-brand-700">✓ JSON ถูกต้อง ({result.output.length.toLocaleString()} ตัวอักษร)</p>}
+      {copyError && <p className="text-sm text-red-600">{copyError}</p>}
     </div>
   );
 }
