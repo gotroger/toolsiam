@@ -46,6 +46,12 @@ describe('bahtText', () => {
     expect(bahtText(' 99 ')).toBe('เก้าสิบเก้าบาทถ้วน');
     expect(bahtText('1.005')).toBe('หนึ่งบาทหนึ่งสตางค์');
     expect(bahtText('0.999')).toBe('หนึ่งบาทถ้วน'); // ทดสตางค์ขึ้นบาท
+    // half-up rounding fix
+    expect(bahtText('0.145')).toBe('สิบห้าสตางค์');
+    expect(bahtText('0.285')).toBe('ยี่สิบเก้าสตางค์');
+    expect(bahtText('2.575')).toBe('สองบาทห้าสิบแปดสตางค์');
+    expect(bahtText('0.5')).toBe('ห้าสิบสตางค์');
+    expect(bahtText('1.1')).toBe('หนึ่งบาทสิบสตางค์');
   });
 
   it('รับตัวเลขใหญ่กว่า Number.MAX_SAFE_INTEGER ผ่าน string', () => {

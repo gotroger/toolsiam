@@ -43,7 +43,11 @@ export function bahtText(input: number | string): string {
   const [, sign, intPart, decPart = ''] = m;
 
   // ปัดสตางค์เป็น 2 ตำแหน่ง (ปัดครึ่งขึ้น) แล้วทดขึ้นบาทถ้าครบ 100
-  let satang = Math.round(Number(`0.${decPart || '0'}`) * 100);
+  // ใช้ string/integer half-up rounding แทน float เพื่อหลีกเลี่ยงปัญหา floating-point precision
+  const padded = (decPart || '0').padEnd(3, '0').substring(0, 3);
+  const firstTwo = parseInt(padded.substring(0, 2), 10) || 0; // ตัวเลข 2 หลักแรก
+  const thirdDigit = parseInt(padded[2], 10); // ตัวเลขที่ 3
+  let satang = firstTwo + (thirdDigit >= 5 ? 1 : 0); // half-up on 3rd digit
   let baht = BigInt(intPart);
   if (satang === 100) {
     baht += 1n;
