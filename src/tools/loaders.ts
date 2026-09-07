@@ -8,4 +8,5 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'loan-installment': () => import('./finance/loan-installment/Tool'),
   'baht-text': () => import('./text/baht-text/Tool'),
   'promptpay-qr': () => import('./qr/promptpay-qr/Tool'),
+  'json-formatter': () => import('./dev/json-formatter/Tool'),
 };
