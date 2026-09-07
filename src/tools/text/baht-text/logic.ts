@@ -1,8 +1,9 @@
 const DIGITS = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
 const UNITS = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน'];
 
-/** อ่านกลุ่มไม่เกิน 6 หลัก (ไม่มีคำว่า "ล้าน") คืน '' ถ้าเป็นศูนย์ */
-function readGroup(group: string): string {
+/** อ่านกลุ่มไม่เกิน 6 หลัก (ไม่มีคำว่า "ล้าน") คืน '' ถ้าเป็นศูนย์
+ *  hasHigherGroups: true เมื่อมีกลุ่ม "ล้าน" ที่สูงกว่าอยู่ก่อนหน้า (เช่น 1,000,001 → "...เอ็ด" ไม่ใช่ "...หนึ่ง") */
+function readGroup(group: string, hasHigherGroups = false): string {
   const value = Number(group);
   if (value === 0) return '';
   const digits = group.padStart(6, '0').split('').map(Number);
@@ -11,7 +12,7 @@ function readGroup(group: string): string {
     const d = digits[i];
     const pos = 5 - i; // 0 = หน่วย, 1 = สิบ, ...
     if (d === 0) continue;
-    if (pos === 0 && d === 1 && value > 1) out += 'เอ็ด';
+    if (pos === 0 && d === 1 && (value > 1 || hasHigherGroups)) out += 'เอ็ด';
     else if (pos === 1 && d === 1) out += 'สิบ';
     else if (pos === 1 && d === 2) out += 'ยี่สิบ';
     else out += DIGITS[d] + UNITS[pos];
@@ -27,7 +28,7 @@ export function readInteger(digits: string): string {
   for (let end = s.length; end > 0; end -= 6) groups.unshift(s.slice(Math.max(0, end - 6), end));
   return groups
     .map((g, i) => {
-      const words = readGroup(g);
+      const words = readGroup(g, i > 0);
       return words ? words + 'ล้าน'.repeat(groups.length - 1 - i) : '';
     })
     .join('');
