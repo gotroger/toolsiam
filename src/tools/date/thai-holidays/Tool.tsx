@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayCalendar } from './logic';
-import { describeDate } from '@/tools/date/thai-year-convert/logic';
+import { describeDate } from '@/lib/thai-date';
 import { Button, Field, Input, Select, Stat } from '@/components/ui';
 
 export default function ThaiHolidaysTool() {
