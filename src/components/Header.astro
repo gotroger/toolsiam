@@ -1,17 +1,117 @@
 ---
+/**
+ * Header หลักของเว็บ — sticky, พื้นขาว, เส้นคั่นบาง, เบลอพื้นหลังเมื่อเลื่อนลง
+ * ลิงก์ทุกตัวชี้ไปยัง route/anchor ที่มีอยู่จริงเท่านั้น
+ */
 const links = [
-  { href: '/tools', label: 'เครื่องมือทั้งหมด' },
-  { href: '/pricing', label: 'พรีเมียม' },
+  { href: '/tools', label: 'เครื่องมือทั้งหมด', match: (p: string) => p.startsWith('/tools') },
+  { href: '/#categories', label: 'หมวดหมู่', match: (p: string) => p.startsWith('/c/') },
+  { href: '/tools?tier=free', label: 'ฟรีทั้งหมด', match: () => false },
+  { href: '/pricing', label: 'พรีเมียม', match: (p: string) => p.startsWith('/pricing') },
 ];
 const current = Astro.url.pathname;
 ---
-<header class="border-b border-slate-200 bg-white">
-  <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-    <a href="/" class="text-xl font-bold text-brand-700">ทูลสยาม <span class="text-slate-400 font-normal text-sm">ToolSiam</span></a>
-    <nav class="flex gap-4 text-sm">
-      {links.map((l) => (
-        <a href={l.href} class:list={['hover:text-brand-700', { 'font-semibold text-brand-700': current.startsWith(l.href) }]}>{l.label}</a>
-      ))}
+<header
+  id="site-header"
+  class="sticky top-0 z-50 border-b border-slate-200/80 bg-white transition-shadow duration-200 data-[scrolled]:border-slate-200 data-[scrolled]:bg-white/85 data-[scrolled]:shadow-[0_1px_2px_0_rgb(16_24_40/0.06)] data-[scrolled]:backdrop-blur-md supports-[backdrop-filter]:data-[scrolled]:bg-white/80"
+>
+  <div class="site-container flex h-16 items-center justify-between gap-4 sm:h-[68px]">
+    <a
+      href="/"
+      class="group flex shrink-0 items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4"
+    >
+      <img
+        src="/logo.png"
+        alt="ทูลสยาม"
+        width="401"
+        height="96"
+        decoding="async"
+        class="h-7 w-auto sm:h-8"
+      />
+    </a>
+
+    <nav class="hidden items-center gap-1 md:flex" aria-label="เมนูหลัก">
+      {links.map((l) => {
+        const active = l.match(current) || current === l.href;
+        return (
+          <a
+            href={l.href}
+            aria-current={active ? 'page' : undefined}
+            class:list={[
+              'rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600',
+              active ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+            ]}
+          >
+            {l.label}
+          </a>
+        );
+      })}
+      <a
+        href="/tools"
+        aria-label="ค้นหาเครื่องมือ"
+        class="ml-1 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+      >
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" class="h-[18px] w-[18px]" aria-hidden="true">
+          <circle cx="9" cy="9" r="6" />
+          <path d="m13.5 13.5 3.5 3.5" stroke-linecap="round" />
+        </svg>
+      </a>
     </nav>
+
+    <button
+      type="button"
+      id="nav-toggle"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+      class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors duration-150 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 md:hidden"
+    >
+      <span class="sr-only">เปิดเมนู</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" class="h-5 w-5" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </svg>
+    </button>
   </div>
+
+  <nav id="mobile-nav" hidden class="border-t border-slate-200 bg-white md:hidden" aria-label="เมนูหลัก (มือถือ)">
+    <div class="site-container flex flex-col py-2">
+      {links.map((l) => {
+        const active = l.match(current) || current === l.href;
+        return (
+          <a
+            href={l.href}
+            aria-current={active ? 'page' : undefined}
+            class:list={[
+              'rounded-lg px-3 py-2.5 text-[0.9375rem] font-medium',
+              active ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-50',
+            ]}
+          >
+            {l.label}
+          </a>
+        );
+      })}
+    </div>
+  </nav>
 </header>
+
+<script>
+  const header = document.getElementById('site-header');
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('mobile-nav');
+
+  if (header) {
+    const onScroll = () => {
+      if (window.scrollY > 4) header.setAttribute('data-scrolled', '');
+      else header.removeAttribute('data-scrolled');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!open));
+      menu.hidden = open;
+    });
+  }
+</script>

@@ -2,21 +2,35 @@
 import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
 import { categories, getToolsByCategory } from '@/tools/registry';
+import { cardGrid, cardGridItem } from '@/components/grids';
+import { DEFAULT_OG_IMAGE, resolveOgImage } from '@/tools/covers';
 
 export function getStaticPaths() {
   return categories.map((category) => ({ params: { category: category.id }, props: { category } }));
 }
 const { category } = Astro.props;
 const list = getToolsByCategory(category.id);
+// ใช้ภาพของเครื่องมือตัวแรกในหมวดเป็นตัวแทน หมวดที่ยังว่างใช้ภาพเริ่มต้น
+const og = list.length > 0 ? resolveOgImage(list[0]) : { src: DEFAULT_OG_IMAGE, alt: `เครื่องมือหมวด${category.name} — ทูลสยาม` };
 ---
-<Base title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`} noindex={list.length === 0}>
-  <h1 class="text-3xl font-bold">{category.icon} {category.name}</h1>
-  <p class="mt-2 text-slate-600">{category.description}</p>
+<Base wide title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`} noindex={list.length === 0} ogImage={og.src} ogImageAlt={og.alt}>
+  <div class="flex items-start gap-3">
+    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-2xl" aria-hidden="true">{category.icon}</div>
+    <div>
+      <h1 class="text-[1.75rem] font-bold tracking-tight text-slate-900 sm:text-3xl">{category.name}</h1>
+      <p class="mt-1.5 max-w-2xl text-slate-600">{category.description}</p>
+    </div>
+  </div>
   {list.length === 0 ? (
-    <p class="mt-8 rounded-lg bg-white p-6 text-slate-500">กำลังเพิ่มเครื่องมือในหมวดนี้ เร็ว ๆ นี้</p>
+    <div class="mt-8 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-2xl" aria-hidden="true">{category.icon}</div>
+      <h2 class="mt-4 font-semibold text-slate-900">กำลังเพิ่มเครื่องมือในหมวดนี้</h2>
+      <p class="mx-auto mt-1 max-w-sm text-sm text-slate-600">เร็ว ๆ นี้ ระหว่างนี้ลองดูเครื่องมือหมวดอื่นได้เลย</p>
+      <a href="/tools" class="mt-5 inline-block rounded-[11px] bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2">ดูเครื่องมือทั้งหมด</a>
+    </div>
   ) : (
-    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {list.map((t) => <ToolCard tool={t} />)}
+    <div class:list={['mt-8', cardGrid]}>
+      {list.map((t) => <div class:list={[cardGridItem]}><ToolCard tool={t} /></div>)}
     </div>
   )}
 </Base>

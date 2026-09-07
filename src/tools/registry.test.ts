@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { tools, categories, getTool, getToolsByCategory, getCategory } from './registry';
 import { toolLoaders } from './loaders';
+import { DEFAULT_OG_IMAGE, FALLBACK_COVER, resolveCover, resolveOgImage } from './covers';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 describe('registry', () => {
   it('slug ไม่ซ้ำและเป็น kebab-case', () => {
@@ -30,5 +33,36 @@ describe('registry', () => {
     for (const c of categories) {
       for (const t of getToolsByCategory(c.id)) expect(t.category).toBe(c.id);
     }
+  });
+});
+
+describe('covers', () => {
+  it('ทุกเครื่องมือ resolve ภาพปกได้ และไฟล์มีอยู่จริงใน public/', () => {
+    for (const t of tools) {
+      const cover = resolveCover(t);
+      expect(cover.isFallback).toBe(false);
+      expect(cover.alt.length).toBeGreaterThan(0);
+      expect(existsSync(join('public', cover.src))).toBe(true);
+    }
+  });
+
+  it('ทุกเครื่องมือมี og:image เป็น JPEG ที่มีไฟล์อยู่จริง', () => {
+    for (const t of tools) {
+      const og = resolveOgImage(t);
+      expect(og.src.endsWith('.jpg')).toBe(true);
+      expect(existsSync(join('public', og.src))).toBe(true);
+      expect(og.alt.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('ภาพ og เริ่มต้นของเว็บมีอยู่จริง', () => {
+    expect(existsSync(join('public', DEFAULT_OG_IMAGE))).toBe(true);
+  });
+
+  it('มีภาพสำรองสำหรับเครื่องมือที่ยังไม่มีภาพปก', () => {
+    const cover = resolveCover({ slug: 'ยังไม่มีจริง', name: 'เครื่องมือใหม่' });
+    expect(cover.src).toBe(FALLBACK_COVER);
+    expect(cover.isFallback).toBe(true);
+    expect(existsSync(join('public', FALLBACK_COVER))).toBe(true);
   });
 });

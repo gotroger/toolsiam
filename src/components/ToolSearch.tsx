@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import { tools, categories, type ToolMeta, type CategoryId } from '@/tools/registry';
 import { Input, Select } from '@/components/ui';
+import ToolCard from '@/components/ToolCard';
+import { cardGrid, cardGridItem } from '@/components/grids';
 
 const fuse = new Fuse(tools, {
   keys: [
@@ -21,14 +23,28 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
   const [tier, setTier] = useState<TierFilter>('all');
   const [category, setCategory] = useState<CategoryId | 'all'>(initialCategory ?? 'all');
 
+  // รองรับลิงก์ /tools?tier=free จาก header/footer — อ่านหลัง mount เพื่อไม่ให้ HTML ที่ build ไว้ไม่ตรงกัน
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get('tier');
+    if (value === 'free' || value === 'premium') setTier(value);
+  }, []);
+
   const results: ToolMeta[] = useMemo(() => {
     const base = q.trim() ? fuse.search(q.trim()).map((r) => r.item) : tools;
     return base.filter((t) => (tier === 'all' || t.tier === tier) && (category === 'all' || t.category === category));
   }, [q, tier, category]);
 
+  const isFiltered = q.trim() !== '' || tier !== 'all' || category !== (initialCategory ?? 'all');
+
+  function resetFilters() {
+    setQ('');
+    setTier('all');
+    setCategory(initialCategory ?? 'all');
+  }
+
   return (
     <div>
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+      <div className="grid gap-2.5 sm:grid-cols-[1fr_auto_auto]">
         <Input type="search" placeholder="ค้นหาเครื่องมือ เช่น ภาษี, บาทถ้วน, QR" value={q} onChange={(e) => setQ(e.target.value)} aria-label="ค้นหาเครื่องมือ" />
         <Select value={category} onChange={(e) => setCategory(e.target.value as CategoryId | 'all')} aria-label="หมวดหมู่">
           <option value="all">ทุกหมวด</option>
@@ -41,27 +57,48 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
         </Select>
       </div>
 
-      <p className="mt-3 text-sm text-slate-500">พบ {results.length} เครื่องมือ</p>
+      <p className="mt-4 text-sm text-slate-500" role="status" aria-live="polite">พบ {results.length} เครื่องมือ</p>
 
-      <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {results.map((t) => {
-          const cat = categories.find((c) => c.id === t.category)!;
-          return (
-            <li key={t.slug}>
-              <a href={`/t/${t.slug}`} className="block h-full rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold leading-snug">{t.name}</h3>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${t.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700'}`}>
-                    {t.tier === 'premium' ? 'พรีเมียม' : 'ฟรี'}
-                  </span>
-                </div>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-600">{t.description}</p>
-                <div className="mt-2 text-xs text-slate-400">{cat.icon} {cat.name}</div>
-              </a>
+      {results.length === 0 ? (
+        <EmptyState query={q} onReset={resetFilters} />
+      ) : (
+        <ul className={`mt-4 ${cardGrid}`}>
+          {results.map((t) => (
+            <li key={t.slug} className={cardGridItem}>
+              <ToolCard tool={t} />
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
+
+      {isFiltered && results.length > 0 && (
+        <button
+          type="button"
+          onClick={resetFilters}
+          className="mt-2 rounded-lg px-2 py-1 text-sm text-brand-700 underline underline-offset-4 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+        >
+          ล้างตัวกรอง
+        </button>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ query, onReset }: { query: string; onReset: () => void }) {
+  return (
+    <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-2xl" aria-hidden="true">🔍</div>
+      <h2 className="mt-4 font-semibold text-slate-900">ไม่พบเครื่องมือที่ตรงกับที่ค้นหา</h2>
+      <p className="mx-auto mt-1 max-w-sm text-sm text-slate-600">
+        {query.trim() ? <>ลองใช้คำค้นอื่น เช่น “ภาษี” “บาทถ้วน” “QR” หรือล้างตัวกรองเพื่อดูทั้งหมด</> : <>ลองล้างตัวกรองเพื่อดูเครื่องมือทั้งหมด</>}
+      </p>
+      <button
+        type="button"
+        onClick={onReset}
+        className="mt-5 rounded-[11px] bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
+      >
+        ล้างตัวกรอง
+      </button>
     </div>
   );
 }

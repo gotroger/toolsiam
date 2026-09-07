@@ -4,8 +4,9 @@ import type {
 } from 'react';
 
 const field =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 ' +
-  'focus:outline-none focus:ring-2 focus:ring-brand-600 disabled:bg-slate-100';
+  'w-full rounded-[10px] border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 ' +
+  'transition-colors duration-150 placeholder:text-slate-400 hover:border-slate-400 ' +
+  'focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/30 disabled:bg-slate-100';
 
 function cx(...parts: (string | undefined | false)[]) {
   return parts.filter(Boolean).join(' ');
@@ -37,14 +38,14 @@ export function Button({ variant = 'primary', className, ...props }: ButtonProps
     <button
       type="button"
       {...props}
-      className={cx('rounded-lg px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50', styles, className)}
+      className={cx('rounded-[10px] px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50', styles, className)}
     />
   );
 }
 
 export function ResultBox({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-brand-600/20 bg-brand-50 p-4">
+    <div className="rounded-[10px] border border-brand-600/20 bg-brand-50 p-4">
       <div className="text-xs font-medium text-brand-700">{label}</div>
       <div className="mt-1 break-words text-lg font-semibold">{children}</div>
     </div>
@@ -53,7 +54,7 @@ export function ResultBox({ label, children }: { label: string; children: ReactN
 
 export function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3">
+    <div className="rounded-[10px] border border-slate-200 bg-white p-3">
       <div className="text-xs text-slate-500">{label}</div>
       <div className="mt-1 text-lg font-semibold">{value}</div>
     </div>

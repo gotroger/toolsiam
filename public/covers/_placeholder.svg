@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img">
+  <!-- ภาพปกสำรอง: ใช้พาเลตต์เดียวกับภาพปกจริง (มิ้นต์อ่อน + เขียวแบรนด์) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7fefb"/><stop offset="1" stop-color="#eafaf1"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".42" r=".5">
+      <stop offset="0" stop-color="#c9efdb" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#c9efdb" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef7f2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <ellipse cx="600" cy="300" rx="430" ry="300" fill="url(#glow)"/>
+  <g>
+    <path d="M420 300 q0 -14 12 -22 l150 -86 q18 -10 36 0 l150 86 q12 8 12 22 l0 30 -360 0 z" fill="#9fdcbd" opacity=".55"/>
+    <rect x="420" y="215" width="360" height="270" rx="46" fill="url(#tile)"/>
+    <rect x="420" y="215" width="360" height="270" rx="46" fill="none" stroke="#bfe8d3" stroke-width="4"/>
+    <text x="600" y="410" font-family="Sarabun, 'Noto Sans Thai', sans-serif" font-size="170" font-weight="700" fill="#059669" text-anchor="middle">ท</text>
+  </g>
+  <g fill="#7ccfa8" opacity=".55">
+    <ellipse cx="245" cy="470" rx="70" ry="34" transform="rotate(-24 245 470)"/>
+    <ellipse cx="955" cy="470" rx="70" ry="34" transform="rotate(24 955 470)"/>
+  </g>
+  <ellipse cx="600" cy="512" rx="215" ry="26" fill="#8ed4b0" opacity=".28"/>
+</svg>

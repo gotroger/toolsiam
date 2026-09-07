@@ -1,5 +1,76 @@
-<footer class="mt-16 border-t border-slate-200 bg-white">
-  <div class="mx-auto max-w-5xl px-4 py-6 text-sm text-slate-500">
-    © {new Date().getFullYear()} ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี ไม่ต้องติดตั้ง
+---
+import { categories, getToolsByCategory, tools } from '@/tools/registry';
+
+/**
+ * Footer — แสดงเฉพาะลิงก์ที่มี route จริงเท่านั้น (ไม่มี dead link)
+ * หมวดหมู่ยอดนิยม = หมวดที่มีเครื่องมือแล้ว เรียงตามจำนวนเครื่องมือ
+ */
+const topCategories = categories
+  .map((c) => ({ ...c, count: getToolsByCategory(c.id).length }))
+  .filter((c) => c.count > 0)
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 4);
+
+const toolLinks = [
+  { href: '/tools', label: 'เครื่องมือทั้งหมด' },
+  { href: '/#popular', label: 'เครื่องมือยอดนิยม' },
+  { href: '/#categories', label: 'หมวดหมู่' },
+  { href: '/tools?tier=free', label: 'เครื่องมือฟรี' },
+];
+
+const linkClass =
+  'rounded text-sm text-slate-600 transition-colors duration-150 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600';
+---
+<footer class="mt-20 border-t border-slate-200 bg-brand-50/40">
+  <div class="site-container py-12 lg:py-16">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+      <div class="sm:col-span-2 lg:col-span-1">
+        <img
+          src="/logo.png"
+          alt="ทูลสยาม"
+          width="401"
+          height="96"
+          loading="lazy"
+          decoding="async"
+          class="h-7 w-auto"
+        />
+        <p class="mt-3 max-w-xs text-sm leading-relaxed text-slate-600">
+          เครื่องมือออนไลน์ภาษาไทย ใช้ง่าย ใช้ฟรี ทำงานในเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">เครื่องมือ</h2>
+        <ul class="mt-4 space-y-2.5">
+          {toolLinks.map((l) => (
+            <li><a href={l.href} class={linkClass}>{l.label}</a></li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">หมวดหมู่ยอดนิยม</h2>
+        <ul class="mt-4 space-y-2.5">
+          {topCategories.map((c) => (
+            <li><a href={`/c/${c.id}`} class={linkClass}>{c.name}</a></li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">ข้อมูล</h2>
+        <ul class="mt-4 space-y-2.5">
+          <li><a href="/pricing" class={linkClass}>สมาชิกพรีเมียม</a></li>
+        </ul>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
+          ทุกเครื่องมือคำนวณในเบราว์เซอร์ของคุณ ข้อมูลที่กรอกไม่ถูกส่งออกไปที่ไหน
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-12 flex flex-col gap-1 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <p>© {new Date().getFullYear()} ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย</p>
+      <p>{tools.length} เครื่องมือ ใช้ฟรี ไม่ต้องสมัคร</p>
+    </div>
   </div>
 </footer>

@@ -4,14 +4,16 @@ import ToolShell from '@/components/ToolShell.astro';
 import ToolIsland from '@/tools/ToolIsland';
 import { tools } from '@/tools/registry';
 import { toolJsonLd } from '@/lib/seo';
+import { resolveOgImage } from '@/tools/covers';
 
 export function getStaticPaths() {
   return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
 }
 const { tool } = Astro.props;
 const url = new URL(`/t/${tool.slug}`, Astro.site).toString();
+const og = resolveOgImage(tool);
 ---
-<Base title={`${tool.name} — ทูลสยาม`} description={tool.description} jsonLd={toolJsonLd(tool, url)}>
+<Base title={`${tool.name} — ทูลสยาม`} description={tool.description} jsonLd={toolJsonLd(tool, url)} ogImage={og.src} ogImageAlt={og.alt}>
   <ToolShell tool={tool}>
     <ToolIsland client:load slug={tool.slug} />
   </ToolShell>
