@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "toolsiam",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+  "preview_urls": false
+  // routes ใส่ใน Step 5 หลังโดเมน toolsiam.com อยู่ใน Cloudflare zone แล้ว
+  // Phase 2/3 จะเพิ่ม d1_databases, kv_namespaces, triggers.crons ที่นี่
+}
