@@ -14,15 +14,15 @@ export interface CountResult {
 
 const WORDS_PER_MINUTE = 200;
 
+const Seg = (Intl as { Segmenter?: typeof Intl.Segmenter }).Segmenter;
+
 function countGraphemes(text: string): number {
-  const Seg = (Intl as { Segmenter?: typeof Intl.Segmenter }).Segmenter;
   if (!Seg) return Array.from(text).length;
   return [...new Seg('th', { granularity: 'grapheme' }).segment(text)].length;
 }
 
 function countWords(text: string): number {
   if (!text.trim()) return 0;
-  const Seg = (Intl as { Segmenter?: typeof Intl.Segmenter }).Segmenter;
   if (!Seg) return text.trim().split(/\s+/).length;
   const segments = [...new Seg('th', { granularity: 'word' }).segment(text)];
   return segments.filter((s) => s.isWordLike).length;

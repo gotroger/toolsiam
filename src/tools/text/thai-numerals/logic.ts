@@ -17,7 +17,8 @@ export function transformCase(text: string, mode: CaseMode): string {
     case 'lower':
       return text.toLowerCase();
     case 'title':
-      return text.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+      // ตัวใหญ่เฉพาะตอนขึ้นต้นคำจริง ๆ: ต้นข้อความ หรือไม่ได้ตามหลังตัวอักษรละติน/อะพอสทรอฟี/ตัวอักษรไทย
+      return text.toLowerCase().replace(/(?<![a-z'฀-๿])[a-z]/g, (c) => c.toUpperCase());
     case 'sentence': {
       const lower = text.toLowerCase();
       // ตัวแรกของข้อความ และตัวแรกหลังเครื่องหมายจบประโยค

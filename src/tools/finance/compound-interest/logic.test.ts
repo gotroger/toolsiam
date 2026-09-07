@@ -25,12 +25,19 @@ describe('compoundGrowth', () => {
 
   it('ยอดรวมดอกเบี้ย = ยอดสุดท้าย − เงินต้น − เงินฝากรวม', () => {
     const r = compoundGrowth({ principal: 50_000, monthlyDeposit: 2_000, annualRate: 0.06, years: 5, compoundsPerYear: 12 });
+    expect(r.futureValue).toBe(206_982.57);
     expect(r.totalDeposits).toBe(120_000);
-    expect(r.totalInterest).toBe(Math.round((r.futureValue - 50_000 - 120_000) * 100) / 100);
+    expect(r.totalInterest).toBe(36_982.57);
   });
 
   it('จำนวนปีต้องมากกว่า 0', () => {
     expect(() => compoundGrowth({ principal: 1, monthlyDeposit: 0, annualRate: 0.05, years: 0, compoundsPerYear: 12 })).toThrow();
+  });
+
+  it('รองรับจำนวนปีที่เป็นเศษส่วน', () => {
+    const r = compoundGrowth({ principal: 10_000, monthlyDeposit: 0, annualRate: 0.06, years: 1.5, compoundsPerYear: 12 });
+    expect(r.futureValue).toBe(10_939.29);
+    expect(r.rows).toHaveLength(2);
   });
 
   it('จำนวนปีต้องไม่เกิน 100 ปี', () => {

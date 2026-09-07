@@ -58,6 +58,10 @@ describe('processLines', () => {
     expect(processLines('a\r\nb', opts()).text).toBe('a\nb');
   });
 
+  it('ลบบรรทัดที่มีแต่ช่องว่าง แม้ไม่ได้เปิด trim', () => {
+    expect(processLines('a\n   \nb', opts({ removeEmpty: true })).text).toBe('a\nb');
+  });
+
   it('ข้อความว่างได้ผลว่าง', () => {
     const r = processLines('', opts({ removeEmpty: true }));
     expect(r.text).toBe('');

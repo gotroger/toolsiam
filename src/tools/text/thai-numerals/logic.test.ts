@@ -47,4 +47,12 @@ describe('transformCase', () => {
   it('ไม่ทำให้ข้อความไทยเปลี่ยน', () => {
     expect(transformCase('สวัสดีครับ', 'title')).toBe('สวัสดีครับ');
   });
+
+  it('เครื่องหมายอะพอสทรอฟีไม่ทำให้ตัวถัดไปเป็นตัวใหญ่', () => {
+    expect(transformCase("don't stop", 'title')).toBe("Don't Stop");
+  });
+
+  it('ตัวอักษรละตินที่ตามหลังตัวอักษรไทยไม่กลายเป็นตัวใหญ่', () => {
+    expect(transformCase('ไทยhello', 'title')).toBe('ไทยhello');
+  });
 });

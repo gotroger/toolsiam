@@ -37,6 +37,7 @@ export interface NetSalaryResult {
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+const nonNegative = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
 
 export function ssoMonthly(monthlySalary: number): number {
   if (!Number.isFinite(monthlySalary) || monthlySalary <= 0) return 0;
@@ -48,7 +49,7 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
   if (!Number.isFinite(input.monthlySalary) || input.monthlySalary < 0) {
     throw new Error('เงินเดือนต้องเป็นตัวเลขไม่ติดลบ');
   }
-  const bonus = Math.max(0, input.bonus);
+  const bonus = nonNegative(input.bonus);
   const annualIncome = round2(input.monthlySalary * 12 + bonus);
 
   const sso = input.hasSocialSecurity ? ssoMonthly(input.monthlySalary) : 0;
@@ -57,9 +58,9 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
   const tax = calculateTax({
     annualIncome,
     hasSpouseNoIncome: input.hasSpouseNoIncome,
-    children: Math.max(0, input.children),
+    children: nonNegative(input.children),
     childrenBorn2018Plus: 0,
-    parents: Math.max(0, input.parents),
+    parents: nonNegative(input.parents),
     socialSecurity: ssoYearly,
     lifeInsurance: 0,
     healthInsurance: 0,
@@ -67,7 +68,7 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
     thaiEsg: 0,
     homeLoanInterest: 0,
     donations: 0,
-    otherDeductions: Math.max(0, input.otherDeductions),
+    otherDeductions: nonNegative(input.otherDeductions),
     withheldTax: 0,
   });
 

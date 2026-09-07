@@ -47,8 +47,10 @@ describe('calculateNetSalary', () => {
   it('โบนัสเพิ่มเงินได้ทั้งปีแต่ไม่เพิ่มเงินเดือนรายเดือน', () => {
     const r = calculateNetSalary({ ...base, bonus: 60_000 });
     expect(r.annualIncome).toBe(420_000);
-    expect(r.annualTax).toBeGreaterThan(2_050);
-    expect(r.netYearly).toBe(Math.round((420_000 - r.ssoYearly - r.annualTax) * 100) / 100);
+    expect(r.ssoYearly).toBe(9_000);
+    expect(r.netIncome).toBe(251_000);
+    expect(r.annualTax).toBe(5_050);
+    expect(r.netYearly).toBe(405_950);
   });
 
   it('ไม่ส่งประกันสังคม → ไม่หัก และไม่ได้ลดหย่อน', () => {
@@ -74,5 +76,13 @@ describe('calculateNetSalary', () => {
 
   it('เงินเดือนติดลบ → error', () => {
     expect(() => calculateNetSalary({ ...base, monthlySalary: -1 })).toThrow();
+  });
+
+  it('ค่า NaN ในโบนัส/บุตร/บิดามารดา/ลดหย่อนอื่น ให้ผลเหมือนใส่ 0', () => {
+    const zero = calculateNetSalary(base);
+    expect(calculateNetSalary({ ...base, bonus: NaN })).toEqual(zero);
+    expect(calculateNetSalary({ ...base, children: NaN })).toEqual(zero);
+    expect(calculateNetSalary({ ...base, parents: NaN })).toEqual(zero);
+    expect(calculateNetSalary({ ...base, otherDeductions: NaN })).toEqual(zero);
   });
 });

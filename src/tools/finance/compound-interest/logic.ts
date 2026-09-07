@@ -63,20 +63,23 @@ export function compoundGrowth(input: CompoundInput): CompoundResult {
     balance = balance * (1 + m) + deposit;
     deposits += deposit;
     if (i % 12 === 0 || i === months) {
+      const roundedBalance = round2(balance);
+      const roundedDeposits = round2(deposits);
       rows.push({
         year: Math.ceil(i / 12),
-        deposits: round2(deposits),
-        interest: round2(balance - input.principal - deposits),
-        balance: round2(balance),
+        deposits: roundedDeposits,
+        interest: round2(roundedBalance - input.principal - roundedDeposits),
+        balance: roundedBalance,
       });
     }
   }
 
   const futureValue = round2(balance);
+  const totalDeposits = round2(deposits);
   return {
     futureValue,
-    totalDeposits: round2(deposits),
-    totalInterest: round2(futureValue - input.principal - deposits),
+    totalDeposits,
+    totalInterest: round2(futureValue - input.principal - totalDeposits),
     rows,
   };
 }

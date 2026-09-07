@@ -17,7 +17,20 @@ export { categories };
 export type { ToolMeta, CategoryMeta, CategoryId };
 
 /** ลำดับในนี้ = ลำดับแสดงผลในหน้า /tools */
-export const tools: ToolMeta[] = [thaiIncomeTaxMeta, loanInstallmentMeta, netSalaryMeta, vatWhtMeta, compoundInterestMeta, bahtTextMeta, wordCountMeta, thaiNumeralsMeta, textLinesMeta, thaiIdCheckMeta, promptpayQrMeta, jsonFormatterMeta];
+export const tools: ToolMeta[] = [
+  thaiIncomeTaxMeta,
+  loanInstallmentMeta,
+  netSalaryMeta,
+  vatWhtMeta,
+  compoundInterestMeta,
+  bahtTextMeta,
+  wordCountMeta,
+  thaiNumeralsMeta,
+  textLinesMeta,
+  thaiIdCheckMeta,
+  promptpayQrMeta,
+  jsonFormatterMeta,
+];
 
 export function getTool(slug: string): ToolMeta | undefined {
   return tools.find((t) => t.slug === slug);
