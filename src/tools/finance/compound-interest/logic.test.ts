@@ -33,6 +33,11 @@ describe('compoundGrowth', () => {
     expect(() => compoundGrowth({ principal: 1, monthlyDeposit: 0, annualRate: 0.05, years: 0, compoundsPerYear: 12 })).toThrow();
   });
 
+  it('จำนวนปีต้องไม่เกิน 100 ปี', () => {
+    expect(() => compoundGrowth({ principal: 1, monthlyDeposit: 0, annualRate: 0.05, years: 101, compoundsPerYear: 12 })).toThrow();
+    expect(() => compoundGrowth({ principal: 1, monthlyDeposit: 0, annualRate: 0.05, years: 100, compoundsPerYear: 12 })).not.toThrow();
+  });
+
   it('เงินต้นติดลบ → error', () => {
     expect(() => compoundGrowth({ principal: -1, monthlyDeposit: 0, annualRate: 0.05, years: 1, compoundsPerYear: 12 })).toThrow();
   });

@@ -45,6 +45,7 @@ function validate(principal: number, annualRate: number, years: number, compound
   if (!Number.isFinite(principal) || principal < 0) throw new Error('เงินต้นต้องเป็นตัวเลขไม่ติดลบ');
   if (!Number.isFinite(annualRate) || annualRate < 0) throw new Error('อัตราดอกเบี้ยต้องเป็นตัวเลขไม่ติดลบ');
   if (!Number.isFinite(years) || years <= 0) throw new Error('จำนวนปีต้องมากกว่า 0');
+  if (years > 100) throw new Error('จำนวนปีต้องไม่เกิน 100 ปี');
   if (!Number.isFinite(compoundsPerYear) || compoundsPerYear <= 0) throw new Error('จำนวนครั้งที่ทบต้นต้องมากกว่า 0');
 }
 

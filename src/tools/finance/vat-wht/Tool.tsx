@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { VAT_RATE, WHT_RATES, calculateInvoice } from './logic';
-import { formatBaht } from '@/lib/format';
+import { formatBaht, formatNumber } from '@/lib/format';
 import { Field, Input, Select, Stat } from '@/components/ui';
 
 export default function VatWhtTool() {
@@ -49,7 +49,7 @@ export default function VatWhtTool() {
       {result && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Stat label="ราคาก่อน VAT" value={`${formatBaht(result.base)} บาท`} />
-          <Stat label={`VAT ${VAT_RATE * 100}%`} value={`${formatBaht(result.vat)} บาท`} />
+          <Stat label={`VAT ${formatNumber(VAT_RATE * 100)}%`} value={`${formatBaht(result.vat)} บาท`} />
           <Stat label="ยอดรวม" value={`${formatBaht(result.total)} บาท`} />
           <Stat label="หัก ณ ที่จ่าย" value={`${formatBaht(result.wht)} บาท`} />
           <Stat label="ยอดจ่ายจริง" value={`${formatBaht(result.payable)} บาท`} />
