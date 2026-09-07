@@ -1,4 +1,4 @@
-import { MS_PER_DAY, daysBetweenDates, daysInMonth, isLeapYear, isWeekend, parseIsoDate, toIsoDate } from '@/lib/date';
+import { countWeekends, daysBetweenDates, daysInMonth, isLeapYear, parseIsoDate } from '@/lib/date';
 
 export interface DiffParts {
   years: number;
@@ -93,10 +93,7 @@ export function daysBetween(startIso: string, endIso: string): DateSpan {
   const days = daysBetweenDates(fromIso, toIso);
   const inclusiveDays = days + 1;
 
-  let weekendCount = 0;
-  for (let t = parseIsoDate(fromIso); t <= parseIsoDate(toIso); t += MS_PER_DAY) {
-    if (isWeekend(toIsoDate(t))) weekendCount += 1;
-  }
+  const weekendCount = countWeekends(fromIso, toIso);
 
   return {
     days,

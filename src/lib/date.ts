@@ -23,7 +23,10 @@ export function parseIsoDate(iso: string): number {
   const day = Number(m[3]);
   if (month < 1 || month > 12) throw new Error('เดือนต้องอยู่ระหว่าง 01–12');
   if (day < 1 || day > daysInMonth(year, month)) throw new Error(`ไม่มีวันที่ ${iso} ในปฏิทิน`);
-  return Date.UTC(year, month - 1, day);
+  // Date.UTC() ตีความปี 0–99 เป็น ค.ศ. 1900–1999 จึงต้องตั้งปีผ่าน setUTCFullYear
+  const d = new Date(0);
+  d.setUTCFullYear(year, month - 1, day);
+  return d.getTime();
 }
 
 export function toIsoDate(ms: number): string {
@@ -51,4 +54,24 @@ export function weekdayIndex(iso: string): number {
 export function isWeekend(iso: string): boolean {
   const d = weekdayIndex(iso);
   return d === 0 || d === 6;
+}
+
+/**
+ * จำนวนวันเสาร์-อาทิตย์ในช่วง (นับรวมทั้งวันเริ่มต้นและวันสิ้นสุด)
+ * คำนวณแบบปิดรูป จึงไม่วนลูปตามจำนวนวันในช่วง สลับลำดับวันได้
+ */
+export function countWeekends(fromIso: string, toIso: string): number {
+  const a = parseIsoDate(fromIso);
+  const b = parseIsoDate(toIso);
+  const startIso = a <= b ? fromIso : toIso;
+  const inclusiveDays = Math.round(Math.abs(b - a) / MS_PER_DAY) + 1;
+
+  const startWd = weekdayIndex(startIso);
+  const full = Math.floor(inclusiveDays / 7);
+  let weekend = full * 2;
+  for (let i = full * 7; i < inclusiveDays; i++) {
+    const wd = (startWd + i) % 7;
+    if (wd === 0 || wd === 6) weekend += 1;
+  }
+  return weekend;
 }

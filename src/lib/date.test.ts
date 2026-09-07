@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   MS_PER_DAY, parseIsoDate, toIsoDate, daysBetweenDates, addDays,
-  weekdayIndex, isWeekend, daysInMonth, isLeapYear,
+  weekdayIndex, isWeekend, daysInMonth, isLeapYear, countWeekends,
 } from './date';
 
 describe('parseIsoDate', () => {
@@ -26,6 +26,13 @@ describe('parseIsoDate', () => {
 describe('toIsoDate', () => {
   it('กลับเป็นสตริงเดิม', () => {
     expect(toIsoDate(parseIsoDate('2026-01-05'))).toBe('2026-01-05');
+  });
+
+  it('ปี 0001–0099 ต้องไม่ถูกเลื่อนไปเป็นคริสต์ศตวรรษที่ 20', () => {
+    expect(toIsoDate(parseIsoDate('0050-06-15'))).toBe('0050-06-15');
+    expect(toIsoDate(parseIsoDate('0001-01-01'))).toBe('0001-01-01');
+    expect(new Date(parseIsoDate('0050-06-15')).getUTCFullYear()).toBe(50);
+    expect(new Date(parseIsoDate('0001-01-01')).getUTCFullYear()).toBe(1);
   });
 });
 
@@ -58,6 +65,42 @@ describe('weekdayIndex / isWeekend', () => {
     expect(isWeekend('2026-05-31')).toBe(true);
     expect(isWeekend('2026-12-05')).toBe(true);
     expect(isWeekend('2026-09-08')).toBe(false);
+  });
+});
+
+describe('countWeekends', () => {
+  it('มกราคม 2569 ทั้งเดือน = เสาร์-อาทิตย์ 9 วัน (จันทร์-ศุกร์ 22 วัน)', () => {
+    const weekend = countWeekends('2026-01-01', '2026-01-31');
+    expect(weekend).toBe(9);
+    expect(31 - weekend).toBe(22);
+  });
+
+  it('วันเดียวกัน', () => {
+    expect(countWeekends('2026-09-08', '2026-09-08')).toBe(0); // อังคาร
+    expect(countWeekends('2026-05-31', '2026-05-31')).toBe(1); // อาทิตย์
+    expect(countWeekends('2026-12-05', '2026-12-05')).toBe(1); // เสาร์
+  });
+
+  it('สลับลำดับวันได้ผลเท่ากัน', () => {
+    expect(countWeekends('2026-01-31', '2026-01-01')).toBe(countWeekends('2026-01-01', '2026-01-31'));
+  });
+
+  it('ตรงกับการนับทีละวันทุกวันเริ่มต้นในสัปดาห์ และความยาว 0–14 วัน', () => {
+    // 2026-01-04 คือวันอาทิตย์ จึงครอบคลุมวันเริ่มต้นครบทั้ง 7 วันในสัปดาห์
+    for (let s = 0; s < 7; s++) {
+      const from = addDays('2026-01-04', s);
+      expect(weekdayIndex(from)).toBe(s);
+      for (let len = 0; len <= 14; len++) {
+        const to = addDays(from, len);
+        let brute = 0;
+        for (let i = 0; i <= len; i++) if (isWeekend(addDays(from, i))) brute += 1;
+        expect(countWeekends(from, to)).toBe(brute);
+      }
+    }
+  });
+
+  it('ช่วงยาวหลายพันปีคำนวณได้ทันทีโดยไม่วนลูปตามจำนวนวัน', () => {
+    expect(countWeekends('2026-01-01', '9999-12-31')).toBe(832_126);
   });
 });
 
