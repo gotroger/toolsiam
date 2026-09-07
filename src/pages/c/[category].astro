@@ -1,0 +1,22 @@
+---
+import Base from '@/layouts/Base.astro';
+import ToolCard from '@/components/ToolCard.astro';
+import { categories, getToolsByCategory } from '@/tools/registry';
+
+export function getStaticPaths() {
+  return categories.map((category) => ({ params: { category: category.id }, props: { category } }));
+}
+const { category } = Astro.props;
+const list = getToolsByCategory(category.id);
+---
+<Base title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`}>
+  <h1 class="text-3xl font-bold">{category.icon} {category.name}</h1>
+  <p class="mt-2 text-slate-600">{category.description}</p>
+  {list.length === 0 ? (
+    <p class="mt-8 rounded-lg bg-white p-6 text-slate-500">กำลังเพิ่มเครื่องมือในหมวดนี้ เร็ว ๆ นี้</p>
+  ) : (
+    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {list.map((t) => <ToolCard tool={t} />)}
+    </div>
+  )}
+</Base>

@@ -1,0 +1,18 @@
+---
+import Base from '@/layouts/Base.astro';
+import ToolShell from '@/components/ToolShell.astro';
+import ToolIsland from '@/tools/ToolIsland';
+import { tools } from '@/tools/registry';
+import { toolJsonLd } from '@/lib/seo';
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
+}
+const { tool } = Astro.props;
+const url = new URL(`/t/${tool.slug}`, Astro.site).toString();
+---
+<Base title={`${tool.name} — ทูลสยาม`} description={tool.description} jsonLd={toolJsonLd(tool, url)}>
+  <ToolShell tool={tool}>
+    <ToolIsland client:load slug={tool.slug} />
+  </ToolShell>
+</Base>
