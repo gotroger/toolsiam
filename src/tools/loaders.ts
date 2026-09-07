@@ -10,6 +10,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'vat-wht': () => import('./finance/vat-wht/Tool'),
   'compound-interest': () => import('./finance/compound-interest/Tool'),
   'baht-text': () => import('./text/baht-text/Tool'),
+  'word-count': () => import('./text/word-count/Tool'),
   'promptpay-qr': () => import('./qr/promptpay-qr/Tool'),
   'json-formatter': () => import('./dev/json-formatter/Tool'),
 };
