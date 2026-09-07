@@ -1,5 +1,6 @@
 import type { CategoryId, CategoryMeta, ToolMeta } from './types';
 import { categories } from './categories';
+import { thaiIncomeTaxMeta } from './finance/thai-income-tax/meta';
 import { loanInstallmentMeta } from './finance/loan-installment/meta';
 import { bahtTextMeta } from './text/baht-text/meta';
 
@@ -7,7 +8,7 @@ export { categories };
 export type { ToolMeta, CategoryMeta, CategoryId };
 
 /** ลำดับในนี้ = ลำดับแสดงผลในหน้า /tools */
-export const tools: ToolMeta[] = [loanInstallmentMeta, bahtTextMeta];
+export const tools: ToolMeta[] = [thaiIncomeTaxMeta, loanInstallmentMeta, bahtTextMeta];
 
 export function getTool(slug: string): ToolMeta | undefined {
   return tools.find((t) => t.slug === slug);
