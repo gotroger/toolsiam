@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { calculateAge, daysBetween } from './logic';
 import { Field, Input, Select, Stat } from '@/components/ui';
 
+const MIN_DATE = '1900-01-01';
+const MAX_DATE = '2200-12-31';
+
 /** วันนี้ในรูปแบบ YYYY-MM-DD (ใช้เวลาเครื่องผู้ใช้ตอน mount เท่านั้น) */
 function todayIso(): string {
   const now = new Date();
@@ -52,19 +55,19 @@ export default function AgeDaysTool() {
       {mode === 'age' ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="วันเกิด" htmlFor="birth" hint={`ตรงกับ พ.ศ. ${beYear(birth)}`}>
-            <Input id="birth" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} />
+            <Input id="birth" type="date" min={MIN_DATE} max={MAX_DATE} value={birth} onChange={(e) => setBirth(e.target.value)} />
           </Field>
           <Field label="คำนวณ ณ วันที่" htmlFor="ref" hint={`ตรงกับ พ.ศ. ${beYear(ref)}`}>
-            <Input id="ref" type="date" value={ref} onChange={(e) => setRef(e.target.value)} />
+            <Input id="ref" type="date" min={MIN_DATE} max={MAX_DATE} value={ref} onChange={(e) => setRef(e.target.value)} />
           </Field>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="วันเริ่มต้น" htmlFor="start" hint={`ตรงกับ พ.ศ. ${beYear(start)}`}>
-            <Input id="start" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+            <Input id="start" type="date" min={MIN_DATE} max={MAX_DATE} value={start} onChange={(e) => setStart(e.target.value)} />
           </Field>
           <Field label="วันสิ้นสุด" htmlFor="end" hint={`ตรงกับ พ.ศ. ${beYear(end)}`}>
-            <Input id="end" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+            <Input id="end" type="date" min={MIN_DATE} max={MAX_DATE} value={end} onChange={(e) => setEnd(e.target.value)} />
           </Field>
         </div>
       )}
