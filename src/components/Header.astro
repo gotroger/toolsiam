@@ -1,0 +1,17 @@
+---
+const links = [
+  { href: '/tools', label: 'เครื่องมือทั้งหมด' },
+  { href: '/pricing', label: 'พรีเมียม' },
+];
+const current = Astro.url.pathname;
+---
+<header class="border-b border-slate-200 bg-white">
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+    <a href="/" class="text-xl font-bold text-brand-700">ทูลสยาม <span class="text-slate-400 font-normal text-sm">ToolSiam</span></a>
+    <nav class="flex gap-4 text-sm">
+      {links.map((l) => (
+        <a href={l.href} class:list={['hover:text-brand-700', { 'font-semibold text-brand-700': current.startsWith(l.href) }]}>{l.label}</a>
+      ))}
+    </nav>
+  </div>
+</header>
