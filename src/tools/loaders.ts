@@ -11,6 +11,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'compound-interest': () => import('./finance/compound-interest/Tool'),
   'baht-text': () => import('./text/baht-text/Tool'),
   'word-count': () => import('./text/word-count/Tool'),
+  'thai-numerals': () => import('./text/thai-numerals/Tool'),
   'promptpay-qr': () => import('./qr/promptpay-qr/Tool'),
   'json-formatter': () => import('./dev/json-formatter/Tool'),
 };
