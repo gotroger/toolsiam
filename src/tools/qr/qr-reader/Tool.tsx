@@ -22,6 +22,7 @@ export default function QrReaderTool() {
   const [parsed, setParsed] = useState<QrParsed | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const requestId = useRef(0);
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -29,6 +30,7 @@ export default function QrReaderTool() {
       setError('กรุณาเลือกไฟล์รูปภาพ');
       return;
     }
+    const myRequestId = ++requestId.current;
     setBusy(true);
     setError('');
     setParsed(null);
@@ -38,12 +40,14 @@ export default function QrReaderTool() {
     });
     try {
       const text = await decodeFile(file);
+      if (myRequestId !== requestId.current) return;
       if (text === null) setError('อ่าน QR จากรูปนี้ไม่สำเร็จ ลองใช้รูปที่ชัดขึ้นหรือครอบตัดให้เห็น QR เต็ม ๆ');
       else setParsed(classifyQrText(text));
     } catch {
+      if (myRequestId !== requestId.current) return;
       setError('เปิดไฟล์รูปไม่สำเร็จ กรุณาลองไฟล์อื่น');
     } finally {
-      setBusy(false);
+      if (myRequestId === requestId.current) setBusy(false);
     }
   };
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { classifyQrText } from './logic';
+import { buildVCardPayload } from '@/tools/qr/qr-generator/logic';
 
 describe('classifyQrText', () => {
   it('ลิงก์เว็บ', () => {
@@ -54,5 +55,13 @@ describe('classifyQrText', () => {
 
   it('เก็บข้อความดิบไว้เสมอ', () => {
     expect(classifyQrText('tel:02-000-0000').raw).toBe('tel:02-000-0000');
+  });
+
+  it('vCard round-trip: unescape ต้องย้อนค่า escape ของ qr-generator ได้ตรงเดิม (backslash จริง + ขึ้นบรรทัดใหม่ + ; และ ,)', () => {
+    const note = 'C:\\notes\\file.txt\nHello; World, Test';
+    const raw = buildVCardPayload({ firstName: 'สมชาย', note });
+    const r = classifyQrText(raw);
+    expect(r.kind).toBe('vcard');
+    expect(r.fields).toContainEqual({ label: 'บันทึก', value: note });
   });
 });

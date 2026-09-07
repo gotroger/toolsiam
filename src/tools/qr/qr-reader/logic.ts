@@ -54,7 +54,18 @@ function parseWifi(raw: string): QrField[] {
 }
 
 function unescapeVCard(value: string): string {
-  return value.replace(/\\n/g, '\n').replace(/\\([\\;,])/g, '$1');
+  let out = '';
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (ch === '\\' && i + 1 < value.length) {
+      const next = value[i + 1];
+      out += next === 'n' ? '\n' : next;
+      i += 1;
+    } else {
+      out += ch;
+    }
+  }
+  return out;
 }
 
 function parseVCard(raw: string): QrField[] {
