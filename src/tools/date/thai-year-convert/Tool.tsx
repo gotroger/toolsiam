@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BE_OFFSET, describeDate, formatThaiDate } from './logic';
 import { Button, Field, Input, ResultBox, Stat } from '@/components/ui';
 
@@ -9,18 +9,24 @@ function todayIso(): string {
 
 export default function ThaiYearConvertTool() {
   const [ce, setCe] = useState('2026');
-  const [date, setDate] = useState(todayIso());
+  const [date, setDate] = useState('');
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setDate(todayIso());
+  }, []);
 
   const ceNum = Number(ce);
   const beText = Number.isInteger(ceNum) && ceNum > 0 ? String(ceNum + BE_OFFSET) : '';
 
   let info: ReturnType<typeof describeDate> | null = null;
   let error = '';
-  try {
-    info = describeDate(date);
-  } catch (e) {
-    error = (e as Error).message;
+  if (date !== '') {
+    try {
+      info = describeDate(date);
+    } catch (e) {
+      error = (e as Error).message;
+    }
   }
 
   const copy = async (text: string) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { calculateAge, daysBetween } from './logic';
 import { Field, Input, Select, Stat } from '@/components/ui';
 
@@ -14,18 +14,28 @@ function todayIso(): string {
 export default function AgeDaysTool() {
   const [mode, setMode] = useState<'age' | 'between'>('age');
   const [birth, setBirth] = useState('1990-05-15');
-  const [ref, setRef] = useState(todayIso());
-  const [start, setStart] = useState(todayIso());
-  const [end, setEnd] = useState(todayIso());
+  const [ref, setRef] = useState('');
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+
+  useEffect(() => {
+    setRef(todayIso());
+    setStart(todayIso());
+    setEnd(todayIso());
+  }, []);
+
+  const ready = mode === 'age' ? ref !== '' : start !== '' && end !== '';
 
   let error = '';
   let age: ReturnType<typeof calculateAge> | null = null;
   let span: ReturnType<typeof daysBetween> | null = null;
-  try {
-    if (mode === 'age') age = calculateAge(birth, ref);
-    else span = daysBetween(start, end);
-  } catch (e) {
-    error = (e as Error).message;
+  if (ready) {
+    try {
+      if (mode === 'age') age = calculateAge(birth, ref);
+      else span = daysBetween(start, end);
+    } catch (e) {
+      error = (e as Error).message;
+    }
   }
 
   const beYear = (iso: string) => (/^\d{4}-/.test(iso) ? Number(iso.slice(0, 4)) + 543 : '—');
