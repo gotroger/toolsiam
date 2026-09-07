@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { classifyQrText } from './logic';
-import { buildVCardPayload } from '@/tools/qr/qr-generator/logic';
+import { buildVCardPayload, buildWifiPayload } from '@/tools/qr/qr-generator/logic';
 
 describe('classifyQrText', () => {
   it('ลิงก์เว็บ', () => {
@@ -55,6 +55,18 @@ describe('classifyQrText', () => {
 
   it('เก็บข้อความดิบไว้เสมอ', () => {
     expect(classifyQrText('tel:02-000-0000').raw).toBe('tel:02-000-0000');
+  });
+
+  it('WiFi round-trip: unescape ต้องย้อนค่า escape ของ qr-generator ได้ตรงเดิม (\\ ; , : ")', () => {
+    const ssid = 'Cafe\\Net; A, B: "Guest"';
+    const password = 'p\\a;s,s:w"d';
+    const raw = buildWifiPayload({ ssid, password, encryption: 'WPA', hidden: true });
+    const r = classifyQrText(raw);
+    expect(r.kind).toBe('wifi');
+    expect(r.fields).toContainEqual({ label: 'ชื่อเครือข่าย', value: ssid });
+    expect(r.fields).toContainEqual({ label: 'รหัสผ่าน', value: password });
+    expect(r.fields).toContainEqual({ label: 'ระบบเข้ารหัส', value: 'WPA' });
+    expect(r.fields).toContainEqual({ label: 'เครือข่ายซ่อนชื่อ', value: 'ใช่' });
   });
 
   it('vCard round-trip: unescape ต้องย้อนค่า escape ของ qr-generator ได้ตรงเดิม (backslash จริง + ขึ้นบรรทัดใหม่ + ; และ ,)', () => {

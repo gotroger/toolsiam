@@ -3,17 +3,40 @@ import jsQR from 'jsqr';
 import { classifyQrText, type QrParsed } from './logic';
 import { Button } from '@/components/ui';
 
+/** ขนาดไฟล์สูงสุดที่ยอมให้ถอดรหัส (กันเบราว์เซอร์มือถือค้าง) */
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+/** ด้านที่ยาวที่สุดของภาพที่ส่งเข้า jsQR ในรอบแรก */
+const MAX_DIMENSION = 1600;
+/** รอบสองอ่านละเอียดขึ้นแต่ยังจำกัดขนาด ไม่ปล่อยตามความละเอียดจริงของรูป */
+const RETRY_DIMENSION = 4000;
+
+/** วาดลง canvas ตามอัตราส่วนที่กำหนด แล้วให้ jsQR อ่าน */
+function scanBitmap(bitmap: ImageBitmap, scale: number): string | null {
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  const image = ctx.getImageData(0, 0, width, height);
+  return jsQR(image.data, image.width, image.height)?.data ?? null;
+}
+
 async function decodeFile(file: File): Promise<string | null> {
   const bitmap = await createImageBitmap(file);
-  const canvas = document.createElement('canvas');
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-  ctx.drawImage(bitmap, 0, 0);
-  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  return jsQR(image.data, image.width, image.height)?.data ?? null;
+  try {
+    const longestSide = Math.max(bitmap.width, bitmap.height);
+    const scale = Math.min(1, MAX_DIMENSION / longestSide);
+    const first = scanBitmap(bitmap, scale);
+    if (first !== null || scale === 1) return first;
+    // ย่อแล้วอ่านไม่ออก ลองอีกครั้งที่ความละเอียดสูงขึ้น (QR เม็ดเล็กในรูปใหญ่)
+    const retryScale = Math.min(1, RETRY_DIMENSION / longestSide);
+    return retryScale > scale ? scanBitmap(bitmap, retryScale) : null;
+  } finally {
+    bitmap.close();
+  }
 }
 
 export default function QrReaderTool() {
@@ -28,6 +51,12 @@ export default function QrReaderTool() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('กรุณาเลือกไฟล์รูปภาพ');
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      setError(
+        `ไฟล์ใหญ่เกินไป (${(file.size / 1024 / 1024).toFixed(1)} MB) รองรับไม่เกิน ${MAX_FILE_BYTES / 1024 / 1024} MB กรุณาย่อรูปหรือครอบตัดเฉพาะส่วนที่มี QR`,
+      );
       return;
     }
     const myRequestId = ++requestId.current;
