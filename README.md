@@ -18,12 +18,6 @@ Spec: `docs/superpowers/specs/2026-09-07-toolsiam-design.md`
 
 ## โดเมน
 
-ตอนนี้เว็บรันอยู่บน `https://toolsiam.appsoom.workers.dev` (ยังไม่ได้ผูกโดเมน `toolsiam.com` เพราะยังไม่ได้ยืนยันว่า zone ของโดเมนนี้อยู่ใน Cloudflare account นี้แล้ว)
+เว็บออนไลน์แล้วที่ **https://toolsiam.com** (ผูกเป็น custom domain ของ Worker `toolsiam` ผ่าน `routes` ใน `wrangler.jsonc` — ทั้ง apex และ `www`)
 
-เมื่อโดเมนพร้อม ให้เพิ่มใน `wrangler.jsonc` ระดับบนสุด:
-
-```jsonc
-"routes": [{ "pattern": "toolsiam.com", "custom_domain": true }, { "pattern": "www.toolsiam.com", "custom_domain": true }],
-```
-
-แล้วรัน `npm run deploy` อีกครั้ง
+หมายเหตุ: `workers.dev` ถูกปิดโดยอัตโนมัติเมื่อ deploy ด้วย `routes` (ไม่ได้ตั้ง `workers_dev: true`) — จึงเข้าผ่าน `toolsiam.appsoom.workers.dev` ไม่ได้อีก ใช้โดเมนจริงแทน

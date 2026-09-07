@@ -9,8 +9,11 @@
     "binding": "ASSETS",
     "not_found_handling": "404-page"
   },
+  "routes": [
+    { "pattern": "toolsiam.com", "custom_domain": true },
+    { "pattern": "www.toolsiam.com", "custom_domain": true }
+  ],
   "observability": { "enabled": true },
   "preview_urls": false
-  // routes ใส่ใน Step 5 หลังโดเมน toolsiam.com อยู่ใน Cloudflare zone แล้ว
   // Phase 2/3 จะเพิ่ม d1_databases, kv_namespaces, triggers.crons ที่นี่
 }
