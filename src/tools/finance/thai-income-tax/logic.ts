@@ -23,7 +23,8 @@ export const TAX_LIMITS = {
   socialSecurityCap: 9_000,
   lifeInsuranceCap: 100_000,     // ประกันชีวิต + สุขภาพ รวมกันไม่เกิน
   healthInsuranceCap: 25_000,
-  retirementCap: 500_000,        // PVD + RMF + SSF/TESG + ประกันบำนาญ รวม
+  retirementCap: 500_000,        // PVD + RMF + ประกันบำนาญ + กบข./กอช. รวม
+  thaiEsgCap: 300_000,
   homeLoanCap: 100_000,
   donationRate: 0.1,
 } as const;
@@ -41,6 +42,8 @@ export interface TaxInput {
   lifeInsurance: number;
   healthInsurance: number;
   retirementFunds: number;
+  /** Thai ESG / ESGX (สูงสุด 300,000 แยกจากกองทุนเกษียณ) */
+  thaiEsg: number;
   homeLoanInterest: number;
   donations: number;
   /** ลดหย่อนอื่นที่กรอกเอง (เช่น Easy E-Receipt) ใช้ตามที่กรอก */
@@ -103,6 +106,7 @@ export function calculateTax(input: TaxInput): TaxResult {
     clamp(input.socialSecurity, L.socialSecurityCap) +
     insurance +
     clamp(input.retirementFunds, L.retirementCap) +
+    clamp(input.thaiEsg, L.thaiEsgCap) +
     clamp(input.homeLoanInterest, L.homeLoanCap) +
     Math.max(0, input.otherDeductions);
 

@@ -14,7 +14,8 @@ const fields: { key: NumKey; label: string; hint?: string }[] = [
   { key: 'socialSecurity', label: 'ประกันสังคมที่จ่ายทั้งปี', hint: 'สูงสุด 9,000' },
   { key: 'lifeInsurance', label: 'เบี้ยประกันชีวิต', hint: 'สูงสุด 100,000' },
   { key: 'healthInsurance', label: 'เบี้ยประกันสุขภาพ', hint: 'สูงสุด 25,000 (รวมกับประกันชีวิตไม่เกิน 100,000)' },
-  { key: 'retirementFunds', label: 'กองทุนสำรองเลี้ยงชีพ + RMF + SSF/TESG + ประกันบำนาญ', hint: 'รวมสูงสุด 500,000' },
+  { key: 'retirementFunds', label: 'กองทุนสำรองเลี้ยงชีพ (PVD) + RMF + ประกันบำนาญ + กบข./กอช.', hint: 'รวมสูงสุด 500,000 (SSF ใช้ไม่ได้แล้วในปีภาษี 2568)' },
+  { key: 'thaiEsg', label: 'Thai ESG / ESGX', hint: 'สูงสุด 300,000 แยกจากกองทุนเกษียณ' },
   { key: 'homeLoanInterest', label: 'ดอกเบี้ยกู้บ้าน', hint: 'สูงสุด 100,000' },
   { key: 'donations', label: 'เงินบริจาค', hint: 'ไม่เกิน 10% ของเงินได้หลังหักลดหย่อน' },
   { key: 'otherDeductions', label: 'ลดหย่อนอื่น ๆ (Easy E-Receipt ฯลฯ)' },
@@ -23,7 +24,7 @@ const fields: { key: NumKey; label: string; hint?: string }[] = [
 
 const initial: Form = {
   annualIncome: '600000', children: '0', childrenBorn2018Plus: '0', parents: '0', socialSecurity: '9000',
-  lifeInsurance: '0', healthInsurance: '0', retirementFunds: '0', homeLoanInterest: '0', donations: '0',
+  lifeInsurance: '0', healthInsurance: '0', retirementFunds: '0', thaiEsg: '0', homeLoanInterest: '0', donations: '0',
   otherDeductions: '0', withheldTax: '0', hasSpouseNoIncome: false,
 };
 

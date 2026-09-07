@@ -3,7 +3,7 @@ import { progressiveTax, calculateTax, TAX_LIMITS, type TaxInput } from './logic
 
 const base: TaxInput = {
   annualIncome: 0, hasSpouseNoIncome: false, children: 0, childrenBorn2018Plus: 0, parents: 0,
-  socialSecurity: 0, lifeInsurance: 0, healthInsurance: 0, retirementFunds: 0, homeLoanInterest: 0,
+  socialSecurity: 0, lifeInsurance: 0, healthInsurance: 0, retirementFunds: 0, thaiEsg: 0, homeLoanInterest: 0,
   donations: 0, otherDeductions: 0, withheldTax: 0,
 };
 
@@ -50,11 +50,16 @@ describe('calculateTax', () => {
     const r = calculateTax({
       ...base, annualIncome: 3_000_000,
       socialSecurity: 20_000, lifeInsurance: 150_000, healthInsurance: 50_000,
-      retirementFunds: 900_000, homeLoanInterest: 200_000, parents: 6,
+      retirementFunds: 900_000, thaiEsg: 500_000, homeLoanInterest: 200_000, parents: 6,
     });
     const expected =
       TAX_LIMITS.personal + TAX_LIMITS.socialSecurityCap + TAX_LIMITS.lifeInsuranceCap +
-      TAX_LIMITS.retirementCap + TAX_LIMITS.homeLoanCap + TAX_LIMITS.parentMax * TAX_LIMITS.parent;
+      TAX_LIMITS.retirementCap + TAX_LIMITS.thaiEsgCap + TAX_LIMITS.homeLoanCap + TAX_LIMITS.parentMax * TAX_LIMITS.parent;
+    expect(r.allowances).toBe(expected);
+  });
+  it('Thai ESG ลดหย่อนแยกจากกองทุนเกษียณ สูงสุด 300,000', () => {
+    const r = calculateTax({ ...base, annualIncome: 3_000_000, retirementFunds: 500_000, thaiEsg: 300_000 });
+    const expected = TAX_LIMITS.personal + TAX_LIMITS.retirementCap + TAX_LIMITS.thaiEsgCap;
     expect(r.allowances).toBe(expected);
   });
   it('คู่สมรส + บุตร 2 คน (คนที่สองเกิดหลัง 2561) + ประกันสังคม', () => {
