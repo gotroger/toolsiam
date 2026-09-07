@@ -24,17 +24,28 @@ export default function PromptPayQrTool() {
       setError('');
       return;
     }
+    let cancelled = false;
     try {
       const amt = amount.trim() ? Number(amount.replace(/,/g, '')) : undefined;
       const payload = buildPromptPayPayload(target, amt);
-      QRCode.toDataURL(payload, { width: 320, margin: 2, errorCorrectionLevel: 'M' }).then((url) => {
-        setDataUrl(url);
-        setError('');
-      });
+      QRCode.toDataURL(payload, { width: 320, margin: 2, errorCorrectionLevel: 'M' })
+        .then((url) => {
+          if (cancelled) return;
+          setDataUrl(url);
+          setError('');
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setDataUrl('');
+          setError('สร้าง QR ไม่สำเร็จ กรุณาลองใหม่');
+        });
     } catch (e) {
       setError((e as Error).message);
       setDataUrl('');
     }
+    return () => {
+      cancelled = true;
+    };
   }, [target, amount]);
 
   return (
