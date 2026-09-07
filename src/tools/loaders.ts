@@ -12,6 +12,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'baht-text': () => import('./text/baht-text/Tool'),
   'word-count': () => import('./text/word-count/Tool'),
   'thai-numerals': () => import('./text/thai-numerals/Tool'),
+  'text-lines': () => import('./text/text-lines/Tool'),
   'promptpay-qr': () => import('./qr/promptpay-qr/Tool'),
   'json-formatter': () => import('./dev/json-formatter/Tool'),
 };

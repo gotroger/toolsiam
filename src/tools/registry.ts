@@ -8,6 +8,7 @@ import { compoundInterestMeta } from './finance/compound-interest/meta';
 import { bahtTextMeta } from './text/baht-text/meta';
 import { wordCountMeta } from './text/word-count/meta';
 import { thaiNumeralsMeta } from './text/thai-numerals/meta';
+import { textLinesMeta } from './text/text-lines/meta';
 import { promptpayQrMeta } from './qr/promptpay-qr/meta';
 import { jsonFormatterMeta } from './dev/json-formatter/meta';
 
@@ -15,7 +16,7 @@ export { categories };
 export type { ToolMeta, CategoryMeta, CategoryId };
 
 /** ลำดับในนี้ = ลำดับแสดงผลในหน้า /tools */
-export const tools: ToolMeta[] = [thaiIncomeTaxMeta, loanInstallmentMeta, netSalaryMeta, vatWhtMeta, compoundInterestMeta, bahtTextMeta, wordCountMeta, thaiNumeralsMeta, promptpayQrMeta, jsonFormatterMeta];
+export const tools: ToolMeta[] = [thaiIncomeTaxMeta, loanInstallmentMeta, netSalaryMeta, vatWhtMeta, compoundInterestMeta, bahtTextMeta, wordCountMeta, thaiNumeralsMeta, textLinesMeta, promptpayQrMeta, jsonFormatterMeta];
 
 export function getTool(slug: string): ToolMeta | undefined {
   return tools.find((t) => t.slug === slug);
