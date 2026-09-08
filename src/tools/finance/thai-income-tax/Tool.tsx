@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { calculateTax, type TaxInput } from './logic';
-import { ErrorText, Field, Input, Stat } from '@/components/ui';
+import { Checkbox, DataTable, ErrorText, Field, Input, Stat } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
 
 type NumKey = Exclude<keyof TaxInput, 'hasSpouseNoIncome'>;
@@ -48,10 +48,11 @@ export default function ThaiIncomeTaxTool() {
             <Input id={f.key} inputMode="decimal" value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
           </Field>
         ))}
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={form.hasSpouseNoIncome} onChange={(e) => setForm({ ...form, hasSpouseNoIncome: e.target.checked })} />
-          คู่สมรสไม่มีเงินได้ (ลดหย่อน 60,000)
-        </label>
+        <Checkbox
+          label="คู่สมรสไม่มีเงินได้ (ลดหย่อน 60,000)"
+          checked={form.hasSpouseNoIncome}
+          onChange={(e) => setForm({ ...form, hasSpouseNoIncome: e.target.checked })}
+        />
       </div>
 
       <div className="space-y-4">
@@ -69,20 +70,20 @@ export default function ThaiIncomeTaxTool() {
               <li>ค่าลดหย่อนรวม {formatBaht(result.value.allowances)} บาท</li>
               <li>เงินบริจาคที่ใช้ได้ {formatBaht(result.value.donationUsed)} บาท</li>
             </ul>
-            <table className="w-full text-sm">
-              <thead className="bg-slate-100 text-left">
-                <tr><th className="px-2 py-1">ขั้นเงินได้สุทธิ</th><th className="px-2 py-1">อัตรา</th><th className="px-2 py-1">ภาษี</th></tr>
-              </thead>
-              <tbody>
-                {result.value.lines.map((l) => (
-                  <tr key={l.from} className="border-t border-slate-100">
-                    <td className="px-2 py-1">{formatBaht(l.from)} – {l.to === Infinity ? 'ขึ้นไป' : formatBaht(l.to)}</td>
-                    <td className="px-2 py-1">{l.rate * 100}%</td>
-                    <td className="px-2 py-1">{formatBaht(l.tax)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <DataTable
+              caption="ภาษีแยกตามขั้นเงินได้สุทธิ"
+              rows={result.value.lines}
+              rowKey={(l) => String(l.from)}
+              columns={[
+                {
+                  key: 'range',
+                  header: 'ขั้นเงินได้สุทธิ',
+                  render: (l) => `${formatBaht(l.from)} – ${l.to === Infinity ? 'ขึ้นไป' : formatBaht(l.to)}`,
+                },
+                { key: 'rate', header: 'อัตรา', align: 'right', render: (l) => `${l.rate * 100}%` },
+                { key: 'tax', header: 'ภาษี', align: 'right', render: (l) => formatBaht(l.tax) },
+              ]}
+            />
           </>
         )}
       </div>

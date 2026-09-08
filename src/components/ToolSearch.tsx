@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import { getBrowsableCategories, getVisibleTools, type ToolMeta, type CategoryId } from '@/tools/registry';
-import { Input, Select } from '@/components/ui';
+import { Button, EmptyState, Input, Select } from '@/components/ui';
 import ToolCard from '@/components/ToolCard';
 import { cardGrid, cardGridItem } from '@/components/grids';
 
@@ -41,14 +41,22 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
         <Input type="search" placeholder="ค้นหาเครื่องมือ เช่น ภาษี, บาทถ้วน, QR" value={q} onChange={(e) => setQ(e.target.value)} aria-label="ค้นหาเครื่องมือ" />
         <Select value={category} onChange={(e) => setCategory(e.target.value as CategoryId | 'all')} aria-label="หมวดหมู่">
           <option value="all">ทุกหมวด</option>
-          {browsableCategories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+          {browsableCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </Select>
       </div>
 
       <p className="mt-4 text-sm text-slate-500" role="status" aria-live="polite">พบ {results.length} เครื่องมือ</p>
 
       {results.length === 0 ? (
-        <EmptyState query={q} onReset={resetFilters} />
+        <div className="mt-4">
+          <EmptyState
+            title="ไม่พบเครื่องมือที่ตรงกับที่ค้นหา"
+            description={q.trim()
+              ? 'ลองใช้คำค้นอื่น เช่น “ภาษี” “บาทถ้วน” “QR” หรือล้างตัวกรองเพื่อดูทั้งหมด'
+              : 'ลองล้างตัวกรองเพื่อดูเครื่องมือทั้งหมด'}
+            action={<Button onClick={resetFilters}>ล้างตัวกรอง</Button>}
+          />
+        </div>
       ) : (
         <ul className={`mt-4 ${cardGrid}`}>
           {results.map((t) => (
@@ -68,25 +76,6 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
           ล้างตัวกรอง
         </button>
       )}
-    </div>
-  );
-}
-
-function EmptyState({ query, onReset }: { query: string; onReset: () => void }) {
-  return (
-    <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-2xl" aria-hidden="true">🔍</div>
-      <h2 className="mt-4 font-semibold text-slate-900">ไม่พบเครื่องมือที่ตรงกับที่ค้นหา</h2>
-      <p className="mx-auto mt-1 max-w-sm text-sm text-slate-600">
-        {query.trim() ? <>ลองใช้คำค้นอื่น เช่น “ภาษี” “บาทถ้วน” “QR” หรือล้างตัวกรองเพื่อดูทั้งหมด</> : <>ลองล้างตัวกรองเพื่อดูเครื่องมือทั้งหมด</>}
-      </p>
-      <button
-        type="button"
-        onClick={onReset}
-        className="mt-5 rounded-[11px] bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
-      >
-        ล้างตัวกรอง
-      </button>
     </div>
   );
 }

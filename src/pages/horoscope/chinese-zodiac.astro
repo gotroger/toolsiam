@@ -1,5 +1,7 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Card from '@/components/Card.astro';
+import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import ChineseZodiacFinder from '@/components/horoscope/ChineseZodiacFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
@@ -12,7 +14,7 @@ const description = 'หาปีนักษัตรจากวันเก�
   <VerticalShell
     title="ปีนักษัตรจากปีเกิด"
     description="ใช้วันตรุษจีนเป็นเกณฑ์ตัดปี คนที่เกิดต้นปีจึงได้นักษัตรที่ถูกต้อง ไม่ใช่นักษัตรของปีปฏิทิน"
-    icon="🐉"
+    category="horoscope"
     gradient={['#fef2f2', '#fecaca']}
     crumbs={[
       { name: 'ทูลสยาม', path: getHomeUrl() },
@@ -20,27 +22,25 @@ const description = 'หาปีนักษัตรจากวันเก�
       { name: 'ปีนักษัตรจากปีเกิด', path: getHoroscopePageUrl('chinese-zodiac') },
     ]}
   >
-    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+    <Card>
       <ChineseZodiacFinder client:load />
-    </section>
+    </Card>
 
-    <section class="mt-8">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">นักษัตรทั้ง 12 ปี</h2>
+    <Section title="นักษัตรทั้ง 12 ปี" class="mt-8">
       <ul class="mt-4 grid gap-3 sm:grid-cols-2">
         {CHINESE_ZODIAC.map((a) => (
-          <li class="rounded-[10px] border border-slate-200 bg-white p-4">
-            <h3 class="font-semibold text-slate-900">
-              <span aria-hidden="true">{a.emoji}</span> ปี{a.name}
+          <Card as="li" size="md">
+            <h3 class="font-medium text-slate-900">
+              ปี{a.name}
             </h3>
             <p class="mt-1 text-sm text-slate-600">{a.summary}</p>
             <p class="mt-2 text-xs text-slate-500">{a.traits.join(' · ')}</p>
-          </li>
+          </Card>
         ))}
       </ul>
-    </section>
+    </Section>
 
-    <section class="mt-8 space-y-4">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+    <Section title="คำถามที่พบบ่อย" class="mt-8 space-y-4">
       <div>
         <h3 class="font-medium text-slate-900">ทำไมเกิดเดือนมกราคมแล้วได้นักษัตรของปีก่อน</h3>
         <p class="text-sm text-slate-600">
@@ -64,6 +64,6 @@ const description = 'หาปีนักษัตรจากวันเก�
           หากอยู่นอกช่วงนี้เครื่องมือจะแจ้งให้ทราบแทนการเดาผลลัพธ์
         </p>
       </div>
-    </section>
+    </Section>
   </VerticalShell>
 </Base>

@@ -3,7 +3,7 @@ import {
   calculateBill, COMMON_APPLIANCES, ftAt, latestFt, RESIDENTIAL_TARIFFS, totalUnits, unitsPerMonth,
   UTILITY_LABEL, VAT, type Utility,
 } from './logic';
-import { DataTable, Disclaimer, ErrorText, Field, NumberInput, ResultBox, Select, Stat, Tabs, TabPanel } from '@/components/ui';
+import { cellField, DataTable, Disclaimer, ErrorText, Field, NumberInput, ResultBox, Select, Stat, Tabs, TabPanel } from '@/components/ui';
 import { formatBaht, formatNumber } from '@/lib/format';
 import { todayInBangkok } from '@/lib/today';
 
@@ -103,58 +103,56 @@ export default function ElectricityBillTool() {
             กรอกจำนวนเครื่องและชั่วโมงใช้งานต่อวัน ระบบคิดที่ 30 วันต่อเดือน
             กำลังไฟที่แสดงเป็นค่าประมาณ ปรับชั่วโมงให้ตรงกับการใช้จริงเพื่อผลที่ใกล้เคียงขึ้น
           </p>
-          <div className="overflow-x-auto rounded-[10px] border border-slate-200">
-            <table className="w-full min-w-[32rem] border-collapse text-sm">
-              <caption className="sr-only">เครื่องใช้ไฟฟ้าและจำนวนหน่วยที่ใช้ต่อเดือน</caption>
-              <thead>
-                <tr className="bg-slate-50 text-left text-slate-600">
-                  <th scope="col" className="border-b border-slate-200 px-3 py-2 font-medium">เครื่องใช้ไฟฟ้า</th>
-                  <th scope="col" className="border-b border-slate-200 px-3 py-2 text-right font-medium">วัตต์</th>
-                  <th scope="col" className="border-b border-slate-200 px-3 py-2 font-medium">จำนวน</th>
-                  <th scope="col" className="border-b border-slate-200 px-3 py-2 font-medium">ชม./วัน</th>
-                  <th scope="col" className="border-b border-slate-200 px-3 py-2 text-right font-medium">หน่วย/เดือน</th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMMON_APPLIANCES.map((a) => {
+          <DataTable
+            caption="เครื่องใช้ไฟฟ้าและจำนวนหน่วยที่ใช้ต่อเดือน"
+            rows={COMMON_APPLIANCES}
+            rowKey={(a) => a.id}
+            columns={[
+              { key: 'name', header: 'เครื่องใช้ไฟฟ้า', render: (a) => <label htmlFor={`count-${a.id}`}>{a.name}</label> },
+              { key: 'watts', header: 'วัตต์', align: 'right', render: (a) => formatNumber(a.watts) },
+              {
+                key: 'count',
+                header: 'จำนวน',
+                render: (a) => (
+                  <input
+                    id={`count-${a.id}`}
+                    type="text"
+                    inputMode="numeric"
+                    value={counts[a.id]}
+                    onChange={(e) => setCounts((p) => ({ ...p, [a.id]: e.target.value }))}
+                    className={cellField}
+                  />
+                ),
+              },
+              {
+                key: 'hours',
+                header: 'ชม./วัน',
+                render: (a) => (
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    aria-label={`ชั่วโมงใช้งานต่อวันของ${a.name}`}
+                    value={hours[a.id]}
+                    onChange={(e) => setHours((p) => ({ ...p, [a.id]: e.target.value }))}
+                    className={cellField}
+                  />
+                ),
+              },
+              {
+                key: 'units',
+                header: 'หน่วย/เดือน',
+                align: 'right',
+                render: (a) => {
                   const q = num(counts[a.id]);
                   const h = num(hours[a.id]);
                   const u = Number.isFinite(q) && Number.isFinite(h) && h >= 0 && h <= 24
                     ? Math.round(unitsPerMonth(a.watts, h) * q * 100) / 100
                     : 0;
-                  return (
-                    <tr key={a.id} className="even:bg-slate-50/60">
-                      <td className="border-b border-slate-100 px-3 py-2">
-                        <label htmlFor={`count-${a.id}`}>{a.name}</label>
-                      </td>
-                      <td className="border-b border-slate-100 px-3 py-2 text-right tabular-nums text-slate-600">{a.watts.toLocaleString('en-US')}</td>
-                      <td className="border-b border-slate-100 px-3 py-2">
-                        <input
-                          id={`count-${a.id}`}
-                          type="text"
-                          inputMode="numeric"
-                          value={counts[a.id]}
-                          onChange={(e) => setCounts((p) => ({ ...p, [a.id]: e.target.value }))}
-                          className="w-16 rounded-lg border border-slate-300 px-2 py-1 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/30"
-                        />
-                      </td>
-                      <td className="border-b border-slate-100 px-3 py-2">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          aria-label={`ชั่วโมงใช้งานต่อวันของ${a.name}`}
-                          value={hours[a.id]}
-                          onChange={(e) => setHours((p) => ({ ...p, [a.id]: e.target.value }))}
-                          className="w-16 rounded-lg border border-slate-300 px-2 py-1 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/30"
-                        />
-                      </td>
-                      <td className="border-b border-slate-100 px-3 py-2 text-right tabular-nums">{formatNumber(u, 2)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  return formatNumber(u, 2);
+                },
+              },
+            ]}
+          />
           <p className="text-sm font-medium text-slate-800">
             รวม {Number.isFinite(applianceUnits) ? formatNumber(applianceUnits, 2) : '—'} หน่วยต่อเดือน
           </p>
@@ -183,7 +181,7 @@ export default function ElectricityBillTool() {
 
           {bill.lines.length > 0 && (
             <div>
-              <h2 className="mb-2 text-base font-semibold text-slate-900">ค่าพลังงานแยกตามขั้น</h2>
+              <h2 className="mb-2 text-base font-medium text-slate-900">ค่าพลังงานแยกตามขั้น</h2>
               <DataTable
                 caption="ค่าพลังงานไฟฟ้าแยกตามขั้นบันไดของอัตราที่เลือก"
                 columns={[

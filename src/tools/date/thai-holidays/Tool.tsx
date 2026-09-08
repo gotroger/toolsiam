@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayCalendar } from './logic';
 import { describeDate } from '@/lib/thai-date';
-import { Button, CopyButton, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
+import { CopyButton, DataTable, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
 import { toCsv } from '@/lib/clipboard';
 
 export default function ThaiHolidaysTool() {
@@ -39,7 +39,7 @@ export default function ThaiHolidaysTool() {
       </Field>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">นับวันทำการระหว่างสองวันที่</h2>
+        <h2 className="text-lg font-medium">นับวันทำการระหว่างสองวันที่</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="วันเริ่มต้น" htmlFor="start">
             <Input id="start" type="date" min="2026-01-01" max="2026-12-31" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -60,7 +60,7 @@ export default function ThaiHolidaysTool() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">อีกกี่วันทำการจะครบกำหนด</h2>
+        <h2 className="text-lg font-medium">อีกกี่วันทำการจะครบกำหนด</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="นับจากวันที่" htmlFor="addFrom">
             <Input id="addFrom" type="date" min="2026-01-01" max="2026-12-31" value={addFrom} onChange={(e) => setAddFrom(e.target.value)} />
@@ -80,7 +80,7 @@ export default function ThaiHolidaysTool() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-medium">
             {cal === 'bank' ? 'วันหยุดธนาคาร' : 'วันหยุดราชการ'} ปี 2569 ({holidays.length} รายการ)
           </h2>
           <CopyButton
@@ -91,32 +91,26 @@ export default function ThaiHolidaysTool() {
             )}
           />
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[420px] text-sm">
-            <thead className="bg-slate-50 text-left text-slate-600">
-              <tr>
-                <th className="px-3 py-2">วันที่</th>
-                <th className="px-3 py-2">วัน</th>
-                <th className="px-3 py-2">ชื่อวันหยุด</th>
-                <th className="px-3 py-2">ประเภท</th>
-              </tr>
-            </thead>
-            <tbody>
-              {holidays.map((h) => {
+        <DataTable
+          caption="รายการวันหยุดราชการ"
+          rows={holidays}
+          rowKey={(h) => h.date}
+          columns={[
+            { key: 'date', header: 'วันที่', render: (h) => <span className="whitespace-nowrap">{describeDate(h.date).shortThai}</span> },
+            {
+              key: 'weekday',
+              header: 'วัน',
+              render: (h) => {
                 const info = describeDate(h.date);
                 const weekend = info.weekdayIndex === 0 || info.weekdayIndex === 6;
-                return (
-                  <tr key={h.date} className="border-t border-slate-100">
-                    <td className="px-3 py-2 whitespace-nowrap">{info.shortThai}</td>
-                    <td className={`px-3 py-2 whitespace-nowrap ${weekend ? 'text-slate-400' : ''}`}>{info.weekdayName}</td>
-                    <td className="px-3 py-2">{h.name}</td>
-                    <td className="px-3 py-2 text-slate-500">{h.type}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                // เสาร์-อาทิตย์จางลงเพราะเป็นวันหยุดอยู่แล้ว ไม่ได้ทำให้ได้หยุดเพิ่ม
+                return <span className={weekend ? 'whitespace-nowrap text-slate-400' : 'whitespace-nowrap'}>{info.weekdayName}</span>;
+              },
+            },
+            { key: 'name', header: 'ชื่อวันหยุด', render: (h) => h.name },
+            { key: 'type', header: 'ประเภท', render: (h) => <span className="text-slate-500">{h.type}</span> },
+          ]}
+        />
         <p className="text-xs text-slate-500">
           วันที่แสดงเป็นสีจางคือวันหยุดที่ตรงกับเสาร์-อาทิตย์อยู่แล้ว ข้อมูลอ้างอิงประกาศธนาคารแห่งประเทศไทยและมติคณะรัฐมนตรี
           หากมีประกาศวันหยุดพิเศษเพิ่มเติมระหว่างปี ตัวเลขอาจเปลี่ยนแปลงได้ ตารางนี้นับเฉพาะวันหยุดทั่วประเทศ

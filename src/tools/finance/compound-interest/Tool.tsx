@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { compoundGrowth, monthlyForGoal } from './logic';
 import { formatBaht } from '@/lib/format';
-import { ErrorText, Field, Input, Select, Stat } from '@/components/ui';
+import { DataTable, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
 
 const num = (s: string) => {
   const n = Number(s.replace(/,/g, ''));
@@ -86,28 +86,22 @@ export default function CompoundInterestTool() {
             <Stat label="ดอกเบี้ยรวม" value={`${formatBaht(growth.totalInterest)} บาท`} />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[420px] text-sm">
-              <thead className="bg-slate-50 text-left text-slate-600">
-                <tr>
-                  <th className="px-3 py-2">ปีที่</th>
-                  <th className="px-3 py-2 text-right">เงินฝากสะสม</th>
-                  <th className="px-3 py-2 text-right">ดอกเบี้ยสะสม</th>
-                  <th className="px-3 py-2 text-right">ยอดคงเหลือ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {growth.rows.map((row) => (
-                  <tr key={row.year} className="border-t border-slate-100">
-                    <td className="px-3 py-2">{row.year}</td>
-                    <td className="px-3 py-2 text-right">{formatBaht(row.deposits)}</td>
-                    <td className="px-3 py-2 text-right">{formatBaht(row.interest)}</td>
-                    <td className="px-3 py-2 text-right font-medium">{formatBaht(row.balance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            caption="ยอดเงินสะสมรายปี"
+            rows={growth.rows}
+            rowKey={(row) => String(row.year)}
+            columns={[
+              { key: 'year', header: 'ปีที่', render: (row) => row.year },
+              { key: 'deposits', header: 'เงินฝากสะสม', align: 'right', render: (row) => formatBaht(row.deposits) },
+              { key: 'interest', header: 'ดอกเบี้ยสะสม', align: 'right', render: (row) => formatBaht(row.interest) },
+              {
+                key: 'balance',
+                header: 'ยอดคงเหลือ',
+                align: 'right',
+                render: (row) => <span className="font-medium">{formatBaht(row.balance)}</span>,
+              },
+            ]}
+          />
         </>
       )}
     </div>

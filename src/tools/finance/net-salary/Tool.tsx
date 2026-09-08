@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { calculateNetSalary } from './logic';
 import { formatBaht, formatNumber } from '@/lib/format';
-import { ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
+import { Checkbox, ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
 import { todayInBangkok } from '@/lib/today';
 import { getToolUrl } from '@/lib/routes';
 
@@ -53,7 +53,7 @@ export default function NetSalaryTool() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="mb-2 text-base font-semibold text-slate-900">รายได้</h2>
+        <h2 className="mb-2 text-base font-medium text-slate-900">รายได้</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <NumberInput id="salary" label="เงินเดือน" mode="decimal" value={salary} onValueChange={setSalary} suffix="บาท/เดือน" />
           <NumberInput id="bonus" label="โบนัสทั้งปี" mode="decimal" value={bonus} onValueChange={setBonus} suffix="บาท" />
@@ -70,7 +70,7 @@ export default function NetSalaryTool() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-base font-semibold text-slate-900">ค่าลดหย่อน</h2>
+        <h2 className="mb-2 text-base font-medium text-slate-900">ค่าลดหย่อน</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NumberInput id="children" label="จำนวนบุตร" mode="numeric" value={children} onValueChange={setChildren} suffix="คน" />
           <NumberInput
@@ -103,14 +103,8 @@ export default function NetSalaryTool() {
             hint="รวมมาตรการชั่วคราวของปีภาษีนี้ที่คุณมีสิทธิ"
           />
           <div className="space-y-2 self-end sm:col-span-2">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" checked={sso} onChange={(e) => setSso(e.target.checked)} className="size-4 rounded border-slate-300 text-brand-600 focus:ring-2 focus:ring-brand-600/30" />
-              ส่งประกันสังคม (มาตรา 33)
-            </label>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" checked={spouse} onChange={(e) => setSpouse(e.target.checked)} className="size-4 rounded border-slate-300 text-brand-600 focus:ring-2 focus:ring-brand-600/30" />
-              มีคู่สมรสที่ไม่มีเงินได้
-            </label>
+            <Checkbox label="ส่งประกันสังคม (มาตรา 33)" checked={sso} onChange={(e) => setSso(e.target.checked)} />
+            <Checkbox label="มีคู่สมรสที่ไม่มีเงินได้" checked={spouse} onChange={(e) => setSpouse(e.target.checked)} />
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Card from '@/components/Card.astro';
+import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import BirthdayProfile from '@/components/horoscope/BirthdayProfile';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
@@ -11,7 +13,7 @@ const description = 'กรอกวันเกิดครั้งเดี�
   <VerticalShell
     title="ดูดวงจากวันเกิด"
     description="กรอกวันเกิดครั้งเดียว ได้ครบทั้งราศี ปีนักษัตร วันเกิด สีมงคล และเลขศาสตร์"
-    icon="🎂"
+    category="horoscope"
     gradient={['#faf5ff', '#e9d5ff']}
     crumbs={[
       { name: 'ทูลสยาม', path: getHomeUrl() },
@@ -19,18 +21,19 @@ const description = 'กรอกวันเกิดครั้งเดี�
       { name: 'ดูดวงจากวันเกิด', path: getHoroscopePageUrl('birthday') },
     ]}
   >
-    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+    <Card>
       <BirthdayProfile client:load />
-    </section>
+    </Card>
 
-    <section class="mt-8 space-y-4">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">หน้านี้รวมอะไรไว้บ้าง</h2>
+    <Section title="หน้านี้รวมอะไรไว้บ้าง" class="mt-8 space-y-4">
       <p class="text-sm text-slate-600">
         หน้านี้เรียกการคำนวณชุดเดียวกับหน้าย่อยแต่ละหน้ามาแสดงรวมกัน
         ผลลัพธ์จึงตรงกันเสมอไม่ว่าจะเปิดจากหน้าไหน ถ้าต้องการรายละเอียดของเรื่องใดเรื่องหนึ่ง
         ให้ตามลิงก์ในการ์ดแต่ละใบไปยังหน้าเฉพาะเรื่องนั้น
       </p>
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+    </Section>
+
+    <Section title="คำถามที่พบบ่อย" class="mt-8 space-y-4">
       <div>
         <h3 class="font-medium text-slate-900">ทำไมบางคนไม่เห็นปีนักษัตร</h3>
         <p class="text-sm text-slate-600">
@@ -45,6 +48,6 @@ const description = 'กรอกวันเกิดครั้งเดี�
           โหราศาสตร์ที่ละเอียดกว่านี้อย่างการผูกดวงต้องใช้เวลาและสถานที่เกิดประกอบด้วย ซึ่งอยู่นอกขอบเขตของหน้านี้
         </p>
       </div>
-    </section>
+    </Section>
   </VerticalShell>
 </Base>

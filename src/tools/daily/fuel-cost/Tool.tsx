@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { fuelCost } from './logic';
-import { ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
+import { Checkbox, ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
 import { formatBaht, formatNumber } from '@/lib/format';
 
 const num = (s: string) => {
@@ -60,15 +60,7 @@ export default function FuelCostTool() {
         <NumberInput id="tolls" label="ค่าทางด่วน + ค่าจอดรถ" mode="decimal" value={tolls} onValueChange={setTolls} suffix="บาท" />
         <NumberInput id="people" label="หารกันกี่คน" mode="numeric" value={people} onValueChange={setPeople} suffix="คน" />
         <div className="flex items-end">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={roundTrip}
-              onChange={(e) => setRoundTrip(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-2 focus:ring-brand-600/30"
-            />
-            คิดระยะทางไป-กลับ
-          </label>
+          <Checkbox label="คิดระยะทางไป-กลับ" checked={roundTrip} onChange={(e) => setRoundTrip(e.target.checked)} />
         </div>
       </div>
 

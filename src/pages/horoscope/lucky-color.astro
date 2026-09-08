@@ -1,5 +1,7 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Card from '@/components/Card.astro';
+import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import LuckyColorFinder from '@/components/horoscope/LuckyColorFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
@@ -12,7 +14,7 @@ const description = 'ดูสีมงคลประจำวันเกิ�
   <VerticalShell
     title="สีมงคลประจำวันเกิด"
     description="กรอกวันเกิดแล้วดูสีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ควรเลี่ยงตามคติไทย"
-    icon="🎨"
+    category="horoscope"
     gradient={['#fff7ed', '#fed7aa']}
     crumbs={[
       { name: 'ทูลสยาม', path: getHomeUrl() },
@@ -20,27 +22,25 @@ const description = 'ดูสีมงคลประจำวันเกิ�
       { name: 'สีมงคลประจำวันเกิด', path: getHoroscopePageUrl('lucky-color') },
     ]}
   >
-    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+    <Card>
       <LuckyColorFinder client:load />
-    </section>
+    </Card>
 
-    <section class="mt-8">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">สีประจำวันตามคติไทย</h2>
+    <Section title="สีประจำวันตามคติไทย" class="mt-8">
       <p class="mt-1 text-sm text-slate-600">
         คติไทยกำหนดสีประจำวันไว้ตามเทพประจำวันในตำนาน ซึ่งเป็นที่มาของธรรมเนียมแต่งกายตามสีวันด้วย
       </p>
       <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {THAI_WEEKDAYS.map((day, i) => (
-          <li class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+          <Card as="li" size="sm">
             <span class="font-medium text-slate-900">วัน{day}</span>{' '}
             <span class="text-slate-600">สี{THAI_DAY_COLORS[i]}</span>
-          </li>
+          </Card>
         ))}
       </ul>
-    </section>
+    </Section>
 
-    <section class="mt-8 space-y-4">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+    <Section title="คำถามที่พบบ่อย" class="mt-8 space-y-4">
       <div>
         <h3 class="font-medium text-slate-900">สีมงคลของแต่ละตำราตรงกันไหม</h3>
         <p class="text-sm text-slate-600">
@@ -62,6 +62,6 @@ const description = 'ดูสีมงคลประจำวันเกิ�
           ซึ่งก็เป็นประโยชน์ในตัวมันเองโดยไม่ต้องเชื่อว่ามีผลจริง
         </p>
       </div>
-    </section>
+    </Section>
   </VerticalShell>
 </Base>

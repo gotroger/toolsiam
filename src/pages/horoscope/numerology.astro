@@ -1,5 +1,7 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Card from '@/components/Card.astro';
+import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import NumerologyFinder from '@/components/horoscope/NumerologyFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
@@ -11,7 +13,7 @@ const description = 'คำนวณเลขชีวิตจากวัน�
   <VerticalShell
     title="เลขศาสตร์วันเกิด"
     description="บวกเลขทุกหลักของวันเดือนปีเกิดจนเหลือหลักเดียว แล้วดูความหมายตามความเชื่อเลขศาสตร์"
-    icon="🔢"
+    category="horoscope"
     gradient={['#eef2ff', '#c7d2fe']}
     crumbs={[
       { name: 'ทูลสยาม', path: getHomeUrl() },
@@ -19,18 +21,19 @@ const description = 'คำนวณเลขชีวิตจากวัน�
       { name: 'เลขศาสตร์วันเกิด', path: getHoroscopePageUrl('numerology') },
     ]}
   >
-    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+    <Card>
       <NumerologyFinder client:load />
-    </section>
+    </Card>
 
-    <section class="mt-8 space-y-4">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">วิธีคำนวณเลขชีวิต</h2>
+    <Section title="วิธีคำนวณเลขชีวิต" class="mt-8 space-y-4">
       <p class="text-sm text-slate-600">
         นำเลขทุกหลักของวันเดือนปีเกิดมาบวกกัน แล้วบวกซ้ำจนเหลือหลักเดียว
         เช่น 15 พฤษภาคม 1990 เขียนเป็น 1990-05-15 จะได้ 1+9+9+0+0+5+1+5 = 30 แล้ว 3+0 = 3 เลขชีวิตคือ 3
         ยกเว้นผลลัพธ์ที่ได้ 11 หรือ 22 ซึ่งความเชื่อเลขศาสตร์ถือว่าเป็นเลขพิเศษและไม่บวกต่อ
       </p>
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+    </Section>
+
+    <Section title="คำถามที่พบบ่อย" class="mt-8 space-y-4">
       <div>
         <h3 class="font-medium text-slate-900">ใช้ปี พ.ศ. หรือ ค.ศ. ในการคำนวณ</h3>
         <p class="text-sm text-slate-600">
@@ -52,6 +55,6 @@ const description = 'คำนวณเลขชีวิตจากวัน�
           ความหมายที่แสดงในหน้านี้จึงเป็นการตีความตามตำรา ไม่ใช่การพยากรณ์
         </p>
       </div>
-    </section>
+    </Section>
   </VerticalShell>
 </Base>

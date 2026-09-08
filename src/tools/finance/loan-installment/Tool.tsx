@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { calculateLoan } from './logic';
-import { Button, ErrorText, Field, Input, Stat } from '@/components/ui';
+import { Button, DataTable, ErrorText, Field, Input, Stat } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
 
 export default function LoanInstallmentTool() {
@@ -43,26 +43,18 @@ export default function LoanInstallmentTool() {
             <Stat label="ยอดจ่ายรวม" value={`${formatBaht(result.value.totalPayment)} บาท`} />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-100 text-left">
-                <tr>
-                  <th className="px-2 py-1">งวด</th><th className="px-2 py-1">ค่างวด</th><th className="px-2 py-1">ดอกเบี้ย</th><th className="px-2 py-1">เงินต้น</th><th className="px-2 py-1">คงเหลือ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.period} className="border-t border-slate-100">
-                    <td className="px-2 py-1">{r.period}</td>
-                    <td className="px-2 py-1">{formatBaht(r.payment)}</td>
-                    <td className="px-2 py-1">{formatBaht(r.interest)}</td>
-                    <td className="px-2 py-1">{formatBaht(r.principal)}</td>
-                    <td className="px-2 py-1">{formatBaht(r.balance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            caption="ตารางผ่อนชำระรายงวด"
+            rows={rows}
+            rowKey={(r) => String(r.period)}
+            columns={[
+              { key: 'period', header: 'งวด', render: (r) => r.period },
+              { key: 'payment', header: 'ค่างวด', align: 'right', render: (r) => formatBaht(r.payment) },
+              { key: 'interest', header: 'ดอกเบี้ย', align: 'right', render: (r) => formatBaht(r.interest) },
+              { key: 'principal', header: 'เงินต้น', align: 'right', render: (r) => formatBaht(r.principal) },
+              { key: 'balance', header: 'คงเหลือ', align: 'right', render: (r) => formatBaht(r.balance) },
+            ]}
+          />
           {result.value.schedule.length > 12 && (
             <Button variant="secondary" onClick={() => setShowAll((v) => !v)}>
               {showAll ? 'แสดงเฉพาะ 12 งวดแรก' : `แสดงทั้งหมด ${result.value.schedule.length} งวด`}

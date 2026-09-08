@@ -1,5 +1,8 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Card from '@/components/Card.astro';
+import { sectionHeading } from '@/components/headings';
+import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import { DREAM_ENTRIES, DREAM_GROUPS, dreamBySlug } from '@/content/dream/entries';
 import { getDreamEntryUrl, getDreamUrl, getHomeUrl } from '@/lib/routes';
@@ -16,7 +19,7 @@ const description = entry.meaning.length > 155 ? `${entry.meaning.slice(0, 152)}
   <VerticalShell
     title={entry.title}
     description={`ความหมายตามตำราไทย พร้อมบริบทที่ทำให้ความหมายต่างกัน · หมวด${groupLabel}`}
-    icon="💤"
+    category="dream"
     gradient={['#faf5ff', '#e9d5ff']}
     crumbs={[
       { name: 'ทูลสยาม', path: getHomeUrl() },
@@ -24,47 +27,41 @@ const description = entry.meaning.length > 155 ? `${entry.meaning.slice(0, 152)}
       { name: entry.title, path: getDreamEntryUrl(entry.slug) },
     ]}
   >
-    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">ความหมายตามตำรา</h2>
+    <Card>
+      <h2 class={sectionHeading}>ความหมายตามตำรา</h2>
       <p class="mt-2 text-slate-700">{entry.meaning}</p>
-    </section>
+    </Card>
 
-    <section class="mt-6">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">บริบทที่ทำให้ความหมายต่างกัน</h2>
+    <Section title="บริบทที่ทำให้ความหมายต่างกัน" class="mt-6">
       <p class="mt-1 text-sm text-slate-600">
         ตำราไทยแทบทุกเล่มตีความตามรายละเอียดของฝัน ไม่ได้ให้ความหมายเดียวกับทุกกรณี
       </p>
       <dl class="mt-4 space-y-3">
         {entry.contexts.map((c) => (
-          <div class="rounded-[10px] border border-slate-200 bg-white p-4">
+          <Card as="div" size="md">
             <dt class="font-medium text-slate-900">{c.when}</dt>
             <dd class="mt-1 text-sm text-slate-600">{c.meaning}</dd>
-          </div>
+          </Card>
         ))}
       </dl>
-    </section>
+    </Section>
 
-    <section class="mt-6 rounded-xl border border-brand-600/20 bg-brand-50 p-4 sm:p-6">
-      <h2 class="text-lg font-bold tracking-tight text-slate-900">แล้วควรทำอะไรต่อ</h2>
+    <Section title="แล้วควรทำอะไรต่อ" class="mt-6 rounded-xl border border-brand-600/20 bg-brand-50 p-4 sm:p-6">
       <p class="mt-2 text-slate-700">{entry.advice}</p>
-    </section>
+    </Section>
 
     {related.length > 0 && (
-      <section class="mt-8">
-        <h2 class="text-lg font-bold tracking-tight text-slate-900">ความฝันที่เกี่ยวข้อง</h2>
+      <Section title="ความฝันที่เกี่ยวข้อง" class="mt-8">
         <ul class="mt-3 grid gap-2 sm:grid-cols-3">
           {related.map((e) => (
             <li>
-              <a
-                href={getDreamEntryUrl(e.slug)}
-                class="block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
-              >
+              <Card as="a" size="sm" class="block text-slate-800 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600" href={getDreamEntryUrl(e.slug)}>
                 {e.title}
-              </a>
+              </Card>
             </li>
           ))}
         </ul>
-      </section>
+      </Section>
     )}
 
     <p class="mt-8 text-sm text-slate-600">

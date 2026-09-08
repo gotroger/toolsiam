@@ -1,0 +1,30 @@
+---
+/**
+ * บล็อกเนื้อหาพร้อมหัวข้อ — คุมสเกลหัวข้อระดับ h2/h3 จากที่เดียว
+ *
+ * คลาสหัวข้อชุดนี้ถูกพิมพ์ซ้ำ 27 จุดในหน้า .astro โดยที่ ToolShell ใส่ `sm:text-xl`
+ * แต่หน้า vertical ไม่ใส่ — หัวข้อระดับเดียวกันจึงมีสองขนาดบนจอเดียวกัน
+ * ไฟล์นี้รวมให้เหลือสเกลเดียว (ยึดตาม ToolShell ซึ่งเป็นหน้าที่คนเข้ามากที่สุด)
+ *
+ * ไม่ใส่ระยะห่างบนให้เอง — ผู้เรียกส่ง `class="mt-8"` ตามจังหวะของหน้าตัวเอง
+ * ถ้าใส่ค่าเริ่มต้นไว้แล้วให้ override ผ่าน class จะได้คลาส margin สองตัวชนกัน
+ */
+import { sectionHeading } from './headings';
+
+interface Props {
+  title: string;
+  /** ระดับหัวข้อตามลำดับชั้นจริงของหน้า ไม่ใช่ตามขนาดที่อยากได้ */
+  level?: 2 | 3;
+  /** ข้อความนำใต้หัวข้อ */
+  lead?: string;
+  id?: string;
+  class?: string;
+}
+const { title, level = 2, lead, id, class: cls } = Astro.props;
+const Heading = `h${level}` as 'h2' | 'h3';
+---
+<section id={id} class:list={[cls]}>
+  <Heading class={sectionHeading}>{title}</Heading>
+  {lead && <p class="mt-1 text-sm text-slate-600">{lead}</p>}
+  <slot />
+</section>

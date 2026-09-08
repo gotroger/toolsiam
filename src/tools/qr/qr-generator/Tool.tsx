@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { buildQrPayload, type QrInput, type WifiEncryption } from './logic';
-import { Button, CopyButton, ErrorText, Field, Input, Select, Textarea } from '@/components/ui';
+import { Checkbox, CopyButton, ErrorText, Field, Input, Select, Textarea } from '@/components/ui';
 
 type Kind = QrInput['kind'];
 
@@ -101,10 +101,7 @@ export default function QrGeneratorTool() {
                 <Input id="pw" autoComplete="off" spellCheck={false} value={password} onChange={(e) => setPassword(e.target.value)} />
               </Field>
             )}
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} className="size-4" />
-              เครือข่ายซ่อนชื่อ (hidden SSID)
-            </label>
+            <Checkbox label="เครือข่ายซ่อนชื่อ (hidden SSID)" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
           </>
         )}
 

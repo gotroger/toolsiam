@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { processLines, DEFAULT_LINE_OPTIONS, type LineOptions } from './logic';
-import { CopyButton, Field, Select, Stat, Textarea } from '@/components/ui';
+import { Checkbox, CopyButton, Field, Select, Stat, Textarea } from '@/components/ui';
 
 const TOGGLES: { key: keyof LineOptions; label: string }[] = [
   { key: 'trim', label: 'ตัดช่องว่างหัวท้าย' },
@@ -25,15 +25,12 @@ export default function TextLinesTool() {
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {TOGGLES.map((t) => (
-            <label key={t.key} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="size-4"
-                checked={options[t.key] as boolean}
-                onChange={(e) => setOptions({ ...options, [t.key]: e.target.checked })}
-              />
-              {t.label}
-            </label>
+            <Checkbox
+              key={t.key}
+              label={t.label}
+              checked={options[t.key] as boolean}
+              onChange={(e) => setOptions({ ...options, [t.key]: e.target.checked })}
+            />
           ))}
         </div>
         <div className="w-48">

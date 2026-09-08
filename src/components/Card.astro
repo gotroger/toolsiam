@@ -1,0 +1,30 @@
+---
+/**
+ * การ์ดพื้นขาว — ผิวเดียวของทั้งเว็บ
+ *
+ * ก่อนมีไฟล์นี้ คลาสชุด `rounded-xl border border-slate-200 bg-white p-4 sm:p-6`
+ * ถูกพิมพ์ซ้ำใน 18 จุดทั่วหน้า .astro (ฝั่ง React มี primitive ใน ui.tsx อยู่แล้ว
+ * แต่ฝั่ง Astro ไม่มีอะไรเลย) แก้สไตล์การ์ดทีหนึ่งจึงต้องไล่แก้ทุกไฟล์
+ *
+ * ขนาดมีสามระดับเท่านั้นโดยตั้งใจ — ไม่เปิดให้ส่ง padding เอง เพราะนั่นคือทางที่ทำให้
+ * ค่ามุมโค้งกับระยะขอบแตกออกเป็นสิบแบบเหมือนเดิม
+ */
+interface Props {
+  /** แท็กที่จะ render — `li` สำหรับการ์ดในรายการ, `div` เมื่ออยู่ใน section อยู่แล้ว */
+  as?: 'section' | 'div' | 'li' | 'article';
+  /** lg = การ์ดหุ้มเครื่องมือ/เนื้อหาหลัก · md = การ์ดในกริด · sm = ชิปในรายการ */
+  size?: 'lg' | 'md' | 'sm';
+  class?: string;
+  [key: string]: unknown;
+}
+const { as: Tag = 'section', size = 'lg', class: cls, ...rest } = Astro.props;
+
+const SIZES = {
+  lg: 'rounded-xl p-4 sm:p-6',
+  md: 'rounded-[10px] p-4',
+  sm: 'rounded-lg px-3 py-2 text-sm',
+} as const;
+---
+<Tag class:list={['border border-slate-200 bg-white', SIZES[size], cls]} {...rest}>
+  <slot />
+</Tag>

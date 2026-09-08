@@ -1,0 +1,65 @@
+---
+/**
+ * ตารางข้อมูลฝั่ง Astro — คู่แฝดของ `DataTable` ใน ui.tsx
+ *
+ * ทำไมไม่เรียกตัว React มาใช้เลย: `DataTable` รับ `render` ที่คืน ReactNode
+ * แต่ JSX ที่เขียนในไฟล์ .astro คอมไพล์เป็นออบเจ็กต์ของ Astro ไม่ใช่ React element
+ * ส่งข้ามกันแล้วเซลล์จะว่าง — ตัวนี้จึงรับ "ข้อมูล" ล้วนแทนฟังก์ชัน render
+ *
+ * มาร์กอัปและคลาสตรงกับฝั่ง React ทุกตัวอักษร ถ้าแก้ที่หนึ่งต้องแก้อีกที่ด้วย
+ */
+export type Cell = string | number | { text: string; /** อักขระประดับที่ screen reader ต้องข้าม เช่น ♈ */ symbol?: string };
+
+export interface Column {
+  header: string;
+  /** จัดชิดขวาสำหรับตัวเลข — ได้ tabular-nums มาด้วย */
+  align?: 'left' | 'right';
+  /** คลาสเพิ่มของ td ทั้งคอลัมน์ */
+  class?: string;
+}
+
+interface Props {
+  columns: Column[];
+  rows: Cell[][];
+  /** อ่านให้ screen reader ฟังว่าตารางนี้คืออะไร — ไม่แสดงบนจอ */
+  caption: string;
+  /** ความกว้างขั้นต่ำก่อนเริ่มเลื่อนแนวนอน */
+  minWidth?: string;
+}
+const { columns, rows, caption, minWidth = '32rem' } = Astro.props;
+---
+<div class="overflow-x-auto rounded-[10px] border border-slate-200">
+  <table class="w-full border-collapse text-sm" style={`min-width:${minWidth}`}>
+    <caption class="sr-only">{caption}</caption>
+    <thead>
+      <tr class="bg-slate-50 text-slate-600">
+        {columns.map((c) => (
+          <th
+            scope="col"
+            class:list={['border-b border-slate-200 px-3 py-2 font-medium', c.align === 'right' ? 'text-right' : 'text-left']}
+          >{c.header}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr class="even:bg-slate-50/60">
+          {row.map((cell, i) => (
+            <td
+              class:list={[
+                'border-b border-slate-100 px-3 py-2 text-slate-700',
+                columns[i]?.align === 'right' && 'text-right tabular-nums',
+                columns[i]?.class,
+              ]}
+            >
+              {typeof cell === 'object' && cell.symbol && (
+                <Fragment><span aria-hidden="true">{cell.symbol}</span>{' '}</Fragment>
+              )}
+              {typeof cell === 'object' ? cell.text : cell}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
