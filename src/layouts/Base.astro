@@ -105,7 +105,7 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj).replace(/</g, '\\u003c')} />)}
   </head>
   <body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 antialiased">
-    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white">ข้ามไปยังเนื้อหาหลัก</a>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-action focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white">ข้ามไปยังเนื้อหาหลัก</a>
     <Header />
     <main id="main" class="site-container flex-1 py-8 sm:py-10">
       {wide ? <slot /> : <div class="mx-auto w-full max-w-4xl"><slot /></div>}
