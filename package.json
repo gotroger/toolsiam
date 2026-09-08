@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:tz": "for z in Asia/Bangkok UTC America/Los_Angeles Pacific/Kiritimati; do TZ=$z vitest run || exit 1; done",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "astro sync && tsc --noEmit",
     "covers": "bash scripts/build-covers.sh",
     "covers:fallback": "node scripts/gen-fallback-covers.mjs",
     "size": "node scripts/size.mjs",
