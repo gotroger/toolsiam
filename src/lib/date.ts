@@ -112,3 +112,62 @@ export function dateDiffParts(aIso: string, bIso: string): DiffParts {
   return { years, months, days };
 }
 
+/** ช่วงระหว่างสองวันที่ มองได้หลายมุมพร้อมกัน */
+export interface DateSpan {
+  /** ผลต่างเป็นวัน (ไม่นับวันเริ่มต้น) */
+  days: number;
+  /** นับรวมทั้งวันเริ่มและวันสิ้นสุด */
+  inclusiveDays: number;
+  weeks: number;
+  remainderDays: number;
+  /** จันทร์–ศุกร์ ในช่วง (นับรวมปลายทั้งสองข้าง) */
+  weekdayCount: number;
+  weekendCount: number;
+  parts: DiffParts;
+}
+
+/** สลับลำดับวันได้ — ผลลัพธ์เป็นบวกเสมอ */
+export function daysBetween(startIso: string, endIso: string): DateSpan {
+  const [fromIso, toIso] = orderDates(startIso, endIso);
+  const days = daysBetweenDates(fromIso, toIso);
+  const inclusiveDays = days + 1;
+  const weekendCount = countWeekends(fromIso, toIso);
+
+  return {
+    days,
+    inclusiveDays,
+    weeks: Math.floor(days / 7),
+    remainderDays: days % 7,
+    weekdayCount: inclusiveDays - weekendCount,
+    weekendCount,
+    parts: dateDiffParts(fromIso, toIso),
+  };
+}
+
+export type ShiftUnit = 'day' | 'week' | 'month' | 'year';
+
+/**
+ * บวก/ลบวันที่ — จำนวนติดลบคือถอยหลัง
+ *
+ * บวกเดือนหรือปีแล้ววันเกินสิ้นเดือนจะถูกหนีบไว้ที่วันสุดท้ายของเดือนนั้น
+ * (31 ม.ค. + 1 เดือน = 28/29 ก.พ.) ซึ่งตรงกับที่คนไทยนับ "อีกหนึ่งเดือน" ในทางปฏิบัติ
+ */
+export function shiftDate(iso: string, amount: number, unit: ShiftUnit): string {
+  if (!Number.isFinite(amount)) throw new Error('จำนวนที่บวก/ลบต้องเป็นตัวเลข');
+  const n = Math.round(amount);
+  if (unit === 'day') return addDays(iso, n);
+  if (unit === 'week') return addDays(iso, n * 7);
+
+  const base = new Date(parseIsoDate(iso));
+  const year = base.getUTCFullYear();
+  const month = base.getUTCMonth() + 1;
+  const day = base.getUTCDate();
+
+  const totalMonths = unit === 'year' ? (year + n) * 12 + (month - 1) : year * 12 + (month - 1) + n;
+  const targetYear = Math.floor(totalMonths / 12);
+  const targetMonth = (totalMonths % 12) + 1;
+  if (targetYear < 1 || targetYear > 9999) throw new Error('ผลลัพธ์อยู่นอกช่วงปีที่รองรับ (ค.ศ. 1–9999)');
+
+  const targetDay = Math.min(day, daysInMonth(targetYear, targetMonth));
+  return `${String(targetYear).padStart(4, '0')}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
+}

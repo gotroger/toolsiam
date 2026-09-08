@@ -1,0 +1,133 @@
+import { useEffect, useState } from 'react';
+import { daysBetween, shiftAndDescribe, type ShiftUnit } from './logic';
+import { ErrorText, Field, Input, NumberInput, Select, Stat, Tabs, TabPanel } from '@/components/ui';
+import { todayInBangkok } from '@/lib/today';
+
+const MIN_DATE = '1900-01-01';
+const MAX_DATE = '2200-12-31';
+const ID = 'date-add';
+
+const UNIT_LABEL: Record<ShiftUnit, string> = { day: 'วัน', week: 'สัปดาห์', month: 'เดือน', year: 'ปี' };
+
+const num = (s: string) => {
+  const n = Number(s.replace(/,/g, ''));
+  return Number.isFinite(n) ? n : Number.NaN;
+};
+
+export default function DateAddTool() {
+  const [tab, setTab] = useState('between');
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+  const [base, setBase] = useState('');
+  const [amount, setAmount] = useState('90');
+  const [unit, setUnit] = useState<ShiftUnit>('day');
+  const [direction, setDirection] = useState<'1' | '-1'>('1');
+
+  // "วันนี้" ตามเวลาไทยเสมอ ไม่ใช่ timezone ของเครื่องผู้ใช้ (§27 D2)
+  useEffect(() => {
+    const today = todayInBangkok();
+    setStart(today);
+    setEnd(today);
+    setBase(today);
+  }, []);
+
+  let spanError = '';
+  let span: ReturnType<typeof daysBetween> | null = null;
+  if (start !== '' && end !== '') {
+    try { span = daysBetween(start, end); } catch (e) { spanError = (e as Error).message; }
+  }
+
+  let shiftError = '';
+  let shifted: ReturnType<typeof shiftAndDescribe> | null = null;
+  if (base !== '') {
+    try {
+      shifted = shiftAndDescribe(base, num(amount), unit, direction === '1' ? 1 : -1);
+    } catch (e) {
+      shiftError = (e as Error).message;
+    }
+  }
+
+  const beYear = (iso: string) => (/^\d{4}-/.test(iso) ? Number(iso.slice(0, 4)) + 543 : '—');
+
+  return (
+    <div className="space-y-6">
+      <Tabs
+        idPrefix={ID}
+        label="โหมดการคำนวณวันที่"
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'between', label: 'นับวันระหว่างวันที่' },
+          { id: 'shift', label: 'บวก / ลบวันที่' },
+        ]}
+      />
+
+      <TabPanel id="between" idPrefix={ID} active={tab === 'between'}>
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="วันเริ่มต้น" htmlFor="start" hint={`ตรงกับ พ.ศ. ${beYear(start)}`}>
+              <Input id="start" type="date" min={MIN_DATE} max={MAX_DATE} value={start} onChange={(e) => setStart(e.target.value)} aria-describedby="start-hint" />
+            </Field>
+            <Field label="วันสิ้นสุด" htmlFor="end" hint={`ตรงกับ พ.ศ. ${beYear(end)}`}>
+              <Input id="end" type="date" min={MIN_DATE} max={MAX_DATE} value={end} onChange={(e) => setEnd(e.target.value)} aria-describedby="end-hint" />
+            </Field>
+          </div>
+
+          {spanError && <ErrorText>{spanError}</ErrorText>}
+
+          {span && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Stat label="ห่างกัน" value={`${span.days.toLocaleString('en-US')} วัน`} />
+              <Stat label="นับรวมวันเริ่ม-วันสิ้นสุด" value={`${span.inclusiveDays.toLocaleString('en-US')} วัน`} />
+              <Stat label="แบบปฏิทิน" value={`${span.parts.years} ปี ${span.parts.months} เดือน ${span.parts.days} วัน`} />
+              <Stat label="สัปดาห์" value={`${span.weeks} สัปดาห์ ${span.remainderDays} วัน`} />
+              <Stat label="วันจันทร์–ศุกร์" value={`${span.weekdayCount.toLocaleString('en-US')} วัน`} />
+              <Stat label="เสาร์–อาทิตย์" value={`${span.weekendCount.toLocaleString('en-US')} วัน`} />
+            </div>
+          )}
+        </div>
+      </TabPanel>
+
+      <TabPanel id="shift" idPrefix={ID} active={tab === 'shift'}>
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label="นับจากวันที่" htmlFor="base" hint={`ตรงกับ พ.ศ. ${beYear(base)}`}>
+              <Input id="base" type="date" min={MIN_DATE} max={MAX_DATE} value={base} onChange={(e) => setBase(e.target.value)} aria-describedby="base-hint" />
+            </Field>
+            <Field label="ทิศทาง" htmlFor="direction">
+              <Select id="direction" value={direction} onChange={(e) => setDirection(e.target.value as '1' | '-1')}>
+                <option value="1">นับไปข้างหน้า (อีก…)</option>
+                <option value="-1">นับย้อนหลัง (…ที่แล้ว)</option>
+              </Select>
+            </Field>
+            <NumberInput
+              id="amount"
+              label="จำนวน"
+              mode="numeric"
+              value={amount}
+              onValueChange={setAmount}
+              suffix={UNIT_LABEL[unit]}
+              error={shiftError || undefined}
+            />
+            <Field label="หน่วย" htmlFor="unit">
+              <Select id="unit" value={unit} onChange={(e) => setUnit(e.target.value as ShiftUnit)}>
+                <option value="day">วัน</option>
+                <option value="week">สัปดาห์</option>
+                <option value="month">เดือน</option>
+                <option value="year">ปี</option>
+              </Select>
+            </Field>
+          </div>
+
+          {shifted && (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Stat label="ตรงกับวันที่" value={shifted.fullThai} />
+              <Stat label="รูปแบบสากล" value={shifted.date} />
+              <Stat label="เป็นวันหยุดสุดสัปดาห์" value={shifted.isWeekend ? 'ใช่ (เสาร์–อาทิตย์)' : 'ไม่ใช่'} />
+            </div>
+          )}
+        </div>
+      </TabPanel>
+    </div>
+  );
+}

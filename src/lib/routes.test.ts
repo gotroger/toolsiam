@@ -73,11 +73,22 @@ function walk(dir: string): string[] {
 describe('ไม่มี URL เก่าหลงเหลือในซอร์ส', () => {
   const allowed = new Set(['src/lib/routes.test.ts']);
 
+  // ต้องมีเครื่องหมายคำพูดหรือวงเล็บนำหน้า จึงจะนับว่าเป็น "path ที่เขียนสด"
+  // ไม่งั้นชื่อโมดูลอย่าง '@/lib/pricing' จะถูกจับผิดว่าเป็นลิงก์ไปหน้า /pricing ที่ปลดระวางไปแล้ว
+  const OLD_PATH_RE = /(["'`(])\/(t\/|c\/|pricing)/;
+
   it("ไม่มี '/t/', '/c/', '/pricing' นอกไฟล์ทดสอบ", () => {
     const offenders = walk('src')
       .filter((f) => !allowed.has(f) && !f.endsWith('.test.ts'))
-      .filter((f) => /(["'`(])\/(t|c)\/|\/pricing/.test(readFileSync(f, 'utf8')));
+      .filter((f) => OLD_PATH_RE.test(readFileSync(f, 'utf8')));
     expect(offenders).toEqual([]);
+  });
+
+  it('จับ path เก่าที่เขียนสด แต่ไม่จับชื่อโมดูลที่บังเอิญลงท้ายเหมือนกัน', () => {
+    expect(OLD_PATH_RE.test('href="/t/net-salary"')).toBe(true);
+    expect(OLD_PATH_RE.test("getUrl('/c/finance')")).toBe(true);
+    expect(OLD_PATH_RE.test('<a href="/pricing">')).toBe(true);
+    expect(OLD_PATH_RE.test("import { x } from '@/lib/pricing';")).toBe(false);
   });
 });
 
