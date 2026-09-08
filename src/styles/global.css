@@ -2,6 +2,19 @@
 
 @theme {
   --font-sans: "Sarabun", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* หัวข้อใช้ Prompt — ทรงเรขาคณิตกว่า Sarabun ทำให้ลำดับชั้นหัวข้อ/เนื้อความอ่านออกทันที */
+  --font-heading: "Prompt", "Sarabun", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /**
+   * `font-mono` สงวนไว้สำหรับ "ข้อความที่เป็นโค้ด" เท่านั้น — ช่อง JSON และขั้นตอนการคำนวณ
+   *
+   * ห้ามใช้กับตัวเลขที่เป็นเนื้อหา (เลขรางวัล ยอดเงิน) เพราะสแตกนี้เป็นฟอนต์ของ OS
+   * แต่ละเครื่องจึงวาดคนละแบบ — และไม่จำเป็นด้วย: Sarabun มีตัวเลขกว้างเท่ากันทุกตัวอยู่แล้ว
+   * (วัดที่ 48px: ทุกหลักกว้าง 26.64px เท่ากันหมด ไม่ต้องพึ่ง tabular-nums)
+   *
+   * ประกาศไว้ตรงนี้เพื่อให้เป็นการตัดสินใจที่เขียนไว้ ไม่ใช่ค่า default ของ Tailwind ที่หลุดมาใช้
+   */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Brand — เขียว ToolSiam (คงโทนเดิม #059669 เป็นสีหลัก) */
   --color-brand-50: #ecfdf5;
@@ -30,6 +43,16 @@
 
   body {
     text-rendering: optimizeLegibility;
+  }
+
+  /**
+   * หัวข้อทั้งเว็บใช้ Prompt จากที่เดียว — ไม่ต้องไล่ใส่คลาสรายหน้า
+   * และหน้าใหม่ที่เขียนทีหลังจะได้ฟอนต์ถูกต้องเองโดยไม่ต้องจำ
+   */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    /* Prompt น้ำหนัก 500 อ่านเป็นหัวข้อได้โดยไม่ต้องหนา — ตัวหนาในฟอนต์นี้ดูดังเกินหน้าเครื่องมือ */
+    font-weight: 500;
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -45,7 +45,7 @@ export default function TicketChecker({ draw }: { draw: LotteryDraw }) {
 
           {checked.results.map((r) => (
             <div key={r.ticket} className="rounded-[10px] border border-slate-200 bg-white p-3">
-              <p className="font-mono text-sm tabular-nums text-slate-900">{r.ticket}</p>
+              <p className="text-sm tabular-nums text-slate-900">{r.ticket}</p>
               {r.wins.length === 0 ? (
                 <p className="mt-1 text-sm text-slate-600">ไม่ถูกรางวัลในงวดนี้</p>
               ) : (

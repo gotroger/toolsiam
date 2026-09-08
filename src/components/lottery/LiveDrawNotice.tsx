@@ -50,7 +50,7 @@ export default function LiveDrawNotice({ staticDrawDate }: { staticDrawDate?: st
         <p className="font-semibold text-slate-900">
           มีผลงวดใหม่แล้ว — งวดวันที่ {formatThaiDate(drawDate, { style: 'medium' })}
         </p>
-        <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-slate-900">
+        <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">
           {remote.draw.prizes.first[0]}
         </p>
         <p className="mt-2 text-slate-700">
