@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toThaiDigits, toArabicDigits, transformCase, type CaseMode } from './logic';
-import { Button, Field, Textarea } from '@/components/ui';
+import { Button, CopyButton, Field, Textarea } from '@/components/ui';
 
 type Action = 'thai' | 'arabic' | CaseMode;
 
@@ -22,21 +22,7 @@ function apply(text: string, action: Action): string {
 export default function ThaiNumeralsTool() {
   const [text, setText] = useState('ประกาศ ณ วันที่ 7 กันยายน 2569');
   const [action, setAction] = useState<Action>('thai');
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState('');
-
   const result = apply(text, action);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(result);
-      setCopyError('');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopyError('คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง');
-    }
-  }
 
   return (
     <div className="space-y-4">
@@ -56,8 +42,7 @@ export default function ThaiNumeralsTool() {
         <Textarea id="out" rows={6} value={result} readOnly />
       </Field>
 
-      <Button onClick={copy} disabled={!result}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
-      {copyError && <p className="text-sm text-red-600">{copyError}</p>}
+      <CopyButton text={result} />
     </div>
   );
 }

@@ -1,29 +1,14 @@
 import { useState } from 'react';
 import { formatJson, minifyJson, type Indent, type JsonResult } from './logic';
-import { Button, Select, Textarea } from '@/components/ui';
+import { Button, CopyButton, Select, Textarea } from '@/components/ui';
 
 export default function JsonFormatterTool() {
   const [input, setInput] = useState('{"name":"ทูลสยาม","tools":[1,2,3]}');
   const [indent, setIndent] = useState<Indent>(2);
   const [result, setResult] = useState<JsonResult | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState('');
 
   function run(fn: () => JsonResult) {
     setResult(fn());
-    setCopied(false);
-    setCopyError('');
-  }
-  async function copy() {
-    if (result?.ok) {
-      try {
-        await navigator.clipboard.writeText(result.output);
-        setCopyError('');
-        setCopied(true);
-      } catch {
-        setCopyError('คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง');
-      }
-    }
   }
 
   return (
@@ -36,7 +21,7 @@ export default function JsonFormatterTool() {
           <option value="4">เยื้อง 4 ช่อง</option>
           <option value="tab">เยื้องด้วยแท็บ</option>
         </Select>
-        <Button variant="secondary" onClick={copy} disabled={!result?.ok}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอกผลลัพธ์'}</Button>
+        <CopyButton text={result?.ok ? result.output : ''} label="คัดลอกผลลัพธ์" />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Textarea rows={16} value={input} onChange={(e) => setInput(e.target.value)} aria-label="JSON ต้นฉบับ" spellCheck={false} />
@@ -48,7 +33,6 @@ export default function JsonFormatterTool() {
         </p>
       )}
       {result?.ok && <p className="text-sm text-brand-700">✓ JSON ถูกต้อง ({result.output.length.toLocaleString()} ตัวอักษร)</p>}
-      {copyError && <p className="text-sm text-red-600">{copyError}</p>}
     </div>
   );
 }

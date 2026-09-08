@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   MS_PER_DAY, parseIsoDate, toIsoDate, daysBetweenDates, addDays,
-  weekdayIndex, isWeekend, daysInMonth, isLeapYear, countWeekends,
+  weekdayIndex, isWeekend, daysInMonth, isLeapYear, countWeekends, dateDiffParts,
 } from './date';
 
 describe('parseIsoDate', () => {
@@ -117,5 +117,17 @@ describe('daysInMonth / isLeapYear', () => {
     expect(isLeapYear(2026)).toBe(false);
     expect(isLeapYear(2000)).toBe(true);
     expect(isLeapYear(1900)).toBe(false);
+  });
+});
+
+describe('dateDiffParts', () => {
+  it('แยกเป็นปี/เดือน/วัน โดยยืมวันจากเดือนก่อนหน้า', () => {
+    expect(dateDiffParts('1990-05-15', '2026-09-08')).toEqual({ years: 36, months: 3, days: 24 });
+    expect(dateDiffParts('2026-01-01', '2026-01-31')).toEqual({ years: 0, months: 0, days: 30 });
+    expect(dateDiffParts('2026-09-08', '2026-09-08')).toEqual({ years: 0, months: 0, days: 0 });
+  });
+
+  it('สลับลำดับก็ได้ผลเท่ากัน', () => {
+    expect(dateDiffParts('2026-09-08', '1990-05-15')).toEqual({ years: 36, months: 3, days: 24 });
   });
 });

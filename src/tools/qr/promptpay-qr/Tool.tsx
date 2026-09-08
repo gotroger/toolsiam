@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { buildPromptPayPayload, normalizeTarget } from './logic';
-import { Field, Input } from '@/components/ui';
+import { ErrorText, Field, Input } from '@/components/ui';
 
 const TYPE_LABEL = { phone: 'เบอร์โทรศัพท์', nationalId: 'เลขบัตรประชาชน', ewallet: 'e-Wallet' } as const;
 
@@ -57,7 +57,7 @@ export default function PromptPayQrTool() {
         <Field label="จำนวนเงิน (บาท) — เว้นว่างให้ผู้โอนกรอกเอง" htmlFor="amount">
           <Input id="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="เช่น 150.00" />
         </Field>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <ErrorText>{error}</ErrorText>}
       </div>
       <div className="flex flex-col items-center gap-3">
         {dataUrl ? (

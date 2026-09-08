@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { classifyQrText, type QrParsed } from './logic';
-import { Button } from '@/components/ui';
+import { Button, CopyButton, ErrorText } from '@/components/ui';
 
 /** ขนาดไฟล์สูงสุดที่ยอมให้ถอดรหัส (กันเบราว์เซอร์มือถือค้าง) */
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -103,7 +103,7 @@ export default function QrReaderTool() {
       </div>
 
       {busy && <p className="text-sm text-slate-500">กำลังอ่าน QR…</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {preview && (
         <img src={preview} alt="รูปที่อัปโหลด" className="mx-auto max-h-64 rounded-lg border border-slate-200" />
@@ -121,9 +121,7 @@ export default function QrReaderTool() {
             ))}
           </dl>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => navigator.clipboard.writeText(parsed.raw)}>
-              คัดลอกข้อความดิบ
-            </Button>
+            <CopyButton text={parsed.raw} label="คัดลอกข้อความดิบ" />
             {parsed.kind === 'url' && (
               <a
                 href={parsed.fields[0].value}

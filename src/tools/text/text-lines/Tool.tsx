@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { processLines, DEFAULT_LINE_OPTIONS, type LineOptions } from './logic';
-import { Button, Field, Select, Stat, Textarea } from '@/components/ui';
+import { CopyButton, Field, Select, Stat, Textarea } from '@/components/ui';
 
 const TOGGLES: { key: keyof LineOptions; label: string }[] = [
   { key: 'trim', label: 'ตัดช่องว่างหัวท้าย' },
@@ -14,21 +14,7 @@ const TOGGLES: { key: keyof LineOptions; label: string }[] = [
 export default function TextLinesTool() {
   const [text, setText] = useState('');
   const [options, setOptions] = useState<LineOptions>(DEFAULT_LINE_OPTIONS);
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState('');
-
   const result = processLines(text, options);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(result.text);
-      setCopyError('');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopyError('คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง');
-    }
-  }
 
   return (
     <div className="space-y-4">
@@ -71,8 +57,7 @@ export default function TextLinesTool() {
         <Textarea id="out" rows={8} value={result.text} readOnly />
       </Field>
 
-      <Button onClick={copy} disabled={!result.text}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
-      {copyError && <p className="text-sm text-red-600">{copyError}</p>}
+      <CopyButton text={result.text} />
     </div>
   );
 }

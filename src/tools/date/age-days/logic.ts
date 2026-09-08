@@ -1,10 +1,6 @@
-import { countWeekends, daysBetweenDates, daysInMonth, isLeapYear, parseIsoDate } from '@/lib/date';
+import { countWeekends, dateDiffParts, daysBetweenDates, isLeapYear, orderDates, parseIsoDate, type DiffParts } from '@/lib/date';
 
-export interface DiffParts {
-  years: number;
-  months: number;
-  days: number;
-}
+export type { DiffParts };
 
 export interface AgeResult extends DiffParts {
   /** จำนวนวันทั้งหมดตั้งแต่วันเกิดถึงวันอ้างอิง */
@@ -27,35 +23,6 @@ export interface DateSpan {
   weekdayCount: number;
   weekendCount: number;
   parts: DiffParts;
-}
-
-/** เรียงวันที่จากน้อยไปมาก */
-function order(aIso: string, bIso: string): [string, string] {
-  return parseIsoDate(aIso) <= parseIsoDate(bIso) ? [aIso, bIso] : [bIso, aIso];
-}
-
-/** ผลต่างแบบปฏิทิน ยืมวันจากเดือนก่อนหน้าวันสิ้นสุดเมื่อวันไม่พอ */
-export function dateDiffParts(aIso: string, bIso: string): DiffParts {
-  const [startIso, endIso] = order(aIso, bIso);
-  const start = new Date(parseIsoDate(startIso));
-  const end = new Date(parseIsoDate(endIso));
-
-  let years = end.getUTCFullYear() - start.getUTCFullYear();
-  let months = end.getUTCMonth() - start.getUTCMonth();
-  let days = end.getUTCDate() - start.getUTCDate();
-
-  if (days < 0) {
-    months -= 1;
-    // จำนวนวันของเดือนก่อนหน้าเดือนของวันสิ้นสุด
-    const prevMonth = end.getUTCMonth() === 0 ? 12 : end.getUTCMonth();
-    const prevYear = end.getUTCMonth() === 0 ? end.getUTCFullYear() - 1 : end.getUTCFullYear();
-    days += daysInMonth(prevYear, prevMonth);
-  }
-  if (months < 0) {
-    years -= 1;
-    months += 12;
-  }
-  return { years, months, days };
 }
 
 /** วันเกิดในปีที่กำหนด — 29 ก.พ. ในปีที่ไม่ใช่อธิกสุรทินให้นับเป็น 1 มี.ค. */
@@ -89,7 +56,7 @@ export function calculateAge(birthIso: string, refIso: string): AgeResult {
 }
 
 export function daysBetween(startIso: string, endIso: string): DateSpan {
-  const [fromIso, toIso] = order(startIso, endIso);
+  const [fromIso, toIso] = orderDates(startIso, endIso);
   const days = daysBetweenDates(fromIso, toIso);
   const inclusiveDays = days + 1;
 

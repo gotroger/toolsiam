@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { bahtText } from './logic';
-import { Button, Field, Input, ResultBox } from '@/components/ui';
+import { CopyButton, ErrorText, Field, Input, ResultBox } from '@/components/ui';
 
 export default function BahtTextTool() {
   const [value, setValue] = useState('1,234.50');
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState('');
-
   let result = '';
   let error = '';
   if (value.trim()) {
@@ -17,26 +14,14 @@ export default function BahtTextTool() {
     }
   }
 
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(result);
-      setCopyError('');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopyError('คัดลอกไม่สำเร็จ กรุณาคัดลอกด้วยตนเอง');
-    }
-  }
-
   return (
     <div className="space-y-4">
       <Field label="จำนวนเงิน (บาท)" htmlFor="amount" hint="ใส่คอมมาหรือทศนิยมได้ เช่น 1,234.50">
         <Input id="amount" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
       </Field>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
       <ResultBox label="คำอ่านภาษาไทย">{result || '—'}</ResultBox>
-      <Button onClick={copy} disabled={!result}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
-      {copyError && <p className="text-sm text-red-600">{copyError}</p>}
+      <CopyButton text={result} />
     </div>
   );
 }

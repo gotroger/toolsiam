@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { calculateNetSalary } from './logic';
 import { formatBaht } from '@/lib/format';
-import { Field, Input, Stat } from '@/components/ui';
+import { ErrorText, Field, Input, Stat } from '@/components/ui';
 
 const num = (s: string) => {
   const n = Number(s.replace(/,/g, ''));
@@ -63,7 +63,7 @@ export default function NetSalaryTool() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {result && (
         <>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { compoundGrowth, monthlyForGoal } from './logic';
 import { formatBaht } from '@/lib/format';
-import { Field, Input, Select, Stat } from '@/components/ui';
+import { ErrorText, Field, Input, Select, Stat } from '@/components/ui';
 
 const num = (s: string) => {
   const n = Number(s.replace(/,/g, ''));
@@ -75,7 +75,7 @@ export default function CompoundInterestTool() {
         </Field>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {growth && (
         <>

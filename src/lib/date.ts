@@ -75,3 +75,40 @@ export function countWeekends(fromIso: string, toIso: string): number {
   }
   return weekend;
 }
+
+/** ผลต่างวันที่แบบปฏิทิน แยกเป็นปี/เดือน/วัน */
+export interface DiffParts {
+  years: number;
+  months: number;
+  days: number;
+}
+
+/** เรียงวันที่จากน้อยไปมาก */
+export function orderDates(aIso: string, bIso: string): [string, string] {
+  return parseIsoDate(aIso) <= parseIsoDate(bIso) ? [aIso, bIso] : [bIso, aIso];
+}
+
+/** ผลต่างแบบปฏิทิน ยืมวันจากเดือนก่อนหน้าวันสิ้นสุดเมื่อวันไม่พอ */
+export function dateDiffParts(aIso: string, bIso: string): DiffParts {
+  const [startIso, endIso] = orderDates(aIso, bIso);
+  const start = new Date(parseIsoDate(startIso));
+  const end = new Date(parseIsoDate(endIso));
+
+  let years = end.getUTCFullYear() - start.getUTCFullYear();
+  let months = end.getUTCMonth() - start.getUTCMonth();
+  let days = end.getUTCDate() - start.getUTCDate();
+
+  if (days < 0) {
+    months -= 1;
+    // จำนวนวันของเดือนก่อนหน้าเดือนของวันสิ้นสุด
+    const prevMonth = end.getUTCMonth() === 0 ? 12 : end.getUTCMonth();
+    const prevYear = end.getUTCMonth() === 0 ? end.getUTCFullYear() - 1 : end.getUTCFullYear();
+    days += daysInMonth(prevYear, prevMonth);
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+  return { years, months, days };
+}
+
