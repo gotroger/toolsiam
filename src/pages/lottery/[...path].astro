@@ -4,6 +4,7 @@ import VerticalShell from '@/components/VerticalShell.astro';
 import PrizeTable from '@/components/lottery/PrizeTable.astro';
 import DrawMeta from '@/components/lottery/DrawMeta.astro';
 import TicketChecker from '@/components/lottery/TicketChecker';
+import LiveDrawNotice from '@/components/lottery/LiveDrawNotice';
 import { DRAWS, drawsByYear, HAS_DRAWS } from '@/data/lottery';
 import type { LotteryDraw } from '@/data/lottery/schema';
 import { formatThaiDate } from '@/lib/thai-date';
@@ -103,6 +104,10 @@ const links = [
     crumbs={crumbs}
     disclaimer="ผลรางวัลที่แสดงเป็นข้อมูลที่กรอกและตรวจสอบด้วยคนจากประกาศของสำนักงานสลากกินแบ่งรัฐบาล เพื่อความสะดวกในการตรวจสอบเบื้องต้นเท่านั้น การขึ้นเงินรางวัลต้องยึดประกาศอย่างเป็นทางการของสำนักงานสลากกินแบ่งรัฐบาลเสมอ"
   >
+    {(view === 'hub' || view === 'check' || view === 'results') && (
+      <div class="mb-6"><LiveDrawNotice client:load staticDrawDate={latest?.drawDate} /></div>
+    )}
+
     {view === 'hub' && (
       <>
         <div class="grid gap-4 sm:grid-cols-3">

@@ -1,0 +1,38 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "toolsiam-lottery-cron",
+  "main": "./index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // ไม่มี route และไม่มี custom domain — Worker นี้ไม่รับ traffic จากผู้ใช้
+  // มีแต่ cron และ endpoint /run ที่ต้องมี secret สำหรับสั่งรันเองตอนตรวจสอบ
+  "workers_dev": false,
+  "observability": { "enabled": true },
+
+  // KV ก้อนเดียวกับที่เว็บอ่าน — Worker นี้เป็นตัวเขียนเพียงตัวเดียว เว็บอ่านอย่างเดียว
+  // ต้องเป็น namespace **เดียวกัน** กับที่ระบุใน wrangler.jsonc ของเว็บ ไม่ใช่คนละอัน
+  "kv_namespaces": [
+    { "binding": "LOTTERY", "id": "<KV_NAMESPACE_ID>" }
+  ],
+
+  "vars": {
+    // kill switch — ต้องเป็น "on" เท่านั้นจึงจะดึงข้อมูล
+    // ตั้งเป็นค่าอื่นเมื่อ endpoint ของ GLO มีปัญหา แล้วเว็บจะกลับไปใช้ static ล้วนทันที
+    "LOTTERY_AUTO": "on"
+  },
+
+  // ผลสลากประกาศช่วงบ่ายของวันที่ 1 และ 16 (เวลาไทย) และ "ทยอยออกทีละรางวัล"
+  // ยิงครั้งเดียวจะได้ข้อมูลไม่ครบแน่นอน จึงกระจายเป็น window 14:30–20:30 ICT (07:30–13:30 UTC)
+  // ทุกครั้งที่ตื่นจะอ่าน KV ก่อน ถ้างวดปัจจุบันเก็บครบแล้วจะจบทันทีโดยไม่ยิงออกนอก (§28.4)
+  "triggers": {
+    "crons": [
+      "30,50 7 1,16 * *",
+      "10,30,50 8 1,16 * *",
+      "30 9 1,16 * *",
+      "30 10 1,16 * *",
+      "30 12 1,16 * *",
+      "30 13 1,16 * *"
+    ]
+  }
+}

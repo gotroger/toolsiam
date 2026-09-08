@@ -14,6 +14,22 @@
     { "pattern": "www.toolsiam.com", "custom_domain": true }
   ],
   "observability": { "enabled": true },
-  "preview_urls": false
-  // Phase 2/3 จะเพิ่ม d1_databases, kv_namespaces, triggers.crons ที่นี่
+  "preview_urls": false,
+
+  // อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
+  // JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ ไม่มี login (§28.2)
+  //
+  // ยังไม่เปิดใช้จนกว่าจะสร้าง namespace จริง — ดูขั้นตอนใน workers/lottery-cron/README.md
+  // ระหว่างที่ยังไม่เปิด `/api/lottery/latest` ตอบ 204 และเว็บใช้ข้อมูล static ตามปกติทุกประการ
+  // จงใจไม่ใส่ id ปลอมไว้ เพราะจะทำให้ deploy ของทั้งเว็บล้มทั้งที่ยังไม่ได้ใช้ฟีเจอร์นี้
+  // "kv_namespaces": [
+  //   { "binding": "LOTTERY", "id": "<KV_NAMESPACE_ID>" }
+  // ],
+
+  "vars": {
+    // kill switch — ต้องเป็น "on" เท่านั้นจึงจะเปิด /api/lottery/latest
+    // ตั้งเป็นค่าอื่นเมื่อใดก็ตามที่ endpoint ของ GLO มีปัญหา แล้วเว็บจะกลับไปใช้ static ล้วนทันที
+    "LOTTERY_AUTO": "on"
+  },
+
 }
