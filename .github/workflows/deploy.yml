@@ -43,7 +43,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # ว่างได้ — ถ้าไม่ตั้ง repository variable นี้ หน้าเว็บจะไม่มี script วิเคราะห์เลย
+          # ⚠️ ต้องปล่อยว่างไว้ — ห้ามตั้ง repository variable นี้
+          #
+          # toolsiam.com เปิด Cloudflare Web Analytics แบบ Automatic setup อยู่แล้ว คือ Cloudflare
+          # ฉีด beacon ให้เองที่ขอบเครือข่าย ตั้ง token ทับจะนับ pageview ซ้ำสองเท่า (ดู .env.example)
+          #
+          # คงบรรทัดนี้ไว้เพื่อให้สลับกลับมาใช้ JS snippet ได้โดยไม่ต้องแก้ workflow
           PUBLIC_CF_BEACON_TOKEN: ${{ vars.PUBLIC_CF_BEACON_TOKEN }}
 
       - name: Deploy ขึ้น Cloudflare Workers
