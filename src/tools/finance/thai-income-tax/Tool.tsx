@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { calculateTax, type TaxInput } from './logic';
-import { Field, Input, Stat } from '@/components/ui';
+import { ErrorText, Field, Input, Stat } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
 
 type NumKey = Exclude<keyof TaxInput, 'hasSpouseNoIncome'>;
@@ -55,7 +55,7 @@ export default function ThaiIncomeTaxTool() {
       </div>
 
       <div className="space-y-4">
-        {!result.ok && <p className="text-sm text-red-600">{result.error}</p>}
+        {!result.ok && <ErrorText>{result.error}</ErrorText>}
         {result.ok && (
           <>
             <div className="grid gap-3 sm:grid-cols-2">

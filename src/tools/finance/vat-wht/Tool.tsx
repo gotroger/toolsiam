@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { VAT_RATE, WHT_RATES, calculateInvoice } from './logic';
 import { formatBaht, formatNumber } from '@/lib/format';
-import { Field, Input, Select, Stat } from '@/components/ui';
+import { ErrorText, Field, Input, Select, Stat } from '@/components/ui';
 
 export default function VatWhtTool() {
   const [amount, setAmount] = useState('1000');
@@ -44,7 +44,7 @@ export default function VatWhtTool() {
         </Field>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {result && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

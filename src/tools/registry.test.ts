@@ -4,10 +4,11 @@ import {
   getActiveCategories, getBrowsableCategories, getFeaturedTools, getRelatedTools, getVisibleTools,
 } from './registry';
 import { toolLoaders } from './loaders';
-import { DEFAULT_OG_IMAGE, FALLBACK_COVER, resolveCover, resolveOgImage } from './covers';
+import { categoryCoverPath, DEFAULT_OG_IMAGE, FALLBACK_COVER, resolveCover, resolveOgImage } from './covers';
 import { NOINDEX_CATEGORY_IDS, NOINDEX_TOOL_SLUGS } from '@/lib/noindex';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fallbackCoverPath, fallbackCoverSvg, parseCategories } from '../../scripts/gen-fallback-covers.mjs';
 
 describe('registry', () => {
   it('slug ไม่ซ้ำและเป็น kebab-case', () => {
@@ -148,21 +149,37 @@ describe('noindex list ตรงกับ registry', () => {
 });
 
 describe('covers', () => {
-  it('ทุกเครื่องมือ resolve ภาพปกได้ และไฟล์มีอยู่จริงใน public/', () => {
+  it('ทุกเครื่องมือ resolve ภาพปกได้ และไฟล์มีอยู่จริงใน public/ (ปกสำรองก็ผ่าน)', () => {
+    // §15.3 — การไม่มีปกจริงต้องไม่ block การเพิ่มเครื่องมือ ตรวจแค่ว่าไฟล์ที่ชี้ไปมีอยู่จริง
     for (const t of tools) {
       const cover = resolveCover(t);
-      expect(cover.isFallback).toBe(false);
       expect(cover.alt.length).toBeGreaterThan(0);
-      expect(existsSync(join('public', cover.src))).toBe(true);
+      expect(existsSync(join('public', cover.src)), `${t.slug} → ${cover.src}`).toBe(true);
     }
   });
 
-  it('ทุกเครื่องมือมี og:image เป็น JPEG ที่มีไฟล์อยู่จริง', () => {
+  it('ปกสำรองประจำหมวดมีครบทุกหมวด — รันซ้ำได้ด้วย npm run covers:fallback', () => {
+    for (const c of categories) {
+      expect(existsSync(join('public', categoryCoverPath(c.id))), c.id).toBe(true);
+    }
+  });
+
+  it('ปกสำรองที่ generate ตรงกับข้อมูลใน categories.ts (สี + icon ปัจจุบัน)', () => {
+    const parsed = parseCategories(readFileSync(join('src', 'tools', 'categories.ts'), 'utf8'));
+    expect(parsed.map((c) => c.id).sort()).toEqual(categories.map((c) => c.id).sort());
+    for (const c of parsed) {
+      expect(readFileSync(join('public', fallbackCoverPath(c.id)), 'utf8')).toBe(fallbackCoverSvg(c));
+    }
+  });
+
+  it('เครื่องมือที่มีปกจริงได้ og:image เป็น JPEG ที่มีไฟล์อยู่จริง', () => {
     for (const t of tools) {
       const og = resolveOgImage(t);
-      expect(og.src.endsWith('.jpg')).toBe(true);
-      expect(existsSync(join('public', og.src))).toBe(true);
       expect(og.alt.length).toBeGreaterThan(0);
+      expect(og.src.endsWith('.jpg')).toBe(true);
+      expect(existsSync(join('public', og.src)), `${t.slug} → ${og.src}`).toBe(true);
+      // P8 — ปกที่ไม่ใช่ .webp ของเครื่องมือเอง ต้องตกไปที่ภาพเริ่มต้นอย่างชัดเจน ไม่ใช่ path ที่ไม่มีไฟล์
+      expect(og.isDefault).toBe(resolveCover(t).kind !== 'tool');
     }
   });
 
@@ -170,10 +187,51 @@ describe('covers', () => {
     expect(existsSync(join('public', DEFAULT_OG_IMAGE))).toBe(true);
   });
 
-  it('มีภาพสำรองสำหรับเครื่องมือที่ยังไม่มีภาพปก', () => {
-    const cover = resolveCover({ slug: 'ยังไม่มีจริง', name: 'เครื่องมือใหม่' });
+  it('เครื่องมือที่ปลดระวาง (ไม่มีหมวด) ใช้ปกสำรองสุดท้าย', () => {
+    const cover = resolveCover({ slug: 'ยังไม่มีจริง', name: 'เครื่องมือใหม่', category: null });
     expect(cover.src).toBe(FALLBACK_COVER);
-    expect(cover.isFallback).toBe(true);
+    expect(cover.kind).toBe('placeholder');
     expect(existsSync(join('public', FALLBACK_COVER))).toBe(true);
+  });
+
+  it('เครื่องมือใหม่ที่ยังไม่มีปกจริง ใช้ปกประจำหมวดได้ทันที', () => {
+    const cover = resolveCover({ slug: 'ยังไม่มีจริง', name: 'เครื่องมือใหม่', category: 'finance' });
+    expect(cover.src).toBe(categoryCoverPath('finance'));
+    expect(cover.kind).toBe('category');
+    expect(existsSync(join('public', cover.src))).toBe(true);
+  });
+
+  /** เชิงรายงาน — ไม่ fail ต่อให้ยังใช้ปกสำรอง (§15.3 ข้อ 1) */
+  it('รายงานเครื่องมือที่ยังใช้ปกสำรอง', () => {
+    const pending = tools.filter((t) => resolveCover(t).isFallback).map((t) => t.slug);
+    if (pending.length > 0) {
+      console.log(`ยังไม่มีปกจริง ${pending.length} ตัว: ${pending.join(', ')}`);
+    }
+    expect(Array.isArray(pending)).toBe(true);
+  });
+});
+
+/** P9 — public/ ต้องมีแต่ไฟล์ที่ตั้งใจ deploy */
+describe('public/ ไม่มีไฟล์ขยะ', () => {
+  const ALLOWED_ROOT = new Set([
+    '_redirects', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
+    'favicon-192.png', 'apple-touch-icon.png', 'logo.png',
+  ]);
+  const ALLOWED_DIRS = new Set(['covers', 'og']);
+
+  it('ไฟล์ระดับบนสุดอยู่ใน allowlist ทั้งหมด', () => {
+    for (const entry of readdirSync('public', { withFileTypes: true })) {
+      if (entry.isDirectory()) expect(ALLOWED_DIRS.has(entry.name), entry.name).toBe(true);
+      else expect(ALLOWED_ROOT.has(entry.name), entry.name).toBe(true);
+    }
+  });
+
+  it('covers/ และ og/ มีแต่ไฟล์ภาพที่มีที่มา', () => {
+    for (const f of readdirSync(join('public', 'covers'))) {
+      expect(f, `public/covers/${f}`).toMatch(/^(_placeholder\.svg|_category-[a-z-]+\.svg|[a-z0-9-]+\.webp)$/);
+    }
+    for (const f of readdirSync(join('public', 'og'))) {
+      expect(f, `public/og/${f}`).toMatch(/^(_default\.jpg|[a-z0-9-]+\.jpg)$/);
+    }
   });
 });

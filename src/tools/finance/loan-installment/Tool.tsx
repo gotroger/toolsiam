@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { calculateLoan } from './logic';
-import { Button, Field, Input, Stat } from '@/components/ui';
+import { Button, ErrorText, Field, Input, Stat } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
 
 export default function LoanInstallmentTool() {
@@ -33,7 +33,7 @@ export default function LoanInstallmentTool() {
         </Field>
       </div>
 
-      {!result.ok && <p className="text-sm text-red-600">{result.error}</p>}
+      {!result.ok && <ErrorText>{result.error}</ErrorText>}
 
       {result.ok && (
         <>

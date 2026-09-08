@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
 import { describeDate, formatThaiDate, toBuddhistYear, toChristianYear } from '@/lib/thai-date';
-import { Button, Field, Input, ResultBox, Stat } from '@/components/ui';
+import { todayInBangkok } from '@/lib/today';
+import { CopyButton, ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
-
-function todayIso(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
 
 /** ข้อความดิบของทั้งสองช่อง + ช่องที่ผู้ใช้กำลังพิมพ์ (ช่องนั้นจะไม่ถูกเขียนทับ) */
 interface YearState {
@@ -44,10 +40,9 @@ function fromBe(raw: string): YearState {
 export default function ThaiYearConvertTool() {
   const [year, setYear] = useState<YearState>({ ce: '', be: '', lastEdited: 'ce' });
   const [date, setDate] = useState('');
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const iso = todayIso();
+    const iso = todayInBangkok();
     setDate(iso);
     setYear(fromCe(iso.slice(0, 4)));
   }, []);
@@ -69,12 +64,6 @@ export default function ThaiYearConvertTool() {
       error = (e as Error).message;
     }
   }
-
-  const copy = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
 
   return (
     <div className="space-y-6">
@@ -99,7 +88,7 @@ export default function ThaiYearConvertTool() {
         </Field>
       </div>
 
-      {yearError && <p className="text-sm text-red-600">{yearError}</p>}
+      {yearError && <ErrorText>{yearError}</ErrorText>}
 
       <Field label="เลือกวันที่เพื่อดูรายละเอียด" htmlFor="date">
         <Input
@@ -112,7 +101,7 @@ export default function ThaiYearConvertTool() {
         />
       </Field>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {info && (
         <>
@@ -124,13 +113,9 @@ export default function ThaiYearConvertTool() {
             <Stat label="แบบสั้น" value={info.shortThai} />
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => copy(info!.fullThai)}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอกแบบเต็ม'}</Button>
-            <Button variant="secondary" onClick={() => copy(formatThaiDate(info!.iso, { style: 'short' }))}>
-              คัดลอกแบบสั้น
-            </Button>
-            <Button variant="secondary" onClick={() => copy(formatThaiDate(info!.iso, { era: 'ce' }))}>
-              คัดลอกแบบ ค.ศ.
-            </Button>
+            <CopyButton text={info.fullThai} label="คัดลอกแบบเต็ม" />
+            <CopyButton text={formatThaiDate(info.iso, { style: 'short' })} label="คัดลอกแบบสั้น" />
+            <CopyButton text={formatThaiDate(info.iso, { era: 'ce' })} label="คัดลอกแบบ ค.ศ." />
           </div>
         </>
       )}

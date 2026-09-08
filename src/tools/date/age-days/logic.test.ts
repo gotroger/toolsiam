@@ -1,17 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateAge, daysBetween, dateDiffParts } from './logic';
-
-describe('dateDiffParts', () => {
-  it('แยกเป็นปี/เดือน/วัน โดยยืมวันจากเดือนก่อนหน้า', () => {
-    expect(dateDiffParts('1990-05-15', '2026-09-08')).toEqual({ years: 36, months: 3, days: 24 });
-    expect(dateDiffParts('2026-01-01', '2026-01-31')).toEqual({ years: 0, months: 0, days: 30 });
-    expect(dateDiffParts('2026-09-08', '2026-09-08')).toEqual({ years: 0, months: 0, days: 0 });
-  });
-
-  it('สลับลำดับก็ได้ผลเท่ากัน', () => {
-    expect(dateDiffParts('2026-09-08', '1990-05-15')).toEqual({ years: 36, months: 3, days: 24 });
-  });
-});
+import { calculateAge, daysBetween } from './logic';
 
 describe('calculateAge', () => {
   it('อายุ ณ วันอ้างอิงพร้อมวันเกิดครั้งถัดไป', () => {

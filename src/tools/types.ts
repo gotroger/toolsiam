@@ -64,6 +64,8 @@ export interface CategoryMeta {
   description: string;
   /** emoji */
   icon: string;
+  /** สีพื้นของปกสำรอง [เริ่ม, จบ] ของ gradient — ใช้โดย scripts/gen-fallback-covers.mjs (§15.2 ชั้น A) */
+  gradient: [string, string];
   order: number;
   /** 'planned' = ยังไม่มีเครื่องมือ → ไม่ build ไม่แสดง ไม่ index ไม่เข้า sitemap */
   status: 'active' | 'planned';

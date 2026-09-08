@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayCalendar } from './logic';
 import { describeDate } from '@/lib/thai-date';
-import { Button, Field, Input, Select, Stat } from '@/components/ui';
+import { Button, CopyButton, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
+import { toCsv } from '@/lib/clipboard';
 
 export default function ThaiHolidaysTool() {
   const [cal, setCal] = useState<HolidayCalendar>('bank');
@@ -47,7 +48,7 @@ export default function ThaiHolidaysTool() {
             <Input id="end" type="date" min="2026-01-01" max="2026-12-31" value={end} onChange={(e) => setEnd(e.target.value)} />
           </Field>
         </div>
-        {spanError && <p className="text-sm text-red-600">{spanError}</p>}
+        {spanError && <ErrorText>{spanError}</ErrorText>}
         {span && (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="วันทำการ" value={`${span.businessDays} วัน`} />
@@ -69,7 +70,7 @@ export default function ThaiHolidaysTool() {
           </Field>
           <div className="self-end">
             {addError ? (
-              <p className="text-sm text-red-600">{addError}</p>
+              <ErrorText>{addError}</ErrorText>
             ) : (
               <Stat label="ครบกำหนด" value={describeDate(dueDate).fullThai} />
             )}
@@ -82,15 +83,13 @@ export default function ThaiHolidaysTool() {
           <h2 className="text-lg font-semibold">
             {cal === 'bank' ? 'วันหยุดธนาคาร' : 'วันหยุดราชการ'} ปี 2569 ({holidays.length} รายการ)
           </h2>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              const rows = holidays.map((h) => `${describeDate(h.date).shortThai},${h.name},${h.type}`);
-              navigator.clipboard.writeText(['วันที่,ชื่อวันหยุด,ประเภท', ...rows].join('\n'));
-            }}
-          >
-            คัดลอกเป็น CSV
-          </Button>
+          <CopyButton
+            label="คัดลอกเป็น CSV"
+            text={toCsv(
+              ['วันที่', 'ชื่อวันหยุด', 'ประเภท'],
+              holidays.map((h) => [describeDate(h.date).shortThai, h.name, h.type]),
+            )}
+          />
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[420px] text-sm">

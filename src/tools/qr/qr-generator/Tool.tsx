@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { buildQrPayload, type QrInput, type WifiEncryption } from './logic';
-import { Button, Field, Input, Select, Textarea } from '@/components/ui';
+import { Button, CopyButton, ErrorText, Field, Input, Select, Textarea } from '@/components/ui';
 
 type Kind = QrInput['kind'];
 
@@ -128,7 +128,7 @@ export default function QrGeneratorTool() {
           </div>
         )}
 
-        {(payloadError || error) && <p className="text-sm text-red-600">{payloadError || error}</p>}
+        {(payloadError || error) && <ErrorText>{payloadError || error}</ErrorText>}
       </div>
 
       <div className="flex flex-col items-center gap-3">
@@ -139,9 +139,7 @@ export default function QrGeneratorTool() {
               <a href={dataUrl} download={`toolsiam-qr-${kind}.png`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
                 ดาวน์โหลด PNG
               </a>
-              <Button variant="secondary" onClick={() => navigator.clipboard.writeText(payload)}>
-                คัดลอกข้อมูลดิบ
-              </Button>
+              <CopyButton text={payload} label="คัดลอกข้อมูลดิบ" />
             </div>
           </>
         ) : (

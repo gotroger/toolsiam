@@ -1,18 +1,10 @@
 import { useEffect, useState } from 'react';
 import { calculateAge, daysBetween } from './logic';
-import { Field, Input, Select, Stat } from '@/components/ui';
+import { ErrorText, Field, Input, Select, Stat } from '@/components/ui';
+import { todayInBangkok } from '@/lib/today';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
-
-/** วันนี้ในรูปแบบ YYYY-MM-DD (ใช้เวลาเครื่องผู้ใช้ตอน mount เท่านั้น) */
-function todayIso(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 export default function AgeDaysTool() {
   const [mode, setMode] = useState<'age' | 'between'>('age');
@@ -21,10 +13,12 @@ export default function AgeDaysTool() {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
 
+  // "วันนี้" ต้องเป็นวันที่ตามเวลาไทยเสมอ ไม่ใช่ timezone ของเครื่องผู้ใช้ (§27 D2)
   useEffect(() => {
-    setRef(todayIso());
-    setStart(todayIso());
-    setEnd(todayIso());
+    const today = todayInBangkok();
+    setRef(today);
+    setStart(today);
+    setEnd(today);
   }, []);
 
   const ready = mode === 'age' ? ref !== '' : start !== '' && end !== '';
@@ -72,7 +66,7 @@ export default function AgeDaysTool() {
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {age && (
         <>
