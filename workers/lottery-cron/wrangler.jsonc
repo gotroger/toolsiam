@@ -13,7 +13,7 @@
   // KV ก้อนเดียวกับที่เว็บอ่าน — Worker นี้เป็นตัวเขียนเพียงตัวเดียว เว็บอ่านอย่างเดียว
   // ต้องเป็น namespace **เดียวกัน** กับที่ระบุใน wrangler.jsonc ของเว็บ ไม่ใช่คนละอัน
   "kv_namespaces": [
-    { "binding": "LOTTERY", "id": "<KV_NAMESPACE_ID>" }
+    { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" }
   ],
 
   "vars": {
