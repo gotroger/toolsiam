@@ -1,16 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import { zodiacFromDate } from '@/lib/thai-astro';
 import { ErrorText, Field, Input, ResultBox } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
 
 /** ค้นราศีจากวันเกิด — ส่วน interactive เล็ก ๆ บนหน้าที่เนื้อหาหลักเป็น HTML อยู่แล้ว (§9.5 SEO) */
 export default function ZodiacFinder() {
-  const [birth, setBirth] = useState('');
-
-  useEffect(() => { setBirth(todayInBangkok()); }, []);
+  const [birth, setBirth] = useDateInput();
 
   let error = '';
   let sign: ReturnType<typeof zodiacFromDate> | null = null;

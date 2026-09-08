@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import { describeDate, formatThaiDate, toBuddhistYear, toChristianYear } from '@/lib/thai-date';
-import { todayInBangkok } from '@/lib/today';
 import { CopyButton, ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
 
 const MIN_DATE = '1900-01-01';
@@ -38,14 +38,11 @@ function fromBe(raw: string): YearState {
 }
 
 export default function ThaiYearConvertTool() {
-  const [year, setYear] = useState<YearState>({ ce: '', be: '', lastEdited: 'ce' });
-  const [date, setDate] = useState('');
-
-  useEffect(() => {
-    const iso = todayInBangkok();
-    setDate(iso);
-    setYear(fromCe(iso.slice(0, 4)));
-  }, []);
+  const [date, setDate] = useDateInput();
+  // ปีตั้งต้นมาจากวันที่ตั้งต้น ไม่ได้เก็บซ้ำ — null = ผู้ใช้ยังไม่เคยแก้ช่องปี
+  const [editedYear, setEditedYear] = useState<YearState | null>(null);
+  const year = editedYear ?? fromCe(date.slice(0, 4));
+  const setYear = setEditedYear;
 
   // แจ้งเตือนเฉพาะตอนที่ช่องที่พิมพ์มีค่าแล้วแต่แปลงไม่ได้
   let yearError = '';

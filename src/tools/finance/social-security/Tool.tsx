@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useTodayInBangkok } from '@/lib/use-today';
 import {
   SECTION_40_OPTIONS, section33Yearly, section39Contribution, section40Total, SECTION_39, SECTION_LABEL,
   type SsoSection,
 } from './logic';
 import { DataTable, ErrorText, Field, NumberInput, ResultBox, Select, Stat, Tabs, TabPanel } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
-import { todayInBangkok } from '@/lib/today';
 
 const ID = 'sso';
 
@@ -19,10 +19,9 @@ export default function SocialSecurityTool() {
   const [salary, setSalary] = useState('20000');
   const [option, setOption] = useState<'1' | '2' | '3'>('1');
   const [extra, setExtra] = useState('0');
-  const [asOf, setAsOf] = useState('');
 
   // เพดานค่าจ้างขึ้นกับวันที่ จึงต้องใช้ "วันนี้" ตามเวลาไทย ไม่ใช่ของเครื่องผู้ใช้ (§27 D2)
-  useEffect(() => { setAsOf(todayInBangkok()); }, []);
+  const asOf = useTodayInBangkok();
 
   let error = '';
   let s33: ReturnType<typeof section33Yearly> | null = null;

@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import { chineseZodiacFromDate, CHINESE_ZODIAC_MAX_YEAR, CHINESE_ZODIAC_MIN_YEAR } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
 import { ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 
 /** ค้นปีนักษัตรจากวันเกิด โดยใช้ตรุษจีนเป็นเกณฑ์ตัดปี (ล็อกไว้ในแผน §9.4) */
 export default function ChineseZodiacFinder() {
-  const [birth, setBirth] = useState('');
-
-  useEffect(() => { setBirth(todayInBangkok()); }, []);
+  const [birth, setBirth] = useDateInput();
 
   let error = '';
   let result: ReturnType<typeof chineseZodiacFromDate> | null = null;

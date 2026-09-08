@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useTodayInBangkok } from '@/lib/use-today';
 import {
   calculateBill, COMMON_APPLIANCES, ftAt, latestFt, RESIDENTIAL_TARIFFS, totalUnits, unitsPerMonth,
   UTILITY_LABEL, VAT, type Utility,
 } from './logic';
 import { cellField, DataTable, Disclaimer, ErrorText, Field, NumberInput, ResultBox, Select, Stat, Tabs, TabPanel } from '@/components/ui';
 import { formatBaht, formatNumber } from '@/lib/format';
-import { todayInBangkok } from '@/lib/today';
 
 const ID = 'bill';
 
@@ -25,10 +25,9 @@ export default function ElectricityBillTool() {
   const [counts, setCounts] = useState<Record<string, string>>(
     Object.fromEntries(COMMON_APPLIANCES.map((a) => [a.id, a.id === 'fridge' ? '1' : '0'])),
   );
-  const [today, setToday] = useState('');
 
   // งวด Ft ขึ้นกับวันที่ จึงต้องอิงวันไทย ไม่ใช่เครื่องผู้ใช้ (§27 D2)
-  useEffect(() => { setToday(todayInBangkok()); }, []);
+  const today = useTodayInBangkok();
 
   const ft = today === '' ? null : (ftAt(today) ?? latestFt());
   const ftIsCurrent = today !== '' && ftAt(today) !== null;

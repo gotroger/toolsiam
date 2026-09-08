@@ -1,13 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import { numerologyFromDate } from '@/lib/thai-astro';
 import { ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 
 /** เลขศาสตร์วันเกิด — แสดงขั้นตอนการบวกให้ผู้ใช้ตรวจตามได้ ไม่ใช่ยิงผลลัพธ์ลอย ๆ */
 export default function NumerologyFinder() {
-  const [birth, setBirth] = useState('');
-
-  useEffect(() => { setBirth(todayInBangkok()); }, []);
+  const [birth, setBirth] = useDateInput();
 
   let error = '';
   let result: ReturnType<typeof numerologyFromDate> | null = null;

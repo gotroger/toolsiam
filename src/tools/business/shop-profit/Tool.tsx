@@ -113,7 +113,7 @@ export default function ShopProfitTool() {
           ) : (
             result.breakEvenUnits !== null && (
               <p className="text-sm text-slate-600">
-                ค่าโฆษณาที่ลงไปคุ้มเมื่อขายได้ {result.breakEvenUnits.toLocaleString('en-US')} ชิ้นขึ้นไป
+                ค่าโฆษณาที่ลงไปคุ้มเมื่อขายได้ {formatNumber(result.breakEvenUnits)} ชิ้นขึ้นไป
               </p>
             )
           )}

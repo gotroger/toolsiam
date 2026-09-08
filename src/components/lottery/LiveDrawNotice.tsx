@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useTodayInBangkok } from '@/lib/use-today';
 import { isStale, shouldPreferRemote } from '@/lib/lottery-freshness';
-import { todayInBangkok } from '@/lib/today';
 import { formatThaiDate } from '@/lib/thai-date';
 import { GLO_SOURCE_PAGE } from '@/lib/glo-api.mjs';
 import { getLotteryLatestUrl } from '@/lib/routes';
@@ -23,11 +23,9 @@ interface RemoteDraw {
 
 export default function LiveDrawNotice({ staticDrawDate }: { staticDrawDate?: string }) {
   const [remote, setRemote] = useState<RemoteDraw | null>(null);
-  const [today, setToday] = useState('');
+  const today = useTodayInBangkok();
 
   useEffect(() => {
-    setToday(todayInBangkok());
-
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 

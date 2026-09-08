@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatNumber } from '@/lib/format';
 import { daysBetween, shiftAndDescribe, type ShiftUnit } from './logic';
 import { ErrorText, Field, Input, NumberInput, Select, Stat, Tabs, TabPanel } from '@/components/ui';
 import { todayInBangkok } from '@/lib/today';
@@ -77,12 +78,12 @@ export default function DateAddTool() {
 
           {span && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Stat label="ห่างกัน" value={`${span.days.toLocaleString('en-US')} วัน`} />
-              <Stat label="นับรวมวันเริ่ม-วันสิ้นสุด" value={`${span.inclusiveDays.toLocaleString('en-US')} วัน`} />
+              <Stat label="ห่างกัน" value={`${formatNumber(span.days)} วัน`} />
+              <Stat label="นับรวมวันเริ่ม-วันสิ้นสุด" value={`${formatNumber(span.inclusiveDays)} วัน`} />
               <Stat label="แบบปฏิทิน" value={`${span.parts.years} ปี ${span.parts.months} เดือน ${span.parts.days} วัน`} />
               <Stat label="สัปดาห์" value={`${span.weeks} สัปดาห์ ${span.remainderDays} วัน`} />
-              <Stat label="วันจันทร์–ศุกร์" value={`${span.weekdayCount.toLocaleString('en-US')} วัน`} />
-              <Stat label="เสาร์–อาทิตย์" value={`${span.weekendCount.toLocaleString('en-US')} วัน`} />
+              <Stat label="วันจันทร์–ศุกร์" value={`${formatNumber(span.weekdayCount)} วัน`} />
+              <Stat label="เสาร์–อาทิตย์" value={`${formatNumber(span.weekendCount)} วัน`} />
             </div>
           )}
         </div>

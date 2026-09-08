@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatNumber } from '@/lib/format';
 import { formatJson, minifyJson, type Indent, type JsonResult } from './logic';
 import { Button, CopyButton, Select, Textarea } from '@/components/ui';
 
@@ -32,7 +33,7 @@ export default function JsonFormatterTool() {
           ผิดพลาดที่บรรทัด {result.error.line} คอลัมน์ {result.error.column}: {result.error.message}
         </p>
       )}
-      {result?.ok && <p className="text-sm text-brand-700">✓ JSON ถูกต้อง ({result.output.length.toLocaleString()} ตัวอักษร)</p>}
+      {result?.ok && <p className="text-sm text-brand-700">✓ JSON ถูกต้อง ({formatNumber(result.output.length)} ตัวอักษร)</p>}
     </div>
   );
 }

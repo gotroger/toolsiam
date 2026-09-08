@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import {
   chineseZodiacFromDate, CHINESE_ZODIAC_MAX_YEAR, CHINESE_ZODIAC_MIN_YEAR,
   dayColorsFromDate, numerologyFromDate, zodiacFromDate,
 } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
 import { ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 import { getHoroscopePageUrl } from '@/lib/routes';
 
 /**
@@ -13,9 +12,7 @@ import { getHoroscopePageUrl } from '@/lib/routes';
  * ไม่มี logic ของตัวเอง เพื่อไม่ให้ผลลัพธ์ขัดกับหน้าย่อยเมื่อแก้ตำราในอนาคต
  */
 export default function BirthdayProfile() {
-  const [birth, setBirth] = useState('');
-
-  useEffect(() => { setBirth(todayInBangkok()); }, []);
+  const [birth, setBirth] = useDateInput();
 
   let error = '';
   let sign: ReturnType<typeof zodiacFromDate> | null = null;

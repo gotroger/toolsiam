@@ -18,8 +18,14 @@ export default function QrGeneratorTool() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [org, setOrg] = useState('');
-  const [dataUrl, setDataUrl] = useState('');
-  const [error, setError] = useState('');
+  /**
+   * เก็บผลคู่กับ payload ที่สร้างมัน แล้วค่อย derive ตอน render
+   *
+   * นอกจากจะไม่ต้อง setState ล้างค่าใน effect แล้ว ยังปิดช่องโหว่เดิมด้วย:
+   * เมื่อผู้ใช้แก้ข้อมูล QR ใบเก่าจะค้างบนจอจนกว่าใบใหม่จะสร้างเสร็จ
+   * ซึ่งกับ QR รับเงินแปลว่าอาจมีคนสแกนโค้ดที่ไม่ตรงกับที่กรอกอยู่ตรงหน้า
+   */
+  const [result, setResult] = useState<{ key: string; url: string; error: string } | null>(null);
 
   let payload = '';
   let payloadError = '';
@@ -37,23 +43,21 @@ export default function QrGeneratorTool() {
     payloadError = (e as Error).message;
   }
 
+  const current = result?.key === payload ? result : null;
+  const dataUrl = current?.url ?? '';
+  const error = current?.error ?? '';
+
   useEffect(() => {
-    if (!payload) {
-      setDataUrl('');
-      setError('');
-      return;
-    }
+    if (!payload) return;
     let cancelled = false;
     QRCode.toDataURL(payload, { width: 512, margin: 2, errorCorrectionLevel: 'M' })
       .then((u) => {
         if (cancelled) return;
-        setDataUrl(u);
-        setError('');
+        setResult({ key: payload, url: u, error: '' });
       })
       .catch(() => {
         if (cancelled) return;
-        setDataUrl('');
-        setError('ข้อมูลยาวเกินกว่าที่ QR รองรับ กรุณาลดความยาวลง');
+        setResult({ key: payload, url: '', error: 'ข้อมูลยาวเกินกว่าที่ QR รองรับ กรุณาลดความยาวลง' });
       });
     return () => {
       cancelled = true;
@@ -140,7 +144,7 @@ export default function QrGeneratorTool() {
               className="rounded-lg border border-slate-200 bg-white"
             />
             <div className="flex flex-wrap justify-center gap-2">
-              <a href={dataUrl} download={`toolsiam-qr-${kind}.png`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+              <a href={dataUrl} download={`toolsiam-qr-${kind}.png`} className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action-hover">
                 ดาวน์โหลด PNG
               </a>
               <CopyButton text={payload} label="คัดลอกข้อมูลดิบ" />

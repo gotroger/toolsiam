@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import { dayColorsFromDate } from '@/lib/thai-astro';
 import { ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 
 const GROUPS = [
   { key: 'work', label: 'สีเสริมการงาน' },
@@ -12,9 +11,7 @@ const GROUPS = [
 
 /** สีมงคลจากวันเกิด — ผู้ใช้กรอกวันเกิด ไม่ใช่วันนี้ เพราะสีประจำตัวยึดวันที่เกิด */
 export default function LuckyColorFinder() {
-  const [birth, setBirth] = useState('');
-
-  useEffect(() => { setBirth(todayInBangkok()); }, []);
+  const [birth, setBirth] = useDateInput();
 
   let error = '';
   let colors: ReturnType<typeof dayColorsFromDate> | null = null;

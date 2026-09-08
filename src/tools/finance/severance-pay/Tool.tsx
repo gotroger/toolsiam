@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useDateInput } from '@/lib/use-today';
 import { calculateSeverance, DAILY_WAGE_DIVISORS, NO_SEVERANCE_REASONS, SEVERANCE_BANDS, type DailyWageDivisor } from './logic';
 import { DataTable, Disclaimer, ErrorText, Field, Input, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
-import { formatBaht } from '@/lib/format';
-import { todayInBangkok } from '@/lib/today';
+import { formatBaht, formatNumber } from '@/lib/format';
 import { getToolUrl } from '@/lib/routes';
 
 const MIN_DATE = '1900-01-01';
@@ -16,10 +16,8 @@ const num = (s: string) => {
 export default function SeverancePayTool() {
   const [salary, setSalary] = useState('30000');
   const [start, setStart] = useState('2020-01-01');
-  const [end, setEnd] = useState('');
+  const [end, setEnd] = useDateInput();
   const [divisor, setDivisor] = useState<DailyWageDivisor>(30);
-
-  useEffect(() => { setEnd(todayInBangkok()); }, []);
 
   let error = '';
   let result: ReturnType<typeof calculateSeverance> | null = null;
@@ -65,13 +63,13 @@ export default function SeverancePayTool() {
             <ResultBox label="ค่าชดเชยที่มีสิทธิได้รับ">{formatBaht(result.amount)} บาท</ResultBox>
           ) : (
             <Disclaimer>
-              อายุงาน {result.tenureDays.toLocaleString('en-US')} วัน ยังไม่ครบ 120 วัน ตามมาตรา 118
+              อายุงาน {formatNumber(result.tenureDays)} วัน ยังไม่ครบ 120 วัน ตามมาตรา 118
               จึงยังไม่เข้าเกณฑ์ได้รับค่าชดเชยจากการเลิกจ้าง
             </Disclaimer>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat label="อายุงาน" value={`${result.tenureYears} ปี (${result.tenureDays.toLocaleString('en-US')} วัน)`} />
+            <Stat label="อายุงาน" value={`${result.tenureYears} ปี (${formatNumber(result.tenureDays)} วัน)`} />
             <Stat label="ค่าจ้างรายวัน" value={`${formatBaht(result.dailyWage)} บาท`} />
             <Stat label="ขั้นตามกฎหมาย" value={result.band?.label ?? 'ยังไม่เข้าเกณฑ์'} />
             <Stat label="ได้รับเท่ากับค่าจ้าง" value={`${result.payDays} วัน`} />

@@ -52,17 +52,12 @@ export default tseslint.config(
       ],
 
       /**
-       * เป็น warn ไม่ใช่ error — โดยตั้งใจ
+       * เป็น error — สำนวน `useEffect(() => setX(...), [])` ถูกถอนออกหมดแล้ว
        *
-       * 16 จุดที่ติดกฎนี้เกือบทั้งหมดคือสำนวนเดียวกัน: `useEffect(() => setX(todayInBangkok()), [])`
-       * ซึ่งจงใจให้ค่าวันที่มาจากฝั่ง client เท่านั้น ไม่งั้น HTML ที่ SSR ไว้กับตอน hydrate
-       * จะได้คนละวันเมื่อผู้ใช้ไม่ได้อยู่โซนเวลาไทย
-       *
-       * ทางแก้ที่ถูกจริงคือ useSyncExternalStore ซึ่งต้องรื้อทุกเครื่องมือที่ใช้วันที่
-       * และมีเทสต์ TZ คุมอยู่ — เป็นงานของ Sprint 3 ไม่ใช่ของรอบนี้
-       * ระหว่างนี้ให้ขึ้นเป็นคำเตือนไว้เพื่อไม่ให้ลืม แต่ไม่บล็อก CI
+       * ค่าที่ต้องมาจากฝั่ง client อย่าง "วันนี้ตามเวลาไทย" ใช้ `useSyncExternalStore`
+       * ผ่าน hook ใน src/lib/use-today.ts แทน ดูเหตุผลเต็มในไฟล์นั้น
        */
-      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/set-state-in-effect': 'error',
     },
   },
 

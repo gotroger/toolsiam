@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { formatNumber } from '@/lib/format';
+import { useDateInput } from '@/lib/use-today';
 import { calculateAge } from './logic';
 import { ErrorText, Field, Input, Stat } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 import { getToolUrl } from '@/lib/routes';
 
 const MIN_DATE = '1900-01-01';
@@ -9,10 +10,8 @@ const MAX_DATE = '2200-12-31';
 
 export default function AgeDaysTool() {
   const [birth, setBirth] = useState('1990-05-15');
-  const [ref, setRef] = useState('');
-
-  // "วันนี้" ต้องเป็นวันที่ตามเวลาไทยเสมอ ไม่ใช่ timezone ของเครื่องผู้ใช้ (§27 D2)
-  useEffect(() => { setRef(todayInBangkok()); }, []);
+  // วันอ้างอิงเริ่มต้นคือวันนี้ตามเวลาไทย ไม่ใช่ timezone ของเครื่องผู้ใช้ (§27 D2)
+  const [ref, setRef] = useDateInput();
 
   let error = '';
   let age: ReturnType<typeof calculateAge> | null = null;
@@ -43,8 +42,8 @@ export default function AgeDaysTool() {
         <>
           <div className="grid gap-3 sm:grid-cols-3">
             <Stat label="อายุ" value={`${age.years} ปี ${age.months} เดือน ${age.days} วัน`} />
-            <Stat label="รวมทั้งหมด" value={`${age.totalDays.toLocaleString('en-US')} วัน`} />
-            <Stat label="คิดเป็นสัปดาห์" value={`${age.totalWeeks.toLocaleString('en-US')} สัปดาห์`} />
+            <Stat label="รวมทั้งหมด" value={`${formatNumber(age.totalDays)} วัน`} />
+            <Stat label="คิดเป็นสัปดาห์" value={`${formatNumber(age.totalWeeks)} สัปดาห์`} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Stat label="วันเกิดครั้งถัดไป" value={age.nextBirthday} />

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useTodayInBangkok } from '@/lib/use-today';
 import { calculateNetSalary } from './logic';
 import { formatBaht, formatNumber } from '@/lib/format';
 import { Checkbox, ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
-import { todayInBangkok } from '@/lib/today';
 import { getToolUrl } from '@/lib/routes';
 
 const num = (s: string) => {
@@ -22,10 +22,9 @@ export default function NetSalaryTool() {
   const [retirement, setRetirement] = useState('0');
   const [homeLoan, setHomeLoan] = useState('0');
   const [other, setOther] = useState('0');
-  const [asOf, setAsOf] = useState('');
 
   // เพดานประกันสังคมขึ้นกับวันที่ จึงต้องอิงวันไทย ไม่ใช่เครื่องผู้ใช้ (§27 D2)
-  useEffect(() => { setAsOf(todayInBangkok()); }, []);
+  const asOf = useTodayInBangkok();
 
   let result: ReturnType<typeof calculateNetSalary> | null = null;
   let error = '';

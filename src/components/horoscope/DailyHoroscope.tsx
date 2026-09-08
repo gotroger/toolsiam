@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useTodayInBangkok } from '@/lib/use-today';
 import { ZODIAC_SIGNS } from '@/lib/thai-astro';
 import { DAILY_CATEGORIES, DAILY_POOL, type DailyCategory } from '@/content/horoscope/daily-pool';
 import { pickForGroup } from '@/lib/seeded';
-import { todayInBangkok } from '@/lib/today';
 import { formatThaiDate } from '@/lib/thai-date';
 import { Field, Select, Stat } from '@/components/ui';
 
@@ -18,10 +18,9 @@ import { Field, Select, Stat } from '@/components/ui';
  */
 export default function DailyHoroscope({ initialSign }: { initialSign?: string }) {
   const [signId, setSignId] = useState(initialSign ?? ZODIAC_SIGNS[0].id);
-  const [today, setToday] = useState('');
 
   // "วันนี้" ต้องเป็นวันไทยเสมอ ผู้ใช้ทุกประเทศจึงเห็นดวงของวันเดียวกัน (§27 D2)
-  useEffect(() => { setToday(todayInBangkok()); }, []);
+  const today = useTodayInBangkok();
 
   const signIndex = Math.max(0, ZODIAC_SIGNS.findIndex((s) => s.id === signId));
   const sign = ZODIAC_SIGNS[signIndex];
