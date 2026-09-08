@@ -2,7 +2,7 @@ export type CategoryId = 'finance' | 'text' | 'date' | 'qr' | 'image' | 'pdf' | 
 export type Tier = 'free' | 'premium';
 
 export interface ToolMeta {
-  /** URL: /t/<slug> */
+  /** URL: /tools/<slug> */
   slug: string;
   /** ชื่อไทย ใช้เป็น h1 */
   name: string;

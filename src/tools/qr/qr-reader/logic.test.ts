@@ -4,10 +4,10 @@ import { buildVCardPayload, buildWifiPayload } from '@/tools/qr/qr-generator/log
 
 describe('classifyQrText', () => {
   it('ลิงก์เว็บ', () => {
-    const r = classifyQrText('https://toolsiam.com/t/qr-reader');
+    const r = classifyQrText('https://toolsiam.com/tools/qr-reader');
     expect(r.kind).toBe('url');
     expect(r.label).toBe('ลิงก์เว็บไซต์');
-    expect(r.fields).toEqual([{ label: 'ลิงก์', value: 'https://toolsiam.com/t/qr-reader' }]);
+    expect(r.fields).toEqual([{ label: 'ลิงก์', value: 'https://toolsiam.com/tools/qr-reader' }]);
   });
 
   it('WiFi พร้อม unescape อักขระพิเศษ', () => {

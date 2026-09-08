@@ -1,5 +1,6 @@
 import type { ToolMeta } from '@/tools/types';
 import { categories } from '@/tools/categories';
+import { getToolUrl } from '@/lib/routes';
 import { COVER_HEIGHT, COVER_WIDTH, resolveCover, resolveTierLabel, tierLabels } from '@/tools/covers';
 
 const tierStyles: Record<string, string> = {
@@ -21,7 +22,7 @@ export default function ToolCard({ tool }: { tool: ToolMeta }) {
 
   return (
     <a
-      href={`/t/${tool.slug}`}
+      href={getToolUrl(tool.slug)}
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_0_rgb(16_24_40/0.04)] transition duration-200 ease-out hover:-translate-y-[3px] hover:border-brand-500/50 hover:shadow-[0_8px_24px_-8px_rgb(5_150_105/0.18),0_2px_6px_-2px_rgb(16_24_40/0.06)] focus-visible:-translate-y-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       {/* จองพื้นที่ 16:9 ไว้ล่วงหน้า + พื้นหลังไล่สีทำหน้าที่เป็น skeleton ระหว่างภาพยังไม่มา */}

@@ -1,0 +1,18 @@
+# ToolSiam URL migration (Phase 0A)
+# กติกา §5.4: 301 เท่านั้น · 1 hop เสมอ · ห้าม chain · ห้าม loop
+# ย้าย target ในอนาคต = แก้กฎเดิมบรรทัดนี้ ไม่ใช่เพิ่มกฎซ้อน
+#
+# ข้อยกเว้นต้องมาก่อน splat เสมอ (พิสูจน์ลำดับด้วย curl แล้ว ไม่ใช่เชื่อเอกสาร)
+#
+# TODO(Phase 0B): เปลี่ยน /c/text เป็น /categories/daily เมื่อหมวด daily มีจริง
+#   ตอนนี้ยังไม่มีหมวดนั้น การชี้ไปเลยจะได้ 301 → 404 จึงพักไว้ที่ /tools ก่อน
+/c/text        /tools              301
+/c/dev         /tools              301
+/c/image       /tools              301
+/c/pdf         /tools              301
+/c/web         /tools              301
+/pricing       /tools              301
+
+# กฎทั่วไป
+/c/*           /categories/:splat  301
+/t/*           /tools/:splat       301

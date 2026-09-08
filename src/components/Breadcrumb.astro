@@ -1,0 +1,25 @@
+---
+import { breadcrumbJsonLd, type Crumb } from '@/lib/seo';
+
+/**
+ * Breadcrumb เดียวที่ render ทั้ง HTML และ BreadcrumbList JSON-LD จาก data ชุดเดียว (§25.2)
+ * → visual กับ structured data ไม่มีทางไม่ตรงกัน
+ * ขั้นสุดท้าย = หน้าปัจจุบัน จึงไม่เป็นลิงก์ แต่ยังมี item ใน JSON-LD
+ */
+interface Props { items: Crumb[] }
+const { items } = Astro.props;
+const jsonLd = breadcrumbJsonLd(items);
+---
+<nav class="text-sm text-slate-500" aria-label="breadcrumb">
+  <ol class="flex flex-wrap items-center gap-x-1.5">
+    {items.map((c, i) => (
+      <li class="flex items-center gap-x-1.5">
+        {i > 0 && <span aria-hidden="true" class="text-slate-300">›</span>}
+        {i === items.length - 1
+          ? <span aria-current="page" class="text-slate-700">{c.name}</span>
+          : <a href={c.path} class="rounded hover:text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600">{c.name}</a>}
+      </li>
+    ))}
+  </ol>
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, '\\u003c')} />

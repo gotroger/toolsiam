@@ -1,5 +1,6 @@
 ---
 import { categories, getToolsByCategory, tools } from '@/tools/registry';
+import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
 
 /**
  * Footer — แสดงเฉพาะลิงก์ที่มี route จริงเท่านั้น (ไม่มี dead link)
@@ -12,10 +13,10 @@ const topCategories = categories
   .slice(0, 4);
 
 const toolLinks = [
-  { href: '/tools', label: 'เครื่องมือทั้งหมด' },
-  { href: '/#popular', label: 'เครื่องมือยอดนิยม' },
-  { href: '/#categories', label: 'หมวดหมู่' },
-  { href: '/tools?tier=free', label: 'เครื่องมือฟรี' },
+  { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด' },
+  { href: `${getHomeUrl()}#popular`, label: 'เครื่องมือยอดนิยม' },
+  { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่' },
+  { href: `${getToolsUrl()}?tier=free`, label: 'เครื่องมือฟรี' },
 ];
 
 const linkClass =
@@ -52,16 +53,13 @@ const linkClass =
         <h2 class="text-sm font-semibold text-slate-900">หมวดหมู่ยอดนิยม</h2>
         <ul class="mt-4 space-y-2.5">
           {topCategories.map((c) => (
-            <li><a href={`/c/${c.id}`} class={linkClass}>{c.name}</a></li>
+            <li><a href={getCategoryUrl(c)} class={linkClass}>{c.name}</a></li>
           ))}
         </ul>
       </div>
 
       <div>
-        <h2 class="text-sm font-semibold text-slate-900">ข้อมูล</h2>
-        <ul class="mt-4 space-y-2.5">
-          <li><a href="/pricing" class={linkClass}>สมาชิกพรีเมียม</a></li>
-        </ul>
+        <h2 class="text-sm font-semibold text-slate-900">ความเป็นส่วนตัว</h2>
         <p class="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
           ทุกเครื่องมือคำนวณในเบราว์เซอร์ของคุณ ข้อมูลที่กรอกไม่ถูกส่งออกไปที่ไหน
         </p>

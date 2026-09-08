@@ -3,11 +3,11 @@
  * Header หลักของเว็บ — sticky, พื้นขาว, เส้นคั่นบาง, เบลอพื้นหลังเมื่อเลื่อนลง
  * ลิงก์ทุกตัวชี้ไปยัง route/anchor ที่มีอยู่จริงเท่านั้น
  */
+import { getHomeUrl, getToolsUrl } from '@/lib/routes';
 const links = [
-  { href: '/tools', label: 'เครื่องมือทั้งหมด', match: (p: string) => p.startsWith('/tools') },
-  { href: '/#categories', label: 'หมวดหมู่', match: (p: string) => p.startsWith('/c/') },
-  { href: '/tools?tier=free', label: 'ฟรีทั้งหมด', match: () => false },
-  { href: '/pricing', label: 'พรีเมียม', match: (p: string) => p.startsWith('/pricing') },
+  { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด', match: (p: string) => p.startsWith('/tools') },
+  { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่', match: (p: string) => p.startsWith('/categories/') },
+  { href: `${getToolsUrl()}?tier=free`, label: 'ฟรีทั้งหมด', match: () => false },
 ];
 const current = Astro.url.pathname;
 ---
@@ -47,7 +47,7 @@ const current = Astro.url.pathname;
         );
       })}
       <a
-        href="/tools"
+        href={getToolsUrl()}
         aria-label="ค้นหาเครื่องมือ"
         class="ml-1 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
       >
