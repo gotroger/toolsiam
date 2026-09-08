@@ -5,7 +5,6 @@ export const qrReaderMeta: ToolMeta = {
   name: 'อ่าน QR Code จากรูปภาพ',
   nameEn: 'QR Code Reader from Image',
   category: 'qr',
-  tier: 'free',
   description:
     'อัปโหลดหรือลากรูปที่มี QR Code เข้ามาเพื่ออ่านข้อมูลข้างใน รองรับลิงก์ ข้อความ รหัส WiFi นามบัตร vCard และ QR PromptPay โดยถอดรหัสในเบราว์เซอร์ ไม่มีการอัปโหลดรูปขึ้นเซิร์ฟเวอร์',
   keywords: ['อ่าน qr code จากรูป', 'สแกน qr จากภาพ', 'ถอดรหัส qr', 'เช็ค qr code ปลอดภัยไหม', 'qr reader ออนไลน์'],

@@ -1,4 +1,4 @@
-import type { ToolMeta, TierLabel } from './types';
+import type { ToolMeta } from './types';
 
 /**
  * ภาพปกเครื่องมือ — mapping ฝั่ง frontend ล้วน ไม่แตะข้อมูล/ตรรกะฝั่ง backend
@@ -90,14 +90,4 @@ export function resolveOgImage(tool: Pick<ToolMeta, 'slug' | 'name' | 'coverImag
     width: COVER_WIDTH,
     height: COVER_HEIGHT,
   };
-}
-
-export const tierLabels: Record<TierLabel, string> = {
-  free: 'ฟรี',
-  freemium: 'ฟรี + พรีเมียม',
-  premium: 'พรีเมียม',
-};
-
-export function resolveTierLabel(tool: Pick<ToolMeta, 'tier' | 'tierLabel'>): TierLabel {
-  return tool.tierLabel ?? tool.tier;
 }

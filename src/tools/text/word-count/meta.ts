@@ -4,8 +4,7 @@ export const wordCountMeta: ToolMeta = {
   slug: 'word-count',
   name: 'นับคำและตัวอักษรภาษาไทย',
   nameEn: 'Thai Word & Character Counter',
-  category: 'text',
-  tier: 'free',
+  category: 'daily',
   description:
     'นับจำนวนคำ ตัวอักษร บรรทัด ย่อหน้า และประโยคของข้อความภาษาไทย ตัดคำไทยที่เขียนติดกันโดยไม่มีช่องว่างได้ พร้อมประมาณเวลาอ่าน',
   keywords: ['นับคำ', 'นับตัวอักษร', 'นับคำภาษาไทย', 'ตัดคำไทย', 'นับจำนวนตัวอักษรออนไลน์'],

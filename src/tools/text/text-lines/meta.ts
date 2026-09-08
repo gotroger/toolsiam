@@ -4,8 +4,7 @@ export const textLinesMeta: ToolMeta = {
   slug: 'text-lines',
   name: 'จัดการบรรทัด: ลบบรรทัดซ้ำ เรียงลำดับ ตัดช่องว่าง',
   nameEn: 'Line Tools — Dedupe, Sort, Trim',
-  category: 'text',
-  tier: 'free',
+  category: 'daily',
   description:
     'ลบบรรทัดที่ซ้ำกัน เรียงลำดับ ก-ฮ หรือ A-Z ตัดช่องว่างหัวท้าย ลบบรรทัดว่าง กลับลำดับ และใส่เลขลำดับ ทำได้พร้อมกันหลายอย่างในครั้งเดียว',
   keywords: ['ลบบรรทัดซ้ำ', 'เรียงลำดับข้อความ', 'ลบบรรทัดว่าง', 'ตัดช่องว่าง', 'จัดการรายการข้อความ'],

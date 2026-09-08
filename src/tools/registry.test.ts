@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { tools, categories, getTool, getToolsByCategory, getCategory } from './registry';
+import {
+  tools, categories, getTool, getToolsByCategory, getCategory,
+  getActiveCategories, getBrowsableCategories, getFeaturedTools, getRelatedTools, getVisibleTools,
+} from './registry';
 import { toolLoaders } from './loaders';
 import { DEFAULT_OG_IMAGE, FALLBACK_COVER, resolveCover, resolveOgImage } from './covers';
 import { NOINDEX_CATEGORY_IDS, NOINDEX_TOOL_SLUGS } from '@/lib/noindex';
@@ -13,10 +16,10 @@ describe('registry', () => {
     for (const s of slugs) expect(s).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   });
 
-  it('ทุกเครื่องมืออยู่ในหมวดที่มีจริง และมีเนื้อหา SEO ครบ', () => {
-    const ids = new Set(categories.map((c) => c.id));
+  it('ทุกเครื่องมืออยู่ในหมวดที่มีจริง (หรือ null) และมีเนื้อหา SEO ครบ', () => {
+    const ids = new Set<string>(categories.map((c) => c.id));
     for (const t of tools) {
-      expect(ids.has(t.category)).toBe(true);
+      if (t.category !== null) expect(ids.has(t.category)).toBe(true);
       expect(t.keywords.length).toBeGreaterThanOrEqual(3);
       expect(t.howTo.length).toBeGreaterThanOrEqual(2);
       expect(t.faq.length).toBeGreaterThanOrEqual(2);
@@ -30,20 +33,116 @@ describe('registry', () => {
 
   it('helpers ทำงานถูก', () => {
     expect(getTool('not-exist')).toBeUndefined();
-    expect(getCategory('finance').name).toBe('การเงินและภาษี');
+    expect(getCategory('finance').id).toBe('finance');
     for (const c of categories) {
       for (const t of getToolsByCategory(c.id)) expect(t.category).toBe(c.id);
     }
   });
 });
 
+/** §8.4 — หมวดว่างห้ามแสดง และ vertical ไม่มีหน้า /categories/ */
+describe('หมวด', () => {
+  it('id ไม่ซ้ำ และ order ไม่ซ้ำ', () => {
+    expect(new Set(categories.map((c) => c.id)).size).toBe(categories.length);
+    expect(new Set(categories.map((c) => c.order)).size).toBe(categories.length);
+  });
+
+  it('หมวด active ที่มีหน้าของตัวเอง ต้องมีเครื่องมืออย่างน้อย 1 ตัว', () => {
+    for (const c of getBrowsableCategories()) {
+      expect(getToolsByCategory(c.id).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('หมวด planned ต้องไม่มีเครื่องมือ และไม่ถูก build', () => {
+    const planned = categories.filter((c) => c.status === 'planned');
+    for (const c of planned) expect(getToolsByCategory(c.id)).toEqual([]);
+    const built = new Set(getBrowsableCategories().map((c) => c.id));
+    for (const c of planned) expect(built.has(c.id)).toBe(false);
+  });
+
+  it('vertical ที่มี landingPath ไม่สร้างหน้า /categories/', () => {
+    for (const c of getBrowsableCategories()) expect(c.landingPath).toBeUndefined();
+  });
+
+  it('getActiveCategories เรียงตาม order', () => {
+    const orders = getActiveCategories().map((c) => c.order);
+    expect(orders).toEqual([...orders].sort((a, b) => a - b));
+  });
+});
+
+/** §18 — เครื่องมือปลดระวางต้องมี flag ครบทั้งชุด */
+describe('เครื่องมือที่ปลดระวาง', () => {
+  it('category === null ↔ retired && hidden && noindex', () => {
+    for (const t of tools) {
+      const retiredSet = t.retired === true && t.hidden === true && t.noindex === true;
+      expect(t.category === null).toBe(retiredSet);
+    }
+  });
+
+  it('เครื่องมือ hidden ไม่โผล่ในรายการที่ผู้ใช้เห็น', () => {
+    const visible = new Set(getVisibleTools().map((t) => t.slug));
+    for (const t of tools.filter((t) => t.hidden)) {
+      expect(visible.has(t.slug)).toBe(false);
+      for (const c of categories) {
+        expect(getToolsByCategory(c.id).some((x) => x.slug === t.slug)).toBe(false);
+      }
+    }
+  });
+});
+
+/** §13.4 — related ที่กำหนดมือ */
+describe('related', () => {
+  it('ทุก slug ใน related มีอยู่จริง ไม่ชี้ตัวเอง และไม่ชี้เครื่องมือที่ hidden', () => {
+    for (const t of tools) {
+      for (const slug of t.related ?? []) {
+        const target = getTool(slug);
+        expect(target, `${t.slug} → ${slug}`).toBeDefined();
+        expect(slug).not.toBe(t.slug);
+        expect(target!.hidden).toBeUndefined();
+      }
+    }
+  });
+
+  it('getRelatedTools เอา related ที่กำหนดมือขึ้นก่อน แล้วเติมด้วยหมวดเดียวกัน', () => {
+    const ageDays = getTool('age-days')!;
+    const related = getRelatedTools(ageDays, 4);
+    expect(related[0].slug).toBe('thai-year-convert');
+    expect(related.some((t) => t.slug === 'age-days')).toBe(false);
+    expect(new Set(related.map((t) => t.slug)).size).toBe(related.length);
+  });
+
+  it('เครื่องมือที่ปลดระวางไม่มี related', () => {
+    for (const t of tools.filter((t) => t.category === null)) {
+      expect(getRelatedTools(t)).toEqual([]);
+    }
+  });
+});
+
+/** §19 — เครื่องมือแนะนำที่ทีมเลือกเอง */
+describe('featuredRank', () => {
+  it('เรียงจากมากไปน้อยและไม่มีตัวที่ hidden', () => {
+    const featured = getFeaturedTools(8);
+    expect(featured.length).toBeGreaterThan(0);
+    const ranks = featured.map((t) => t.featuredRank!);
+    expect(ranks).toEqual([...ranks].sort((a, b) => b - a));
+    for (const t of featured) expect(t.hidden).toBeUndefined();
+  });
+
+  it('featuredRank ไม่ซ้ำกัน', () => {
+    const ranks = tools.map((t) => t.featuredRank).filter((r) => r !== undefined);
+    expect(new Set(ranks).size).toBe(ranks.length);
+  });
+});
+
 describe('noindex list ตรงกับ registry', () => {
-  it('NOINDEX_CATEGORY_IDS = หมวดที่ยังไม่มีเครื่องมือ', () => {
-    const empty = categories.filter((c) => getToolsByCategory(c.id).length === 0).map((c) => c.id);
+  it('NOINDEX_CATEGORY_IDS = หมวดที่ build แล้วแต่ยังว่าง (ตั้งแต่ 0B ต้องไม่มีเลย)', () => {
+    const empty = getBrowsableCategories().filter((c) => getToolsByCategory(c.id).length === 0).map((c) => c.id);
     expect([...NOINDEX_CATEGORY_IDS].sort()).toEqual(empty.sort());
   });
 
-  it('NOINDEX_TOOL_SLUGS ชี้ไปเครื่องมือที่มีอยู่จริง', () => {
+  it('NOINDEX_TOOL_SLUGS ตรงกับ meta.noindex ทุกตัว', () => {
+    const flagged = tools.filter((t) => t.noindex).map((t) => t.slug);
+    expect([...NOINDEX_TOOL_SLUGS].sort()).toEqual(flagged.sort());
     for (const slug of NOINDEX_TOOL_SLUGS) expect(getTool(slug)).toBeDefined();
   });
 });

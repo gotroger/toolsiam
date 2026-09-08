@@ -4,8 +4,8 @@ export const bahtTextMeta: ToolMeta = {
   slug: 'baht-text',
   name: 'แปลงตัวเลขเป็นตัวอักษรภาษาไทย (บาทถ้วน)',
   nameEn: 'Thai Baht Text',
-  category: 'text',
-  tier: 'free',
+  category: 'business',
+  featuredRank: 60,
   description:
     'แปลงจำนวนเงินตัวเลขเป็นคำอ่านภาษาไทย เช่น 1,234.50 → หนึ่งพันสองร้อยสามสิบสี่บาทห้าสิบสตางค์ ใช้ในใบเสร็จ ใบกำกับภาษี เช็ค รองรับตัวเลขหลักล้านล้าน',
   keywords: ['บาทถ้วน', 'ตัวเลขเป็นตัวอักษร', 'คำอ่านจำนวนเงิน', 'bahttext', 'แปลงเงินเป็นตัวหนังสือ'],

@@ -15,7 +15,8 @@ export function toolJsonLd(tool: ToolMeta, url: string): Record<string, unknown>
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Web',
       inLanguage: 'th',
-      offers: { '@type': 'Offer', price: tool.tier === 'premium' ? '99' : '0', priceCurrency: 'THB' },
+      // ทุกเครื่องมือใช้ฟรี ไม่มี paywall — ประกาศตรง ๆ แทนการ emit offers ที่ราคาไม่จริง (§20 M7)
+      isAccessibleForFree: true,
     },
     {
       '@context': 'https://schema.org',

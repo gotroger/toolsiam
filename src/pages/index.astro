@@ -1,13 +1,15 @@
 ---
 import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
-import { tools, categories, getToolsByCategory } from '@/tools/registry';
+import { getActiveCategories, getFeaturedTools, getToolsByCategory, getVisibleTools } from '@/tools/registry';
 import { cardGrid, cardGridItem } from '@/components/grids';
-import { getCategoryUrl, getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
-import { collectionPageJsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo';
+import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
+import { organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 
-const categoryCounts = categories.map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
-const popular = tools.slice(0, 8);
+// หมวด planned ไม่ขึ้นหน้าแรก (§8.4) — ที่เหลือจึงมีเครื่องมือจริงทุกใบ
+const categoryCounts = getActiveCategories().map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
+const featured = getFeaturedTools(8);
+const visibleToolCount = getVisibleTools().length;
 const jsonLd = [organizationJsonLd(), websiteJsonLd()];
 ---
 <Base wide jsonLd={jsonLd} title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง">
@@ -23,7 +25,7 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
         href={getToolsUrl()}
         class="inline-flex items-center rounded-[11px] bg-brand-600 px-5 py-2.5 text-[0.9375rem] font-medium text-white transition-colors duration-150 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
       >
-        ดูเครื่องมือทั้งหมด ({tools.length})
+        ดูเครื่องมือทั้งหมด ({visibleToolCount})
       </a>
       <a
         href={`${getHomeUrl()}#categories`}
@@ -45,19 +47,17 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
         >
           <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-xl" aria-hidden="true">{c.icon}</div>
           <div class="mt-3 font-semibold text-slate-900 group-hover:text-brand-700">{c.name}</div>
-          <div class="mt-0.5 text-xs text-slate-500">
-            {c.count > 0 ? `${c.count} เครื่องมือ` : 'เร็ว ๆ นี้'}
-          </div>
+          <div class="mt-0.5 text-xs text-slate-500">{c.count} เครื่องมือ</div>
         </a>
       ))}
     </div>
   </section>
 
-  <section id="popular" class="mt-12 scroll-mt-24 sm:mt-16">
+  <section id="featured" class="mt-12 scroll-mt-24 sm:mt-16">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h2 class="text-[1.375rem] font-bold tracking-tight text-slate-900 sm:text-2xl">เครื่องมือยอดนิยม</h2>
-        <p class="mt-1.5 text-sm text-slate-500">เครื่องมือที่คนไทยใช้บ่อยที่สุด</p>
+        <h2 class="text-[1.375rem] font-bold tracking-tight text-slate-900 sm:text-2xl">เครื่องมือแนะนำ</h2>
+        <p class="mt-1.5 text-sm text-slate-500">เครื่องมือที่เราแนะนำให้เริ่มใช้</p>
       </div>
       <a
         href={getToolsUrl()}
@@ -67,7 +67,7 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
       </a>
     </div>
     <div class:list={['mt-5', cardGrid]}>
-      {popular.map((t) => <div class:list={[cardGridItem]}><ToolCard tool={t} /></div>)}
+      {featured.map((t) => <div class:list={[cardGridItem]}><ToolCard tool={t} /></div>)}
     </div>
   </section>
 </Base>
