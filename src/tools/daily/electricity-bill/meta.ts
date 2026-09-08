@@ -1,5 +1,20 @@
 import type { ToolMeta } from '@/tools/types';
-import { ELECTRICITY_SOURCES } from '@/lib/rates/electricity';
+import { calculateBill, ELECTRICITY_SOURCES, latestFt, RESIDENTIAL_TARIFFS, VAT } from '@/lib/rates/electricity';
+import { formatBaht, formatNumber } from '@/lib/format';
+
+// คำนวณสดจาก logic เดียวกับที่เครื่องมือใช้ ตัวเลขในตารางจึงตรงกับผลที่ผู้ใช้กดเองเสมอ (§22.3)
+const FT = latestFt();
+const exampleRows = [50, 100, 150, 200, 300, 400, 500, 800].map((units) => {
+  const tariff = RESIDENTIAL_TARIFFS.mea[units <= 150 ? 0 : 1];
+  const bill = calculateBill(units, tariff, FT.ratePerUnit, VAT.rate);
+  return [
+    `${formatNumber(units, 0)} หน่วย`,
+    formatBaht(bill.energyCharge),
+    formatBaht(bill.ftCharge),
+    formatBaht(bill.total),
+    formatBaht(bill.averagePerUnit),
+  ];
+});
 
 export const electricityBillMeta: ToolMeta = {
   slug: 'electricity-bill',
@@ -26,6 +41,12 @@ export const electricityBillMeta: ToolMeta = {
     { q: 'ผู้มีบัตรสวัสดิการแห่งรัฐได้ไฟฟ้าฟรีไหม', a: 'มีสิทธิใช้ไฟฟ้าฟรี 50 หน่วยต่อเดือนสำหรับผู้ที่ลงทะเบียนไว้และใช้ไฟไม่เกิน 50 หน่วยต่อเดือนติดต่อกันตามเงื่อนไข ซึ่งเป็นสิทธิเฉพาะบุคคล เครื่องมือนี้จึงไม่นำมาคิดให้อัตโนมัติ' },
   ],
   rates: ELECTRICITY_SOURCES,
+  examples: {
+    heading: 'ใช้ไฟเท่านี้ ค่าไฟประมาณเท่าไหร่',
+    note: `คิดจากอัตราบ้านอยู่อาศัยของ MEA ที่มีผลตั้งแต่ค่าไฟเดือนกันยายน 2569 · ค่า Ft งวด${FT.label} (${FT.ratePerUnit} บาท/หน่วย) · รวม VAT แล้ว · บ้านที่ใช้ไม่เกิน 150 หน่วยใช้อัตราแรกซึ่งค่าบริการถูกกว่า`,
+    columns: ['หน่วยที่ใช้', 'ค่าพลังงาน', 'ค่า Ft', 'รวมทั้งบิล', 'เฉลี่ย/หน่วย'],
+    rows: exampleRows,
+  },
   assumptions: [
     'ใช้อัตราค่าไฟฟ้าประเภทที่ 1 บ้านอยู่อาศัย ที่มีผลตั้งแต่ค่าไฟฟ้าประจำเดือนกันยายน 2569 (ยังไม่รองรับอัตรา TOU และกิจการประเภทอื่น)',
     'VAT 7% เป็นอัตราลดที่มีกำหนดสิ้นสุด 30 กันยายน 2569 — ต้องตรวจซ้ำหลังจากนั้น',

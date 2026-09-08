@@ -6,7 +6,7 @@ export const landUnitConvertMeta: ToolMeta = {
   nameEn: 'Thai Land Unit Converter',
   category: 'land',
   featuredRank: 35,
-  related: ['land-price'],
+  related: ['land-price', 'home-loan'],
   contentUpdatedAt: '2026-09-08',
   description:
     'แปลงหน่วยพื้นที่ที่ดินไทยระหว่างไร่ งาน ตารางวา ตารางเมตร เฮกตาร์ และเอเคอร์ พร้อมแสดงผลแบบที่เขียนในโฉนดคือ ไร่-งาน-ตารางวา ในครั้งเดียว',

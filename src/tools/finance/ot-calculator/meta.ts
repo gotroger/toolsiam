@@ -1,4 +1,24 @@
 import type { ToolMeta } from '@/tools/types';
+import { calculateOt, hourlyWage } from '@/lib/payroll';
+import { formatBaht } from '@/lib/format';
+
+/**
+ * ตารางตัวอย่างคำนวณสดจาก logic ของเครื่องมือเอง (§22.3)
+ * ตัวเลขในหน้าจึงไม่มีวันขัดกับผลที่ผู้ใช้กดคำนวณ และไม่ต้องตามแก้เมื่อสูตรเปลี่ยน
+ */
+const SALARIES = [12_000, 15_000, 18_000, 20_000, 25_000, 30_000, 40_000, 50_000];
+const BASE = { workDaysPerMonth: 30, hoursPerDay: 8 };
+const exampleRows = SALARIES.map((monthlySalary) => {
+  const base = { ...BASE, monthlySalary };
+  const ot = calculateOt(base, [{ kind: 'workdayOt', hours: 1 }]);
+  const holiday = calculateOt(base, [{ kind: 'holidayOt', hours: 1 }]);
+  return [
+    formatBaht(monthlySalary),
+    formatBaht(hourlyWage(base)),
+    formatBaht(ot.lines[0].ratePerHour),
+    formatBaht(holiday.lines[0].ratePerHour),
+  ];
+});
 
 export const otCalculatorMeta: ToolMeta = {
   slug: 'ot-calculator',
@@ -22,6 +42,12 @@ export const otCalculatorMeta: ToolMeta = {
     { q: 'ทำไมเลือกฐานวันทำงานต่างกันแล้วยอด OT ไม่เท่ากัน', a: 'เพราะฐานวันน้อยลงทำให้ค่าจ้างต่อวันและต่อชั่วโมงสูงขึ้น ยอด OT จึงสูงตาม ให้ตรวจกับฝ่ายบุคคลว่าที่ทำงานใช้ฐานใด เพื่อให้ตัวเลขตรงกับสลิปเงินเดือนจริง' },
     { q: 'ลูกจ้างทุกคนมีสิทธิได้ OT ไหม', a: 'ไม่ทุกคน ลูกจ้างบางประเภท เช่น ผู้มีอำนาจกระทำการแทนนายจ้างในการจ้างหรือเลิกจ้าง มีเงื่อนไขต่างออกไปตามกฎหมาย และการทำงานล่วงเวลาต้องได้รับความยินยอมจากลูกจ้างก่อน' },
   ],
+  examples: {
+    heading: 'เงินเดือนเท่านี้ OT ชั่วโมงละเท่าไหร่',
+    note: 'คิดจากฐาน 30 วันทำงานต่อเดือน วันละ 8 ชั่วโมง ซึ่งเป็นฐานที่ใช้กันแพร่หลาย — ถ้าที่ทำงานใช้ฐานอื่นให้เปลี่ยนในเครื่องมือด้านบน ตัวเลขจะเปลี่ยนตาม',
+    columns: ['เงินเดือน (บาท)', 'ค่าจ้าง/ชม.', 'OT วันทำงาน 1.5 เท่า', 'OT วันหยุด 3 เท่า'],
+    rows: exampleRows,
+  },
   assumptions: [
     'ค่าจ้างต่อชั่วโมง = เงินเดือน ÷ ฐานวันทำงานต่อเดือน ÷ ชั่วโมงทำงานปกติต่อวัน โดยใช้ฐานที่ผู้ใช้เลือกเอง',
     'คิดจากเงินเดือนอย่างเดียว ไม่รวมค่าครองชีพ ค่าตำแหน่ง เบี้ยขยัน หรือค่าคอมมิชชั่นที่บางที่นำมารวมเป็นฐาน',

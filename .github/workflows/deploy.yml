@@ -42,6 +42,9 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # ว่างได้ — ถ้าไม่ตั้ง repository variable นี้ หน้าเว็บจะไม่มี script วิเคราะห์เลย
+          PUBLIC_CF_BEACON_TOKEN: ${{ vars.PUBLIC_CF_BEACON_TOKEN }}
 
       - name: Deploy ขึ้น Cloudflare Workers
         uses: cloudflare/wrangler-action@v3.14.1

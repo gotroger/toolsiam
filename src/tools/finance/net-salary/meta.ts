@@ -1,6 +1,20 @@
 import type { ToolMeta } from '@/tools/types';
 import { SOCIAL_SECURITY_SOURCE } from '@/lib/rates/social-security';
 import { INCOME_TAX_SOURCES } from '@/lib/rates/income-tax';
+import { calculateNetSalary } from './logic';
+import { formatBaht } from '@/lib/format';
+
+// คำนวณสดจาก logic ของเครื่องมือ ณ วันที่เนื้อหาถูกอัปเดต (§22.3)
+// ใช้วันคงที่แทน "วันนี้" เพื่อให้ผลลัพธ์ของ build เป็น deterministic ตาม §27
+const AS_OF = '2026-09-08';
+const exampleRows = [15_000, 20_000, 25_000, 30_000, 40_000, 50_000, 70_000, 100_000].map((monthlySalary) => {
+  const r = calculateNetSalary({
+    monthlySalary, bonus: 0, otherIncome: 0, hasSocialSecurity: true, hasSpouseNoIncome: false,
+    children: 0, parents: 0, lifeInsurance: 0, retirementFunds: 0, homeLoanInterest: 0,
+    otherDeductions: 0, asOf: AS_OF,
+  });
+  return [formatBaht(monthlySalary), formatBaht(r.ssoMonthly), formatBaht(r.monthlyTax), formatBaht(r.netMonthly)];
+});
 
 export const netSalaryMeta: ToolMeta = {
   slug: 'net-salary',
@@ -26,6 +40,12 @@ export const netSalaryMeta: ToolMeta = {
     { q: 'มาตรการลดหย่อนพิเศษของปีนี้รวมให้แล้วหรือยัง', a: 'ยังไม่รวม เครื่องมือใส่เฉพาะค่าลดหย่อนถาวรที่ยืนยันได้จากเอกสารของกรมสรรพากร มาตรการชั่วคราวที่ออกเป็นปี ๆ ให้กรอกเองในช่อง "ค่าลดหย่อนอื่นทั้งปี" เพื่อไม่ให้เครื่องมือเดาสิทธิแทนคุณ' },
   ],
   rates: [SOCIAL_SECURITY_SOURCE, ...INCOME_TAX_SOURCES],
+  examples: {
+    heading: 'เงินเดือนเท่านี้ รับสุทธิเท่าไหร่',
+    note: 'คิดกรณีโสด ไม่มีบุตร ไม่มีค่าลดหย่อนอื่นนอกจากส่วนตัวและประกันสังคม และไม่มีโบนัส — ถ้ามีค่าลดหย่อนเพิ่ม ภาษีจะน้อยลงและยอดรับสุทธิจะสูงกว่าในตาราง',
+    columns: ['เงินเดือน (บาท)', 'ประกันสังคม', 'ภาษี/เดือน', 'รับสุทธิ/เดือน'],
+    rows: exampleRows,
+  },
   assumptions: [
     'ใช้เพดานค่าจ้างประกันสังคมที่มีผล ณ วันที่ใช้งาน และหักภาษีตามขั้นบันไดของกรมสรรพากร',
     'หักค่าใช้จ่ายเงินได้ประเภทที่ 1 ในอัตรา 50% แต่ไม่เกิน 100,000 บาท',

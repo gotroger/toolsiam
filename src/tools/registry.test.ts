@@ -235,3 +235,37 @@ describe('public/ ไม่มีไฟล์ขยะ', () => {
     }
   });
 });
+
+/** §22.3 — ตารางตัวอย่างในหน้าแม่ ใช้แทนการ generate หน้าตามค่าพารามิเตอร์ */
+describe('ตารางตัวอย่าง', () => {
+  it('ทุกแถวมีจำนวนช่องเท่ากับจำนวนคอลัมน์', () => {
+    for (const t of tools) {
+      if (!t.examples) continue;
+      for (const row of t.examples.rows) {
+        expect(row.length, `${t.slug}: ${row.join(' | ')}`).toBe(t.examples.columns.length);
+      }
+    }
+  });
+
+  it('มีอย่างน้อย 4 แถวจึงจะคุ้มที่จะเป็นตาราง และมีคำอธิบายสมมติฐานเสมอ', () => {
+    for (const t of tools) {
+      if (!t.examples) continue;
+      expect(t.examples.rows.length, t.slug).toBeGreaterThanOrEqual(4);
+      expect(t.examples.note.length, t.slug).toBeGreaterThan(30);
+    }
+  });
+
+  it('ไม่มีช่องว่างเปล่าในตาราง — ค่าที่คำนวณไม่ได้ต้องไม่หลุดมาเป็นสตริงว่าง', () => {
+    for (const t of tools) {
+      for (const row of t.examples?.rows ?? []) {
+        for (const cell of row) expect(cell.trim(), t.slug).not.toBe('');
+      }
+    }
+  });
+
+  it('เครื่องมือที่มีตารางตัวอย่างต้องมี assumptions ด้วย — ตัวเลขลอย ๆ ไม่มีบริบทคือกับดัก', () => {
+    for (const t of tools) {
+      if (t.examples) expect(t.assumptions?.length ?? 0, t.slug).toBeGreaterThan(0);
+    }
+  });
+});

@@ -41,6 +41,34 @@ const crumbs = [
 -->
 <TrustPanel rates={tool.rates} assumptions={tool.assumptions} disclaimer={tool.disclaimer} />
 
+{tool.examples && (
+  <section class="mt-10">
+    <h2 class="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">{tool.examples.heading}</h2>
+    <p class="mt-1 text-sm text-slate-600">{tool.examples.note}</p>
+    <div class="mt-4 overflow-x-auto rounded-[10px] border border-slate-200">
+      <table class="w-full min-w-[30rem] border-collapse text-sm">
+        <caption class="sr-only">{tool.examples.heading}</caption>
+        <thead>
+          <tr class="bg-slate-50 text-slate-600">
+            {tool.examples.columns.map((c, i) => (
+              <th scope="col" class:list={['border-b border-slate-200 px-3 py-2 font-medium', i === 0 ? 'text-left' : 'text-right']}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {tool.examples.rows.map((row) => (
+            <tr class="even:bg-slate-50/60">
+              {row.map((cell, i) => (
+                <td class:list={['border-b border-slate-100 px-3 py-2', i === 0 ? 'text-slate-800' : 'text-right tabular-nums text-slate-700']}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+)}
+
 <section class="mt-10 grid gap-8 md:grid-cols-2">
   <div>
     <h2 class="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">วิธีใช้งาน</h2>
