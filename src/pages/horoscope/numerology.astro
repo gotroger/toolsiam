@@ -1,0 +1,57 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import NumerologyFinder from '@/components/horoscope/NumerologyFinder';
+import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
+
+const title = 'เลขศาสตร์วันเกิด — หาเลขชีวิตจากวันเดือนปีเกิด';
+const description = 'คำนวณเลขชีวิตจากวันเดือนปีเกิดด้วยวิธีบวกเลขทุกหลักจนเหลือหลักเดียว พร้อมแสดงขั้นตอนให้ตรวจตามได้ และความหมายของเลข 1 ถึง 9 รวมถึงเลข 11 และ 22';
+---
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <VerticalShell
+    title="เลขศาสตร์วันเกิด"
+    description="บวกเลขทุกหลักของวันเดือนปีเกิดจนเหลือหลักเดียว แล้วดูความหมายตามความเชื่อเลขศาสตร์"
+    icon="🔢"
+    gradient={['#eef2ff', '#c7d2fe']}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() },
+      { name: 'เลขศาสตร์วันเกิด', path: getHoroscopePageUrl('numerology') },
+    ]}
+  >
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      <NumerologyFinder client:load />
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">วิธีคำนวณเลขชีวิต</h2>
+      <p class="text-sm text-slate-600">
+        นำเลขทุกหลักของวันเดือนปีเกิดมาบวกกัน แล้วบวกซ้ำจนเหลือหลักเดียว
+        เช่น 15 พฤษภาคม 1990 เขียนเป็น 1990-05-15 จะได้ 1+9+9+0+0+5+1+5 = 30 แล้ว 3+0 = 3 เลขชีวิตคือ 3
+        ยกเว้นผลลัพธ์ที่ได้ 11 หรือ 22 ซึ่งความเชื่อเลขศาสตร์ถือว่าเป็นเลขพิเศษและไม่บวกต่อ
+      </p>
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+      <div>
+        <h3 class="font-medium text-slate-900">ใช้ปี พ.ศ. หรือ ค.ศ. ในการคำนวณ</h3>
+        <p class="text-sm text-slate-600">
+          หน้านี้ใช้ปี ค.ศ. ซึ่งเป็นวิธีที่ตำราเลขศาสตร์สากลใช้ ถ้าใช้ปี พ.ศ. จะได้ผลต่างออกไป
+          เพราะเลขที่นำมาบวกไม่เหมือนกัน ตำราแต่ละสำนักจึงให้คำตอบต่างกันได้ตามฐานปีที่เลือกใช้
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">ทำไมเลข 11 กับ 22 ไม่ถูกบวกต่อ</h3>
+        <p class="text-sm text-slate-600">
+          ความเชื่อเลขศาสตร์ถือว่าเลขคู่เหมือน 11 และ 22 เป็นเลขที่มีพลังในตัวเอง จึงคงไว้ไม่ลดรูปต่อ
+          เป็นข้อตกลงของตำรา ไม่ใช่กฎทางคณิตศาสตร์
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">เลขศาสตร์ทำนายอนาคตได้ไหม</h3>
+        <p class="text-sm text-slate-600">
+          ไม่ได้ เลขศาสตร์เป็นความเชื่อที่ใช้ตัวเลขเป็นสื่อในการอธิบายบุคลิกภาพ
+          ความหมายที่แสดงในหน้านี้จึงเป็นการตีความตามตำรา ไม่ใช่การพยากรณ์
+        </p>
+      </div>
+    </section>
+  </VerticalShell>
+</Base>

@@ -1,15 +1,18 @@
 ---
-import { getActiveCategories, getToolsByCategory, getVisibleTools } from '@/tools/registry';
+import { getActiveCategories, getBrowsableCategories, getToolsByCategory, getVisibleTools } from '@/tools/registry';
 import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
 
 /**
  * Footer — แสดงเฉพาะลิงก์ที่มี route จริงเท่านั้น (ไม่มี dead link)
  * หมวดหมู่ที่แสดง = หมวด active เรียงตามจำนวนเครื่องมือ (ไม่ใช่ความนิยม — ยังไม่มี analytics §19)
  */
-const topCategories = getActiveCategories()
+const topCategories = getBrowsableCategories()
   .map((c) => ({ ...c, count: getToolsByCategory(c.id).length }))
   .sort((a, b) => b.count - a.count)
   .slice(0, 4);
+
+// vertical มีบ้านหลักของตัวเอง จึงลิสต์แยกจากหมวดเครื่องมือ (§8.4, Brand risk §9.5)
+const verticalLinks = getActiveCategories().filter((c) => c.landingPath);
 
 const visibleToolCount = getVisibleTools().length;
 
@@ -17,6 +20,7 @@ const toolLinks = [
   { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด' },
   { href: `${getHomeUrl()}#featured`, label: 'เครื่องมือแนะนำ' },
   { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่' },
+  ...verticalLinks.map((c) => ({ href: getCategoryUrl(c), label: c.name })),
 ];
 
 const linkClass =

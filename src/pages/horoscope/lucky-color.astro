@@ -1,0 +1,67 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import LuckyColorFinder from '@/components/horoscope/LuckyColorFinder';
+import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
+import { THAI_DAY_COLORS, THAI_WEEKDAYS } from '@/lib/thai-date';
+
+const title = 'สีมงคลประจำวันเกิด — สีเสริมการงาน การเงิน ความรัก';
+const description = 'ดูสีมงคลประจำวันเกิดตามคติไทย ทั้งสีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ความเชื่อว่าควรเลี่ยง พร้อมตารางสีประจำวันครบทั้งเจ็ดวัน';
+---
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <VerticalShell
+    title="สีมงคลประจำวันเกิด"
+    description="กรอกวันเกิดแล้วดูสีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ควรเลี่ยงตามคติไทย"
+    icon="🎨"
+    gradient={['#fff7ed', '#fed7aa']}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() },
+      { name: 'สีมงคลประจำวันเกิด', path: getHoroscopePageUrl('lucky-color') },
+    ]}
+  >
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      <LuckyColorFinder client:load />
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">สีประจำวันตามคติไทย</h2>
+      <p class="mt-1 text-sm text-slate-600">
+        คติไทยกำหนดสีประจำวันไว้ตามเทพประจำวันในตำนาน ซึ่งเป็นที่มาของธรรมเนียมแต่งกายตามสีวันด้วย
+      </p>
+      <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {THAI_WEEKDAYS.map((day, i) => (
+          <li class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+            <span class="font-medium text-slate-900">วัน{day}</span>{' '}
+            <span class="text-slate-600">สี{THAI_DAY_COLORS[i]}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+      <div>
+        <h3 class="font-medium text-slate-900">สีมงคลของแต่ละตำราตรงกันไหม</h3>
+        <p class="text-sm text-slate-600">
+          ไม่ตรงกันทั้งหมด ตำราสีมงคลมีหลายสำนักและแต่ละสำนักจัดสีตามหลักที่ต่างกัน
+          ชุดที่ใช้ในหน้านี้ยึดแนวที่เผยแพร่กันทั่วไป ถ้าเจอข้อมูลที่ต่างจากนี้ไม่ได้แปลว่าฝ่ายใดผิด
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">ใช้สีตามวันเกิดหรือวันที่ใส่</h3>
+        <p class="text-sm text-slate-600">
+          ความเชื่อมีทั้งสองแบบ หน้านี้คำนวณจากวันเกิดซึ่งเป็นสีประจำตัวที่ไม่เปลี่ยน
+          ส่วนธรรมเนียมแต่งกายตามสีของวันในสัปดาห์เป็นคนละเรื่อง ใช้ตารางสีประจำวันด้านบนได้เลย
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">ต้องเลี่ยงสีกาลกิณีจริงจังแค่ไหน</h3>
+        <p class="text-sm text-slate-600">
+          เป็นความเชื่อส่วนบุคคล ไม่มีผลบังคับใด ๆ หลายคนใช้เป็นแนวทางเลือกเสื้อผ้าในวันสำคัญเพื่อความสบายใจ
+          ซึ่งก็เป็นประโยชน์ในตัวมันเองโดยไม่ต้องเชื่อว่ามีผลจริง
+        </p>
+      </div>
+    </section>
+  </VerticalShell>
+</Base>

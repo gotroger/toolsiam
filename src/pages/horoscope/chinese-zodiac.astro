@@ -1,0 +1,69 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import ChineseZodiacFinder from '@/components/horoscope/ChineseZodiacFinder';
+import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
+import { CHINESE_ZODIAC } from '@/lib/thai-astro';
+
+const title = 'ปีนักษัตรจากปีเกิด — ตัดปีด้วยตรุษจีนอย่างถูกต้อง';
+const description = 'หาปีนักษัตรจากวันเกิดโดยใช้วันตรุษจีนเป็นเกณฑ์เปลี่ยนปี คนที่เกิดเดือนมกราคมถึงต้นกุมภาพันธ์จึงได้นักษัตรที่ถูกต้อง พร้อมลักษณะประจำนักษัตรครบทั้ง 12 ปี';
+---
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <VerticalShell
+    title="ปีนักษัตรจากปีเกิด"
+    description="ใช้วันตรุษจีนเป็นเกณฑ์ตัดปี คนที่เกิดต้นปีจึงได้นักษัตรที่ถูกต้อง ไม่ใช่นักษัตรของปีปฏิทิน"
+    icon="🐉"
+    gradient={['#fef2f2', '#fecaca']}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() },
+      { name: 'ปีนักษัตรจากปีเกิด', path: getHoroscopePageUrl('chinese-zodiac') },
+    ]}
+  >
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      <ChineseZodiacFinder client:load />
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">นักษัตรทั้ง 12 ปี</h2>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+        {CHINESE_ZODIAC.map((a) => (
+          <li class="rounded-[10px] border border-slate-200 bg-white p-4">
+            <h3 class="font-semibold text-slate-900">
+              <span aria-hidden="true">{a.emoji}</span> ปี{a.name}
+            </h3>
+            <p class="mt-1 text-sm text-slate-600">{a.summary}</p>
+            <p class="mt-2 text-xs text-slate-500">{a.traits.join(' · ')}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+      <div>
+        <h3 class="font-medium text-slate-900">ทำไมเกิดเดือนมกราคมแล้วได้นักษัตรของปีก่อน</h3>
+        <p class="text-sm text-slate-600">
+          เพราะปฏิทินจีนเปลี่ยนปีนักษัตรที่วันตรุษจีน ซึ่งตกอยู่ระหว่างปลายเดือนมกราคมถึงกลางเดือนกุมภาพันธ์
+          ไม่ใช่วันที่ 1 มกราคม คนที่เกิดก่อนตรุษจีนของปีตัวเองจึงยังนับเป็นนักษัตรของปีก่อนหน้า
+          เครื่องมือนี้แสดงวันตรุษจีนของปีเกิดให้เห็นด้วย เพื่อให้ตรวจสอบตามได้
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">การนับแบบสงกรานต์ต่างจากนี้อย่างไร</h3>
+        <p class="text-sm text-slate-600">
+          โหราศาสตร์ไทยบางสำนักนับปีนักษัตรเปลี่ยนที่วันสงกรานต์ในเดือนเมษายน ซึ่งจะให้ผลต่างจากการนับแบบตรุษจีน
+          สำหรับคนที่เกิดระหว่างตรุษจีนถึงสงกรานต์ ทูลสยามเลือกใช้เกณฑ์ตรุษจีนเพราะเป็นเกณฑ์ที่ใช้กันแพร่หลายที่สุด
+          และตรงกับที่ระบุในปฏิทินจีนสากล
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">รองรับปีเกิดถึงเมื่อไหร่</h3>
+        <p class="text-sm text-slate-600">
+          รองรับปีเกิด ค.ศ. 1940–2040 เพราะต้องอาศัยตารางวันตรุษจีนรายปี ไม่ใช่สูตรคำนวณ
+          หากอยู่นอกช่วงนี้เครื่องมือจะแจ้งให้ทราบแทนการเดาผลลัพธ์
+        </p>
+      </div>
+    </section>
+  </VerticalShell>
+</Base>

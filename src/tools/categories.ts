@@ -55,13 +55,13 @@ export const categories: CategoryMeta[] = [
     landingPath: getLotteryUrl(),
   },
   {
-    id: 'dream', order: 9, status: 'planned', icon: '💤', gradient: ['#faf5ff', '#e9d5ff'],
+    id: 'dream', order: 9, status: 'active', icon: '💤', gradient: ['#faf5ff', '#e9d5ff'],
     name: 'ทำนายฝัน', nameEn: 'Dream Meanings',
     description: 'ความหมายของความฝันตามความเชื่อไทย',
     landingPath: getDreamUrl(),
   },
   {
-    id: 'horoscope', order: 10, status: 'planned', icon: '🔮', gradient: ['#fdf2f8', '#fbcfe8'],
+    id: 'horoscope', order: 10, status: 'active', icon: '🔮', gradient: ['#fdf2f8', '#fbcfe8'],
     name: 'ดูดวงและความเชื่อ', nameEn: 'Horoscope & Beliefs',
     description: 'ราศี ปีนักษัตร สีมงคล เลขศาสตร์ และดวงรายวัน',
     landingPath: getHoroscopeUrl(),

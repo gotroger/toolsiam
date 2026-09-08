@@ -1,0 +1,86 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import ZodiacFinder from '@/components/horoscope/ZodiacFinder';
+import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
+import { ZODIAC_SIGNS } from '@/lib/thai-astro';
+
+const THAI_MONTH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+const range = (s: (typeof ZODIAC_SIGNS)[number]) =>
+  `${s.from[1]} ${THAI_MONTH[s.from[0] - 1]} – ${s.to[1]} ${THAI_MONTH[s.to[0] - 1]}`;
+
+const title = 'ราศีจากวันเกิด — เช็กราศีของคุณพร้อมช่วงวันครบ 12 ราศี';
+const description = 'กรอกวันเกิดแล้วรู้ราศีทันที พร้อมตารางช่วงวันของราศีทั้ง 12 ธาตุประจำราศี และลักษณะนิสัยตามความเชื่อ ใช้ราศีสากลแบบเดียวกับสื่อดูดวงทั่วไป';
+---
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <VerticalShell
+    title="ราศีจากวันเกิด"
+    description="กรอกวันเกิดแล้วรู้ราศีทันที พร้อมช่วงวันและลักษณะประจำราศีครบทั้ง 12 ราศี"
+    icon="♒"
+    gradient={['#fdf2f8', '#fbcfe8']}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() },
+      { name: 'ราศีจากวันเกิด', path: getHoroscopePageUrl('zodiac') },
+    ]}
+  >
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      <ZodiacFinder client:load />
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">ราศีทั้ง 12 และช่วงวันเกิด</h2>
+      <div class="mt-4 overflow-x-auto rounded-[10px] border border-slate-200">
+        <table class="w-full min-w-[36rem] border-collapse text-sm">
+          <caption class="sr-only">ตารางราศีสากลทั้ง 12 ราศี พร้อมช่วงวันเกิดและธาตุประจำราศี</caption>
+          <thead>
+            <tr class="bg-slate-50 text-left text-slate-600">
+              <th scope="col" class="border-b border-slate-200 px-3 py-2 font-medium">ราศี</th>
+              <th scope="col" class="border-b border-slate-200 px-3 py-2 font-medium">ช่วงวันเกิด</th>
+              <th scope="col" class="border-b border-slate-200 px-3 py-2 font-medium">ธาตุ</th>
+              <th scope="col" class="border-b border-slate-200 px-3 py-2 font-medium">ลักษณะเด่น</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ZODIAC_SIGNS.map((s) => (
+              <tr class="even:bg-slate-50/60">
+                <td class="border-b border-slate-100 px-3 py-2 font-medium text-slate-900">
+                  <span aria-hidden="true">{s.symbol}</span> {s.name}
+                </td>
+                <td class="border-b border-slate-100 px-3 py-2 text-slate-700">{range(s)}</td>
+                <td class="border-b border-slate-100 px-3 py-2 text-slate-700">{s.element}</td>
+                <td class="border-b border-slate-100 px-3 py-2 text-slate-600">{s.traits.join(' · ')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+      <div>
+        <h3 class="font-medium text-slate-900">ทูลสยามใช้ราศีแบบไหน</h3>
+        <p class="text-sm text-slate-600">
+          ใช้ราศีสากล (Western หรือ Tropical) ซึ่งแบ่งตามตำแหน่งของดวงอาทิตย์ในรอบปีและเริ่มราศีเมษที่วันวสันตวิษุวัต
+          เป็นระบบเดียวกับที่ใช้ในสื่อดูดวงทั่วไป ต่างจากโหราศาสตร์ไทยและระบบสายนะที่ใช้เกณฑ์คนละแบบ
+          คนที่เกิดใกล้รอยต่อของราศีจึงอาจได้ราศีต่างกันเมื่อเทียบกับตำราไทย
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">เกิดวันรอยต่อของสองราศี นับเป็นราศีไหน</h3>
+        <p class="text-sm text-slate-600">
+          เครื่องมือนี้ใช้ช่วงวันมาตรฐานตามตารางด้านบน คนที่เกิดวันรอยต่อพอดีจะถูกจัดตามวันที่ระบุไว้
+          ในทางโหราศาสตร์ที่ละเอียดกว่านี้ ราศีเปลี่ยนตามเวลาจริงในวันนั้น ซึ่งต้องใช้เวลาเกิดประกอบด้วย
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">ราศีบอกนิสัยได้จริงไหม</h3>
+        <p class="text-sm text-slate-600">
+          ลักษณะที่ระบุไว้เป็นความเชื่อที่สืบต่อกันมา ไม่ใช่ข้อสรุปทางวิทยาศาสตร์
+          ใช้เป็นเรื่องสนุกและเป็นจุดเริ่มของการคุยกันได้ แต่ไม่ควรใช้ตัดสินคนหรือใช้แทนการทำความรู้จักกันจริง ๆ
+        </p>
+      </div>
+    </section>
+  </VerticalShell>
+</Base>
