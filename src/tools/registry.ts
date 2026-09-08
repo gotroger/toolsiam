@@ -13,6 +13,8 @@ import { thaiIdCheckMeta } from './text/thai-id-check/meta';
 import { ageDaysMeta } from './date/age-days/meta';
 import { thaiYearConvertMeta } from './date/thai-year-convert/meta';
 import { thaiHolidaysMeta } from './date/thai-holidays/meta';
+import { landAreaConvertMeta } from './land/land-area-convert/meta';
+import { landPriceMeta } from './land/land-price/meta';
 import { promptpayQrMeta } from './qr/promptpay-qr/meta';
 import { qrGeneratorMeta } from './qr/qr-generator/meta';
 import { qrReaderMeta } from './qr/qr-reader/meta';
@@ -36,6 +38,8 @@ export const tools: ToolMeta[] = [
   ageDaysMeta,
   thaiYearConvertMeta,
   thaiHolidaysMeta,
+  landAreaConvertMeta,
+  landPriceMeta,
   promptpayQrMeta,
   qrGeneratorMeta,
   qrReaderMeta,

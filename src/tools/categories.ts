@@ -27,7 +27,7 @@ export const categories: CategoryMeta[] = [
     description: 'คำนวณกำไร ราคาขาย ต้นทุนร้านค้า VAT ภาษีหัก ณ ที่จ่าย และบาทถ้วน',
   },
   {
-    id: 'land', order: 4, status: 'planned', icon: '🏡', gradient: ['#f7fee7', '#d9f99d'],
+    id: 'land', order: 4, status: 'active', icon: '🏡', gradient: ['#f7fee7', '#d9f99d'],
     name: 'ที่ดินและอสังหาฯ', nameEn: 'Land & Property',
     description: 'แปลงหน่วยที่ดิน ไร่ งาน ตารางวา และคำนวณราคาที่ดิน',
   },
