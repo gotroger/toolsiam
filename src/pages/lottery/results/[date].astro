@@ -1,0 +1,55 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import DrawPrizes from '@/components/lottery/DrawPrizes.astro';
+import DrawHeading from '@/components/lottery/DrawHeading.astro';
+import { Disclaimer } from '@/components/ui';
+import { getHomeUrl, getLotteryArchiveUrl, getLotteryCheckUrl, getLotteryDrawUrl, getLotteryUrl } from '@/lib/routes';
+import { adjacentDraws, listDraws } from '@/lottery/draws';
+import { drawLabel, LOTTERY_DISCLAIMER, LOTTERY_TITLE } from '@/lottery/content';
+
+/** 1 งวด = 1 หน้า — งวดที่ยังไม่มีข้อมูลจะไม่ถูก build จึงไม่มีหน้าเปล่าบน production */
+export function getStaticPaths() {
+  return listDraws().map((draw) => ({ params: { date: draw.date }, props: { draw } }));
+}
+const { draw } = Astro.props;
+const { previous, next } = adjacentDraws(draw.date);
+const dateLabel = drawLabel(draw.date);
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: LOTTERY_TITLE, path: getLotteryUrl() },
+  { name: dateLabel, path: getLotteryDrawUrl(draw.date) },
+];
+const description =
+  `ผลรางวัลสลากกินแบ่งรัฐบาล${dateLabel} ครบทุกรางวัล ทั้งรางวัลที่ 1 รางวัลข้างเคียง ` +
+  'เลขหน้า 3 ตัว เลขท้าย 3 ตัว และเลขท้าย 2 ตัว';
+---
+<Base title={`ผลรางวัลสลากกินแบ่งรัฐบาล ${dateLabel} — ทูลสยาม`} description={description}>
+  <Breadcrumb items={crumbs} />
+  <div class="mt-2"><DrawHeading draw={draw} as="h1" /></div>
+  <div class="mt-4"><DrawPrizes draw={draw} /></div>
+
+  <nav aria-label="งวดอื่น" class="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
+    <span>
+      {previous && (
+        <a href={getLotteryDrawUrl(previous.date)} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+          ‹ {drawLabel(previous.date)}
+        </a>
+      )}
+    </span>
+    <a href={getLotteryArchiveUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ผลรางวัลย้อนหลังทั้งหมด</a>
+    <span>
+      {next && (
+        <a href={getLotteryDrawUrl(next.date)} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+          {drawLabel(next.date)} ›
+        </a>
+      )}
+    </span>
+  </nav>
+
+  <p class="mt-6 text-sm">
+    <a href={getLotteryCheckUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ตรวจสลากหลายใบพร้อมกัน</a>
+  </p>
+
+  <div class="mt-8"><Disclaimer>{LOTTERY_DISCLAIMER}</Disclaimer></div>
+</Base>

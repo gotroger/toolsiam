@@ -71,4 +71,9 @@ export interface CategoryMeta {
   status: 'active' | 'planned';
   /** ถ้ามี = หมวดนี้มี vertical เป็นบ้านหลัก → ไม่สร้างหน้า /categories/<id> */
   landingPath?: string;
+  /**
+   * ข้อความใต้ชื่อหมวดในหน้าแรก สำหรับ vertical ที่ไม่ได้นับเป็น "จำนวนเครื่องมือ"
+   * บังคับให้มีคู่กับ landingPath เสมอ (registry.test.ts) — ไม่งั้นหน้าแรกจะขึ้น "0 เครื่องมือ"
+   */
+  linkLabel?: string;
 }

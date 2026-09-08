@@ -18,16 +18,21 @@ export function toolJsonLd(tool: ToolMeta, url: string): Record<string, unknown>
       // ทุกเครื่องมือใช้ฟรี ไม่มี paywall — ประกาศตรง ๆ แทนการ emit offers ที่ราคาไม่จริง (§20 M7)
       isAccessibleForFree: true,
     },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: tool.faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
+    faqJsonLd(tool.faq),
   ];
+}
+
+/** FAQPage — ใช้ร่วมกันระหว่างหน้าเครื่องมือและหน้าของ vertical */
+export function faqJsonLd(faq: { q: string; a: string }[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
 }
 
 /** ขั้นหนึ่งของ breadcrumb — ขั้นสุดท้ายคือหน้าปัจจุบัน (ไม่เป็นลิงก์ แต่ยังมี item ใน JSON-LD) */

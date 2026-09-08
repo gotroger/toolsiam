@@ -1,0 +1,43 @@
+---
+import type { Draw } from '@/lottery/types';
+import { getPrizeSpec, sortByPrizeOrder } from '@/lottery/prizes';
+import { formatNumber } from '@/lib/format';
+
+/**
+ * ตารางผลรางวัลของงวดหนึ่ง — เป็น HTML ล้วน ไม่มี JS
+ * ผลรางวัลคือเนื้อหาหลักที่ต้องอ่านได้และถูก index ได้โดยไม่ต้องรันสคริปต์ (§7)
+ */
+interface Props { draw: Draw }
+const { draw } = Astro.props;
+const rows = sortByPrizeOrder(draw.results).map((r) => ({ ...r, spec: getPrizeSpec(r.id) }));
+---
+<div class="overflow-x-auto rounded-[10px] border border-slate-200">
+  <table class="w-full min-w-[32rem] border-collapse text-sm">
+    <caption class="sr-only">ผลรางวัลสลากกินแบ่งรัฐบาล งวดวันที่ {draw.date}</caption>
+    <thead>
+      <tr class="bg-slate-50 text-slate-600">
+        <th scope="col" class="border-b border-slate-200 px-3 py-2 text-left font-medium">รางวัล</th>
+        <th scope="col" class="border-b border-slate-200 px-3 py-2 text-left font-medium">เลขที่ออก</th>
+        <th scope="col" class="border-b border-slate-200 px-3 py-2 text-right font-medium">รางวัลละ (บาท)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr class="even:bg-slate-50/60">
+          <th scope="row" class="border-b border-slate-100 px-3 py-2 text-left font-medium text-slate-800">
+            {row.spec.label}
+            <span class="block text-xs font-normal text-slate-500">{row.numbers.length} รางวัล</span>
+          </th>
+          <td class="border-b border-slate-100 px-3 py-2">
+            <ul class="flex flex-wrap gap-1.5">
+              {row.numbers.map((n) => (
+                <li class="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[0.9375rem] tabular-nums text-slate-900">{n}</li>
+              ))}
+            </ul>
+          </td>
+          <td class="border-b border-slate-100 px-3 py-2 text-right tabular-nums text-slate-700">{formatNumber(row.amount)}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

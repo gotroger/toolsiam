@@ -14,6 +14,12 @@
 2. เพิ่ม meta ใน `src/tools/registry.ts` และ loader ใน `src/tools/loaders.ts`
 3. `npm test` ต้องผ่าน (registry test บังคับให้ meta/loader ครบ)
 
+## หมวดหวย/สลาก (vertical)
+
+หน้า `/lottery`, `/lottery/check`, `/lottery/results`, `/lottery/results/<วันที่>` และ `/lottery/archive`
+generate จาก `src/lottery/data/draws.ts` ทั้งหมด — เพิ่มผลรางวัลงวดใหม่ตาม `docs/data/lottery-draws.md`
+(ตราบใดที่ยังไม่มีข้อมูลงวด หน้าที่พึ่งข้อมูลจะถูก noindex อัตโนมัติ)
+
 Spec: `docs/superpowers/specs/2026-09-07-toolsiam-design.md`
 
 ## โดเมน

@@ -20,8 +20,24 @@ export const NOINDEX_TOOL_SLUGS = ['json-formatter'];
  */
 export const NOINDEX_CATEGORY_IDS: string[] = [];
 
+/**
+ * หน้าของ vertical หวยที่จะมีค่าให้ index ก็ต่อเมื่อมีข้อมูลงวดจริงแล้ว
+ *
+ * แนวคิดเดียวกับหมวดว่างใน §8.4: หน้าเปล่าที่ถูก index คือหนี้ SEO ไม่ใช่ทรัพย์สิน
+ * หน้า /lottery เองไม่อยู่ในรายการ เพราะมีเนื้อหาถาวร (กติกา โครงสร้างรางวัล ปฏิทินงวด)
+ * ที่ถูกต้องอยู่แล้วแม้ยังไม่มีผลรางวัลสักงวด
+ */
+export const LOTTERY_DATA_PAGES = ['/lottery/check', '/lottery/results', '/lottery/archive'];
+
+/**
+ * ตั้งเป็น true พร้อมกับตอนเติมงวดแรกใน src/lottery/data/draws.ts
+ * โมดูลนี้ import อะไรไม่ได้ (ดูหัวไฟล์) จึงใช้ค่าคงที่คู่กับเทสต์ใน src/lottery/draws.test.ts
+ * ที่บังคับว่าค่านี้ต้องตรงกับข้อมูลจริงเสมอ
+ */
+export const LOTTERY_HAS_RESULTS = false;
+
 /** หน้าที่ไม่ควร index ตรง ๆ */
-export const NOINDEX_EXACT_PATHS = ['/404'];
+export const NOINDEX_EXACT_PATHS = ['/404', ...(LOTTERY_HAS_RESULTS ? [] : LOTTERY_DATA_PAGES)];
 
 /** ตัด .html และ trailing slash ออกให้เทียบกันได้ (build ใช้ format: 'file') */
 export function normalizePath(pathname: string): string {

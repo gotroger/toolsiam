@@ -49,10 +49,10 @@ export const categories: CategoryMeta[] = [
 
   /* --- vertical: มีบ้านหลักของตัวเอง ไม่มีหน้า /categories/ --- */
   {
-    id: 'lottery', order: 8, status: 'planned', icon: '🎫', gradient: ['#fefce8', '#fde68a'],
+    id: 'lottery', order: 8, status: 'active', icon: '🎫', gradient: ['#fefce8', '#fde68a'],
     name: 'หวยและสลาก', nameEn: 'Thai Lottery',
     description: 'ตรวจสลากกินแบ่งรัฐบาล ผลรางวัลงวดล่าสุด และผลย้อนหลัง',
-    landingPath: getLotteryUrl(),
+    landingPath: getLotteryUrl(), linkLabel: 'ตรวจสลาก · ผลรางวัล',
   },
   {
     id: 'dream', order: 9, status: 'planned', icon: '💤', gradient: ['#faf5ff', '#e9d5ff'],

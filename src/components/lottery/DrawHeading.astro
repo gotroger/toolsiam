@@ -1,0 +1,25 @@
+---
+import type { Draw } from '@/lottery/types';
+import { formatThaiDate } from '@/lib/thai-date';
+import { drawLabel } from '@/lottery/content';
+
+/** หัวข้อ + ที่มาของข้อมูลงวด ใช้ซ้ำในหน้าผลรางวัลและหน้าแรกของ vertical */
+interface Props { draw: Draw; as?: 'h1' | 'h2' }
+const { draw, as = 'h2' } = Astro.props;
+const Tag = as;
+---
+<div>
+  <Tag class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">ผลรางวัล{drawLabel(draw.date)}</Tag>
+  <p class="mt-1 text-sm text-slate-500">
+    <span>{formatThaiDate(draw.date)}</span>
+    <span aria-hidden="true" class="px-1.5 text-slate-300">·</span>
+    <span>ที่มา <a
+      href={draw.source.url}
+      rel="nofollow noopener"
+      target="_blank"
+      class="text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+    >{draw.source.name}</a></span>
+    <span aria-hidden="true" class="px-1.5 text-slate-300">·</span>
+    <span>ตรวจข้อมูลเมื่อ {formatThaiDate(draw.source.verifiedAt, { style: 'short' })}</span>
+  </p>
+</div>

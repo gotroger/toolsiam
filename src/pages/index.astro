@@ -47,7 +47,7 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
         >
           <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-xl" aria-hidden="true">{c.icon}</div>
           <div class="mt-3 font-semibold text-slate-900 group-hover:text-brand-700">{c.name}</div>
-          <div class="mt-0.5 text-xs text-slate-500">{c.count} เครื่องมือ</div>
+          <div class="mt-0.5 text-xs text-slate-500">{c.landingPath ? c.linkLabel : `${c.count} เครื่องมือ`}</div>
         </a>
       ))}
     </div>

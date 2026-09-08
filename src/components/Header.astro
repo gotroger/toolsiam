@@ -3,9 +3,10 @@
  * Header หลักของเว็บ — sticky, พื้นขาว, เส้นคั่นบาง, เบลอพื้นหลังเมื่อเลื่อนลง
  * ลิงก์ทุกตัวชี้ไปยัง route/anchor ที่มีอยู่จริงเท่านั้น
  */
-import { getHomeUrl, getToolsUrl } from '@/lib/routes';
+import { getHomeUrl, getLotteryUrl, getToolsUrl } from '@/lib/routes';
 const links = [
   { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด', match: (p: string) => p.startsWith('/tools') },
+  { href: getLotteryUrl(), label: 'หวย/สลาก', match: (p: string) => p.startsWith('/lottery') },
   { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่', match: (p: string) => p.startsWith('/categories/') },
 ];
 const current = Astro.url.pathname;

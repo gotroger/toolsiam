@@ -1,0 +1,157 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import DrawPrizes from '@/components/lottery/DrawPrizes.astro';
+import DrawHeading from '@/components/lottery/DrawHeading.astro';
+import { Disclaimer } from '@/components/ui';
+import { faqJsonLd } from '@/lib/seo';
+import { formatNumber } from '@/lib/format';
+import { formatThaiDate } from '@/lib/thai-date';
+import { todayInBangkok } from '@/lib/today';
+import {
+  getHomeUrl, getLotteryArchiveUrl, getLotteryCheckUrl, getLotteryDrawUrl, getLotteryLatestUrl, getLotteryUrl,
+} from '@/lib/routes';
+import { hasDrawData, latestDraw, listDraws } from '@/lottery/draws';
+import { PRIZE_SPECS, totalPrizePool } from '@/lottery/prizes';
+import { netPrize } from '@/lottery/prize';
+import { scheduledDrawDates, upcomingDrawDates } from '@/lottery/schedule';
+import { LOTTERY_DESCRIPTION, LOTTERY_DISCLAIMER, LOTTERY_FAQ, LOTTERY_TITLE } from '@/lottery/content';
+
+const latest = latestDraw();
+const drawCount = listDraws().length;
+const today = todayInBangkok();
+const thisYear = Number(today.slice(0, 4));
+const calendar = [thisYear, thisYear + 1].map((year) => ({ year, dates: scheduledDrawDates(year) }));
+const upcoming = upcomingDrawDates(today, 3);
+const firstPrize = PRIZE_SPECS[0];
+const example = netPrize(firstPrize.amount);
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: LOTTERY_TITLE, path: getLotteryUrl() },
+];
+const links = [
+  { href: getLotteryCheckUrl(), label: 'ตรวจสลาก', hint: 'วางเลขได้หลายใบพร้อมกัน' },
+  { href: getLotteryLatestUrl(), label: 'ผลรางวัลงวดล่าสุด', hint: hasDrawData() ? formatThaiDate(latest!.date, { style: 'medium' }) : 'ยังไม่มีข้อมูล' },
+  { href: getLotteryArchiveUrl(), label: 'ผลรางวัลย้อนหลัง', hint: `${drawCount} งวดในระบบ` },
+];
+---
+<Base title={`${LOTTERY_TITLE} — ทูลสยาม`} description={LOTTERY_DESCRIPTION} jsonLd={[faqJsonLd(LOTTERY_FAQ)]}>
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.75rem]">{LOTTERY_TITLE}</h1>
+  <p class="mt-2 max-w-3xl text-slate-600">{LOTTERY_DESCRIPTION}</p>
+
+  <nav aria-label="หน้าในหมวดหวย" class="mt-6 grid gap-3 sm:grid-cols-3">
+    {links.map((l) => (
+      <a
+        href={l.href}
+        class="rounded-xl border border-slate-200 bg-white p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-brand-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      >
+        <span class="block font-semibold text-slate-900">{l.label}</span>
+        <span class="mt-0.5 block text-xs text-slate-500">{l.hint}</span>
+      </a>
+    ))}
+  </nav>
+
+  <section class="mt-10" aria-labelledby="latest-heading">
+    {latest ? (
+      <>
+        <DrawHeading draw={latest} as="h2" />
+        <div class="mt-4"><DrawPrizes draw={latest} /></div>
+        <p class="mt-3 text-sm">
+          <a href={getLotteryDrawUrl(latest.date)} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ดูหน้าเต็มของงวดนี้</a>
+        </p>
+      </>
+    ) : (
+      <>
+        <h2 id="latest-heading" class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">ผลรางวัลงวดล่าสุด</h2>
+        <p class="mt-2 text-slate-700">
+          ยังไม่มีผลรางวัลงวดใดในระบบ — เราลงผลเฉพาะเลขที่คัดจากประกาศของสำนักงานสลากกินแบ่งรัฐบาลแล้วเท่านั้น
+        </p>
+        <p class="mt-3 text-slate-700">
+          งวดถัดไปตามกำหนดปกติ: {upcoming.map((d) => formatThaiDate(d, { style: 'medium' })).join(' · ')}
+        </p>
+      </>
+    )}
+  </section>
+
+  <section class="mt-10" aria-labelledby="structure-heading">
+    <h2 id="structure-heading" class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">โครงสร้างรางวัลสลากกินแบ่งรัฐบาล</h2>
+    <p class="mt-2 text-slate-600">
+      แต่ละงวดมีรางวัลรวม {formatNumber(PRIZE_SPECS.reduce((n, s) => n + s.count, 0))} รางวัล
+      เป็นเงินรางวัลรวม {formatNumber(totalPrizePool())} บาท
+    </p>
+    <div class="mt-4 overflow-x-auto rounded-[10px] border border-slate-200">
+      <table class="w-full min-w-[32rem] border-collapse text-sm">
+        <caption class="sr-only">โครงสร้างรางวัลสลากกินแบ่งรัฐบาล</caption>
+        <thead>
+          <tr class="bg-slate-50 text-slate-600">
+            <th scope="col" class="border-b border-slate-200 px-3 py-2 text-left font-medium">รางวัล</th>
+            <th scope="col" class="border-b border-slate-200 px-3 py-2 text-left font-medium">เทียบเลข</th>
+            <th scope="col" class="border-b border-slate-200 px-3 py-2 text-right font-medium">จำนวน</th>
+            <th scope="col" class="border-b border-slate-200 px-3 py-2 text-right font-medium">รางวัลละ (บาท)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {PRIZE_SPECS.map((s) => (
+            <tr class="even:bg-slate-50/60">
+              <th scope="row" class="border-b border-slate-100 px-3 py-2 text-left font-medium text-slate-800">{s.label}</th>
+              <td class="border-b border-slate-100 px-3 py-2 text-slate-700">
+                {s.match === 'full' ? 'ตรงทั้ง 6 หลัก' : s.match === 'front' ? `ตรง ${s.digits} หลักแรก` : `ตรง ${s.digits} หลักท้าย`}
+              </td>
+              <td class="border-b border-slate-100 px-3 py-2 text-right tabular-nums text-slate-700">{formatNumber(s.count)}</td>
+              <td class="border-b border-slate-100 px-3 py-2 text-right tabular-nums text-slate-700">{formatNumber(s.amount)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mt-10" aria-labelledby="duty-heading">
+    <h2 id="duty-heading" class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">เงินที่ได้รับจริงหลังหัก</h2>
+    <p class="mt-2 text-slate-700">
+      สลากกินแบ่งรัฐบาลถูกหักอากรแสตมป์ 1 บาท ต่อเงินรางวัลทุก 200 บาท (เศษของ 200 คิดเป็น 1 บาทเต็ม)
+      ส่วนสลากการกุศลถูกหักภาษี 1% ของเงินรางวัล
+    </p>
+    <p class="mt-2 text-slate-700">
+      ตัวอย่าง: ถูก{firstPrize.label} {formatNumber(example.gross)} บาท ถูกหักอากรแสตมป์ {formatNumber(example.deduction)} บาท
+      เหลือรับจริง {formatNumber(example.net)} บาท
+    </p>
+  </section>
+
+  <section class="mt-10" aria-labelledby="calendar-heading">
+    <h2 id="calendar-heading" class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">ปฏิทินวันออกรางวัล</h2>
+    <p class="mt-2 text-slate-600">
+      ตามกำหนดปกติออกรางวัลวันที่ 1 และ 16 ของทุกเดือน ปีละ 24 งวด — บางงวดสำนักงานสลากกินแบ่งรัฐบาลอาจประกาศเลื่อน
+      ให้ยึดประกาศทางการเป็นหลัก
+    </p>
+    <div class="mt-4 grid gap-6 sm:grid-cols-2">
+      {calendar.map((c) => (
+        <div>
+          <h3 class="font-semibold text-slate-900">พ.ศ. {c.year + 543}</h3>
+          <ul class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-slate-700">
+            {c.dates.map((d) => (
+              <li class:list={[d === upcoming[0] && 'font-semibold text-brand-700']}>
+                {formatThaiDate(d, { style: 'short' })}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="mt-10" aria-labelledby="faq-heading">
+    <h2 id="faq-heading" class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">คำถามที่พบบ่อย</h2>
+    <dl class="mt-4 space-y-4">
+      {LOTTERY_FAQ.map((f) => (
+        <div>
+          <dt class="font-medium text-slate-900">{f.q}</dt>
+          <dd class="mt-1 text-slate-600">{f.a}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <div class="mt-8"><Disclaimer>{LOTTERY_DISCLAIMER}</Disclaimer></div>
+</Base>

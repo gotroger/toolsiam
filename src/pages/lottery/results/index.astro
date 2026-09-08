@@ -1,0 +1,62 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import DrawPrizes from '@/components/lottery/DrawPrizes.astro';
+import DrawHeading from '@/components/lottery/DrawHeading.astro';
+import { Disclaimer } from '@/components/ui';
+import { formatThaiDate } from '@/lib/thai-date';
+import {
+  getHomeUrl, getLotteryArchiveUrl, getLotteryCheckUrl, getLotteryDrawUrl, getLotteryLatestUrl, getLotteryUrl,
+} from '@/lib/routes';
+import { latestDraw } from '@/lottery/draws';
+import { upcomingDrawDates } from '@/lottery/schedule';
+import { todayInBangkok } from '@/lib/today';
+import { drawLabel, LOTTERY_DISCLAIMER, LOTTERY_TITLE } from '@/lottery/content';
+
+/**
+ * ผลรางวัลงวดล่าสุด — เนื้อหาเดียวกับ /lottery/results/<วันที่ของงวดนั้น>
+ * canonical จึงชี้ไปหน้าของงวดโดยตรง ไม่ให้สองหน้าแย่งกันเอง
+ */
+const latest = latestDraw();
+const upcoming = upcomingDrawDates(todayInBangkok(), 2);
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: LOTTERY_TITLE, path: getLotteryUrl() },
+  { name: 'ผลรางวัลงวดล่าสุด', path: getLotteryLatestUrl() },
+];
+const description = latest
+  ? `ผลรางวัลสลากกินแบ่งรัฐบาล${drawLabel(latest.date)} ครบทุกรางวัล พร้อมเลขหน้า 3 ตัว เลขท้าย 3 ตัว และเลขท้าย 2 ตัว`
+  : 'ผลรางวัลสลากกินแบ่งรัฐบาลงวดล่าสุด พร้อมรางวัลที่ 1 เลขหน้า 3 ตัว เลขท้าย 3 ตัว และเลขท้าย 2 ตัว';
+---
+<Base
+  title="ผลรางวัลสลากกินแบ่งรัฐบาล งวดล่าสุด — ทูลสยาม"
+  description={description}
+  canonicalPath={latest ? getLotteryDrawUrl(latest.date) : getLotteryLatestUrl()}
+>
+  <Breadcrumb items={crumbs} />
+  {latest ? (
+    <>
+      <div class="mt-2"><DrawHeading draw={latest} as="h1" /></div>
+      <div class="mt-4"><DrawPrizes draw={latest} /></div>
+      <nav aria-label="ลิงก์ที่เกี่ยวข้อง" class="mt-6 flex flex-wrap gap-4 text-sm">
+        <a href={getLotteryCheckUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ตรวจสลากงวดนี้</a>
+        <a href={getLotteryDrawUrl(latest.date)} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">หน้าเต็มของงวดนี้</a>
+        <a href={getLotteryArchiveUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ผลรางวัลย้อนหลัง</a>
+      </nav>
+    </>
+  ) : (
+    <>
+      <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.75rem]">ผลรางวัลสลากกินแบ่งรัฐบาล งวดล่าสุด</h1>
+      <p class="mt-2 text-slate-700">
+        ยังไม่มีผลรางวัลงวดใดในระบบ — เราลงเฉพาะเลขที่คัดจากประกาศของสำนักงานสลากกินแบ่งรัฐบาลแล้วเท่านั้น
+      </p>
+      <p class="mt-3 text-slate-700">
+        งวดถัดไปตามกำหนดปกติ: {upcoming.map((d) => formatThaiDate(d, { style: 'medium' })).join(' · ')}
+      </p>
+      <p class="mt-4 text-sm">
+        <a href={getLotteryUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">กลับไปหน้าหวยและสลากกินแบ่งรัฐบาล</a>
+      </p>
+    </>
+  )}
+  <div class="mt-8"><Disclaimer>{LOTTERY_DISCLAIMER}</Disclaimer></div>
+</Base>

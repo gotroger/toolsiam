@@ -65,6 +65,14 @@ describe('หมวด', () => {
     for (const c of getBrowsableCategories()) expect(c.landingPath).toBeUndefined();
   });
 
+  it('vertical ที่เปิดใช้แล้วต้องมี linkLabel และหมวดเครื่องมือต้องไม่มี', () => {
+    // หน้าแรกแสดง linkLabel แทน "n เครื่องมือ" ให้ vertical — หมวด planned ยังไม่ขึ้นหน้าแรกจึงยังไม่ต้องมี
+    for (const c of getActiveCategories()) {
+      if (c.landingPath) expect(c.linkLabel, c.id).toBeTruthy();
+      else expect(c.linkLabel, c.id).toBeUndefined();
+    }
+  });
+
   it('getActiveCategories เรียงตาม order', () => {
     const orders = getActiveCategories().map((c) => c.order);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));

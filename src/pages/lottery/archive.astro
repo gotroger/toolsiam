@@ -1,0 +1,60 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import { Disclaimer } from '@/components/ui';
+import { collectionPageJsonLd } from '@/lib/seo';
+import { getHomeUrl, getLotteryArchiveUrl, getLotteryDrawUrl, getLotteryUrl } from '@/lib/routes';
+import { drawYears, drawsInYear, listDraws } from '@/lottery/draws';
+import { drawLabel, LOTTERY_DISCLAIMER, LOTTERY_TITLE } from '@/lottery/content';
+
+const years = drawYears().map((year) => ({ year, draws: drawsInYear(year) }));
+const all = listDraws();
+const description =
+  'ผลรางวัลสลากกินแบ่งรัฐบาลย้อนหลังทุกงวดที่มีในระบบ เรียงจากงวดล่าสุด ' +
+  'เปิดดูรางวัลที่ 1 เลขหน้า 3 ตัว เลขท้าย 3 ตัว และเลขท้าย 2 ตัว ของแต่ละงวดได้';
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: LOTTERY_TITLE, path: getLotteryUrl() },
+  { name: 'ผลรางวัลย้อนหลัง', path: getLotteryArchiveUrl() },
+];
+const jsonLd = [
+  collectionPageJsonLd({
+    name: 'ผลรางวัลสลากกินแบ่งรัฐบาลย้อนหลัง',
+    description,
+    path: getLotteryArchiveUrl(),
+    items: all.map((d) => ({ name: drawLabel(d.date), path: getLotteryDrawUrl(d.date) })),
+  }),
+];
+---
+<Base title="ผลรางวัลสลากกินแบ่งรัฐบาล ย้อนหลัง — ทูลสยาม" description={description} jsonLd={jsonLd}>
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.75rem]">ผลรางวัลสลากกินแบ่งรัฐบาลย้อนหลัง</h1>
+  <p class="mt-2 max-w-3xl text-slate-600">{description}</p>
+
+  {years.length === 0 ? (
+    <p class="mt-6 text-slate-700">
+      ยังไม่มีงวดใดในระบบ — ดูปฏิทินวันออกรางวัลและโครงสร้างรางวัลได้ที่
+      <a href={getLotteryUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">หน้าหวยและสลากกินแบ่งรัฐบาล</a>
+    </p>
+  ) : (
+    years.map((group) => (
+      <section class="mt-8">
+        <h2 class="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">พ.ศ. {group.year + 543}</h2>
+        <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+          {group.draws.map((d) => (
+            <li>
+              <a
+                href={getLotteryDrawUrl(d.date)}
+                class="block rounded-[10px] border border-slate-200 bg-white px-3 py-2 text-slate-800 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+              >
+                {drawLabel(d.date)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  )}
+
+  <div class="mt-8"><Disclaimer>{LOTTERY_DISCLAIMER}</Disclaimer></div>
+</Base>
