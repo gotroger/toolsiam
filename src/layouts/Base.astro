@@ -40,6 +40,16 @@ const ogImageType = ogImage.endsWith('.png') ? 'image/png' : ogImage.endsWith('.
  *
  * token มาจาก env `PUBLIC_CF_BEACON_TOKEN` ไม่ได้ฝังไว้ในซอร์ส — ถ้ายังไม่ตั้งค่า
  * จะไม่มี script ใด ๆ ออกไปที่หน้าเว็บเลย (ไม่ใช่ script เปล่าที่ยิง request ทิ้ง)
+ *
+ * ⚠️ production ไม่ได้เดินทางนี้ — toolsiam.com เปิด Web Analytics แบบ Automatic setup
+ * (โหมด "Enable, excluding visitor data in the EU") ตั้งแต่ 7 ก.ย. 2569 คือ Cloudflare
+ * ฉีด beacon ให้เองที่ขอบเครือข่าย เว็บจึงมี analytics อยู่แล้วโดยที่ token ว่าง
+ * ดูได้ที่ dash → Analytics → Web analytics → toolsiam.com → Manage site
+ *
+ * จึง **ห้ามตั้ง `PUBLIC_CF_BEACON_TOKEN`** ไม่ว่าจะเป็น repository variable หรือ .env
+ * เพราะจะได้ beacon สองตัวในหน้าเดียว → pageview นับซ้ำสองเท่า
+ * ถ้าวันหลังอยากมาใช้ทางนี้จริง ต้องไปสลับเป็น "Enable with JS Snippet installation" ก่อน
+ * แล้วค่อยตั้ง token — สลับสองอย่างนี้พร้อมกันไม่ได้
  */
 const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
 ---
