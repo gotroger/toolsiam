@@ -1,31 +1,42 @@
 import { calculateTax } from '@/tools/finance/thai-income-tax/logic';
+import { section33Contribution } from '@/lib/rates/social-security';
+import { TAX_LIMITS } from '@/lib/rates/income-tax';
 
-/** ประกันสังคมมาตรา 33 — ลูกจ้างส่ง 5% ของค่าจ้าง ฐาน 1,650–15,000 บาท/เดือน */
-export const SSO = {
-  rate: 0.05,
-  minBase: 1_650,
-  maxBase: 15_000,
-  monthlyCap: 750,
-  yearlyCap: 9_000,
-} as const;
+/**
+ * เงินเดือนสุทธิ — ประกอบจากสองเครื่องมือที่เป็นเจ้าของกฎจริง
+ *   ประกันสังคม  → src/lib/rates/social-security.ts
+ *   ภาษี         → thai-income-tax/logic.ts ซึ่งอ่านจาก src/lib/rates/income-tax.ts
+ * เครื่องมือนี้จึงไม่มีอัตราของตัวเองเลย และไม่มีทางหลุดจากกันเมื่ออัตราเปลี่ยน
+ */
 
 export interface NetSalaryInput {
   /** เงินเดือนต่อเดือน (ก่อนหัก) */
   monthlySalary: number;
-  /** โบนัส/เงินได้อื่นรวมทั้งปี */
+  /** โบนัสรวมทั้งปี */
   bonus: number;
+  /** รายได้เสริมอื่นรวมทั้งปี เช่น OT ค่าคอมมิชชั่น */
+  otherIncome: number;
   hasSocialSecurity: boolean;
   hasSpouseNoIncome: boolean;
   children: number;
   parents: number;
-  /** ลดหย่อนอื่นรวมทั้งปี (ประกันชีวิต กองทุน ดอกเบี้ยบ้าน ฯลฯ) */
+  lifeInsurance: number;
+  retirementFunds: number;
+  homeLoanInterest: number;
+  /** ลดหย่อนอื่นรวมทั้งปีที่ผู้ใช้กรอกเอง */
   otherDeductions: number;
+  /** วันที่ใช้เลือกเพดานค่าจ้างประกันสังคมที่มีผล */
+  asOf: string;
 }
 
 export interface NetSalaryResult {
   annualIncome: number;
   ssoMonthly: number;
   ssoYearly: number;
+  /** ยอดประกันสังคมที่ใช้ลดหย่อนได้จริงหลังหนีบเพดานของสรรพากร */
+  ssoDeductible: number;
+  expense: number;
+  allowances: number;
   /** เงินได้สุทธิที่ใช้คำนวณภาษี */
   netIncome: number;
   annualTax: number;
@@ -39,21 +50,18 @@ export interface NetSalaryResult {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const nonNegative = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
 
-export function ssoMonthly(monthlySalary: number): number {
-  if (!Number.isFinite(monthlySalary) || monthlySalary <= 0) return 0;
-  const capped = Math.min(Math.max(monthlySalary, SSO.minBase), SSO.maxBase);
-  return Math.round(capped * SSO.rate);
-}
-
 export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
   if (!Number.isFinite(input.monthlySalary) || input.monthlySalary < 0) {
     throw new Error('เงินเดือนต้องเป็นตัวเลขไม่ติดลบ');
   }
   const bonus = nonNegative(input.bonus);
-  const annualIncome = round2(input.monthlySalary * 12 + bonus);
+  const otherIncome = nonNegative(input.otherIncome);
+  const annualIncome = round2(input.monthlySalary * 12 + bonus + otherIncome);
 
-  const sso = input.hasSocialSecurity ? ssoMonthly(input.monthlySalary) : 0;
-  const ssoYearly = Math.min(sso * 12, SSO.yearlyCap);
+  const sso = input.hasSocialSecurity ? section33Contribution(input.monthlySalary, input.asOf).employee : 0;
+  const ssoYearly = round2(sso * 12);
+  // เพดานลดหย่อนของสรรพากรต่ำกว่าเงินสมทบจริงหลังเพดานค่าจ้างขึ้นเป็น 17,500
+  const ssoDeductible = Math.min(ssoYearly, TAX_LIMITS.socialSecurityCap);
 
   const tax = calculateTax({
     annualIncome,
@@ -61,12 +69,12 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
     children: nonNegative(input.children),
     childrenBorn2018Plus: 0,
     parents: nonNegative(input.parents),
-    socialSecurity: ssoYearly,
-    lifeInsurance: 0,
+    socialSecurity: ssoDeductible,
+    lifeInsurance: nonNegative(input.lifeInsurance),
     healthInsurance: 0,
-    retirementFunds: 0,
+    retirementFunds: nonNegative(input.retirementFunds),
     thaiEsg: 0,
-    homeLoanInterest: 0,
+    homeLoanInterest: nonNegative(input.homeLoanInterest),
     donations: 0,
     otherDeductions: nonNegative(input.otherDeductions),
     withheldTax: 0,
@@ -77,6 +85,9 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
     annualIncome,
     ssoMonthly: sso,
     ssoYearly,
+    ssoDeductible,
+    expense: tax.expense,
+    allowances: tax.allowances,
     netIncome: tax.netIncome,
     annualTax: tax.tax,
     monthlyTax,

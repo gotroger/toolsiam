@@ -25,6 +25,15 @@ import { landPriceMeta } from './land/land-price/meta';
 import { fuelCostMeta } from './daily/fuel-cost/meta';
 import { profitMarginMeta } from './business/profit-margin/meta';
 import { sellingPriceMeta } from './business/selling-price/meta';
+import { socialSecurityMeta } from './finance/social-security/meta';
+import { severancePayMeta } from './finance/severance-pay/meta';
+import { whtCalculatorMeta } from './finance/wht-calculator/meta';
+import { homeLoanMeta } from './loan/home-loan/meta';
+import { carLoanMeta } from './loan/car-loan/meta';
+import { creditCardDebtMeta } from './loan/credit-card-debt/meta';
+import { flatEffectiveRateMeta } from './loan/flat-effective-rate/meta';
+import { electricityBillMeta } from './daily/electricity-bill/meta';
+import { shopProfitMeta } from './business/shop-profit/meta';
 
 export { categories };
 export type { ToolMeta, CategoryMeta, CategoryId };
@@ -33,10 +42,17 @@ export type { ToolMeta, CategoryMeta, CategoryId };
 export const tools: ToolMeta[] = [
   thaiIncomeTaxMeta,
   loanInstallmentMeta,
+  homeLoanMeta,
+  carLoanMeta,
+  creditCardDebtMeta,
+  flatEffectiveRateMeta,
   netSalaryMeta,
+  socialSecurityMeta,
+  severancePayMeta,
   otCalculatorMeta,
   workTenureMeta,
   vatWhtMeta,
+  whtCalculatorMeta,
   compoundInterestMeta,
   bahtTextMeta,
   wordCountMeta,
@@ -54,6 +70,8 @@ export const tools: ToolMeta[] = [
   landPriceMeta,
   profitMarginMeta,
   sellingPriceMeta,
+  shopProfitMeta,
+  electricityBillMeta,
   fuelCostMeta,
   jsonFormatterMeta,
 ];

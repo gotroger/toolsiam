@@ -1,88 +1,94 @@
 import { describe, it, expect } from 'vitest';
-import { SSO, ssoMonthly, calculateNetSalary, type NetSalaryInput } from './logic';
+import { calculateNetSalary, type NetSalaryInput } from './logic';
 
 const base: NetSalaryInput = {
   monthlySalary: 30_000,
   bonus: 0,
+  otherIncome: 0,
   hasSocialSecurity: true,
   hasSpouseNoIncome: false,
   children: 0,
   parents: 0,
+  lifeInsurance: 0,
+  retirementFunds: 0,
+  homeLoanInterest: 0,
   otherDeductions: 0,
+  asOf: '2026-09-08',
 };
 
-describe('ssoMonthly', () => {
-  it('5% ของเงินเดือน', () => {
-    expect(ssoMonthly(10_000)).toBe(500);
+describe('ประกันสังคมใน net-salary', () => {
+  it('ใช้เพดานปัจจุบัน 17,500 บาท → หัก 875 บาท/เดือน ไม่ใช่ 750 ของเพดานเก่า', () => {
+    const r = calculateNetSalary(base);
+    expect(r.ssoMonthly).toBe(875);
+    expect(r.ssoYearly).toBe(10_500);
   });
 
-  it('เพดาน 750 บาท เมื่อเงินเดือนเกิน 15,000', () => {
-    expect(ssoMonthly(15_000)).toBe(750);
-    expect(ssoMonthly(80_000)).toBe(750);
-    expect(SSO.monthlyCap).toBe(750);
+  it('ยอดที่ลดหย่อนภาษีได้ถูกหนีบที่เพดานของสรรพากร ซึ่งต่ำกว่าเงินสมทบจริง', () => {
+    const r = calculateNetSalary(base);
+    expect(r.ssoDeductible).toBe(9_000);
+    expect(r.ssoDeductible).toBeLessThan(r.ssoYearly);
   });
 
-  it('ฐานขั้นต่ำ 1,650 บาท → 83 บาท', () => {
-    expect(ssoMonthly(1_000)).toBe(83);
-    expect(ssoMonthly(1_650)).toBe(83);
+  it('ใช้เพดานเดิมเมื่อคำนวณย้อนหลังก่อนวันมีผล', () => {
+    expect(calculateNetSalary({ ...base, asOf: '2025-06-01' }).ssoMonthly).toBe(750);
   });
 
-  it('ไม่มีรายได้ → 0', () => {
-    expect(ssoMonthly(0)).toBe(0);
+  it('เงินเดือนต่ำกว่าเพดานคิดจากค่าจ้างจริง', () => {
+    expect(calculateNetSalary({ ...base, monthlySalary: 12_000 }).ssoMonthly).toBe(600);
+  });
+
+  it('ไม่ส่งประกันสังคม → ไม่หักและไม่ได้ลดหย่อน', () => {
+    const r = calculateNetSalary({ ...base, hasSocialSecurity: false });
+    expect(r.ssoMonthly).toBe(0);
+    expect(r.ssoDeductible).toBe(0);
+    expect(r.netIncome).toBe(200_000);
   });
 });
 
-describe('calculateNetSalary', () => {
-  it('เงินเดือน 30,000 มีประกันสังคม ไม่มีลดหย่อนอื่น', () => {
+describe('เงินเดือนสุทธิ', () => {
+  it('เงินเดือน 30,000 ไม่มีลดหย่อนอื่น', () => {
     const r = calculateNetSalary(base);
     expect(r.annualIncome).toBe(360_000);
-    expect(r.ssoMonthly).toBe(750);
-    expect(r.ssoYearly).toBe(9_000);
-    expect(r.netIncome).toBe(191_000); // 360,000 − 100,000 (ค่าใช้จ่าย) − 69,000 (ลดหย่อน)
+    expect(r.expense).toBe(100_000);
+    expect(r.netIncome).toBe(191_000); // 360,000 − 100,000 − (60,000 + 9,000)
     expect(r.annualTax).toBe(2_050);
-    expect(r.monthlyTax).toBe(170.83);
-    expect(r.netMonthly).toBe(29_079.17);
+    expect(r.netMonthly).toBe(28_954.17);
   });
 
-  it('โบนัสเพิ่มเงินได้ทั้งปีแต่ไม่เพิ่มเงินเดือนรายเดือน', () => {
-    const r = calculateNetSalary({ ...base, bonus: 60_000 });
-    expect(r.annualIncome).toBe(420_000);
-    expect(r.ssoYearly).toBe(9_000);
-    expect(r.netIncome).toBe(251_000);
-    expect(r.annualTax).toBe(5_050);
-    expect(r.netYearly).toBe(405_950);
+  it('โบนัสและรายได้เสริมเพิ่มเงินได้ทั้งปี แต่ไม่เพิ่มเงินเดือนรายเดือน', () => {
+    const r = calculateNetSalary({ ...base, bonus: 60_000, otherIncome: 24_000 });
+    expect(r.annualIncome).toBe(444_000);
+    expect(r.ssoMonthly).toBe(875);
+    expect(r.annualTax).toBeGreaterThan(calculateNetSalary(base).annualTax);
   });
 
-  it('ไม่ส่งประกันสังคม → ไม่หัก และไม่ได้ลดหย่อน', () => {
-    const r = calculateNetSalary({ ...base, hasSocialSecurity: false });
-    expect(r.ssoMonthly).toBe(0);
-    expect(r.ssoYearly).toBe(0);
-    expect(r.netIncome).toBe(200_000); // ลดหย่อนเหลือแค่ส่วนตัว 60,000
-    expect(r.annualTax).toBe(2_500);
+  it('ค่าลดหย่อนที่เพิ่มเข้ามาใน Phase 2 ลดภาษีได้จริง', () => {
+    const plain = calculateNetSalary({ ...base, monthlySalary: 60_000 });
+    const withDeductions = calculateNetSalary({
+      ...base, monthlySalary: 60_000, lifeInsurance: 100_000, retirementFunds: 100_000, homeLoanInterest: 50_000,
+    });
+    expect(withDeductions.allowances).toBeGreaterThan(plain.allowances);
+    expect(withDeductions.annualTax).toBeLessThan(plain.annualTax);
   });
 
   it('เงินเดือนน้อยจนไม่ต้องเสียภาษี', () => {
     const r = calculateNetSalary({ ...base, monthlySalary: 15_000 });
     expect(r.annualTax).toBe(0);
-    expect(r.monthlyTax).toBe(0);
-    expect(r.netMonthly).toBe(14_250);
     expect(r.effectiveRate).toBe(0);
   });
 
-  it('ลดหย่อนคู่สมรส/บุตร/บิดามารดา ทำให้ภาษีลดลง', () => {
-    const r = calculateNetSalary({ ...base, hasSpouseNoIncome: true, children: 1, parents: 2 });
-    expect(r.annualTax).toBe(0);
+  it('ลดหย่อนคู่สมรส บุตร และบิดามารดา ทำให้ภาษีเป็นศูนย์', () => {
+    expect(calculateNetSalary({ ...base, hasSpouseNoIncome: true, children: 1, parents: 2 }).annualTax).toBe(0);
   });
 
   it('เงินเดือนติดลบ → error', () => {
     expect(() => calculateNetSalary({ ...base, monthlySalary: -1 })).toThrow();
   });
 
-  it('ค่า NaN ในโบนัส/บุตร/บิดามารดา/ลดหย่อนอื่น ให้ผลเหมือนใส่ 0', () => {
+  it('ค่า NaN ในช่องที่ไม่บังคับ ให้ผลเหมือนใส่ 0', () => {
     const zero = calculateNetSalary(base);
-    expect(calculateNetSalary({ ...base, bonus: NaN })).toEqual(zero);
-    expect(calculateNetSalary({ ...base, children: NaN })).toEqual(zero);
-    expect(calculateNetSalary({ ...base, parents: NaN })).toEqual(zero);
-    expect(calculateNetSalary({ ...base, otherDeductions: NaN })).toEqual(zero);
+    for (const key of ['bonus', 'otherIncome', 'children', 'parents', 'lifeInsurance', 'retirementFunds', 'homeLoanInterest', 'otherDeductions'] as const) {
+      expect(calculateNetSalary({ ...base, [key]: NaN })).toEqual(zero);
+    }
   });
 });

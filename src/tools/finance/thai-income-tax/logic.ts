@@ -1,33 +1,9 @@
-/** อัตราภาษีเงินได้บุคคลธรรมดา (ขั้นบันได) ปีภาษี 2568 */
-export const TAX_BRACKETS: { upTo: number; rate: number }[] = [
-  { upTo: 150_000, rate: 0 },
-  { upTo: 300_000, rate: 0.05 },
-  { upTo: 500_000, rate: 0.1 },
-  { upTo: 750_000, rate: 0.15 },
-  { upTo: 1_000_000, rate: 0.2 },
-  { upTo: 2_000_000, rate: 0.25 },
-  { upTo: 5_000_000, rate: 0.3 },
-  { upTo: Infinity, rate: 0.35 },
-];
+import { TAX_BRACKETS, TAX_LIMITS, type TaxBracket } from '@/lib/rates/income-tax';
 
-/** เพดานลดหย่อน ปีภาษี 2568 — แก้ที่นี่ที่เดียวเมื่อกฎเปลี่ยน */
-export const TAX_LIMITS = {
-  expenseRate: 0.5,
-  expenseCap: 100_000,
-  personal: 60_000,
-  spouse: 60_000,
-  child: 30_000,
-  childBorn2018Plus: 60_000,
-  parent: 30_000,
-  parentMax: 4,
-  socialSecurityCap: 9_000,
-  lifeInsuranceCap: 100_000,     // ประกันชีวิต + สุขภาพ รวมกันไม่เกิน
-  healthInsuranceCap: 25_000,
-  retirementCap: 500_000,        // PVD + RMF + ประกันบำนาญ + กบข./กอช. รวม
-  thaiEsgCap: 300_000,
-  homeLoanCap: 100_000,
-  donationRate: 0.1,
-} as const;
+// อัตราและเพดานทั้งหมดอยู่ที่ src/lib/rates/income-tax.ts ที่เดียว (E6)
+// เครื่องมือนี้ re-export ไว้เพื่อความเข้ากันได้ย้อนหลัง แต่ห้ามแก้ตัวเลขที่นี่
+export { TAX_BRACKETS, TAX_LIMITS };
+export type { TaxBracket };
 
 export interface TaxInput {
   /** เงินได้ 40(1)/(2) รวมทั้งปี */

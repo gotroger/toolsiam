@@ -1,0 +1,106 @@
+import type { RateSource } from '@/tools/types';
+
+/**
+ * ภาษีเงินได้บุคคลธรรมดา — ขั้นบันได การหักค่าใช้จ่าย และค่าลดหย่อน
+ *
+ * ⚠️ เอกสารค่าลดหย่อนฉบับล่าสุดที่เปิดได้จาก rd.go.th คือฉบับปรับปรุง 28 ม.ค. 2568
+ * ซึ่งเป็น **รายการของปีภาษี 2567** — ยังไม่พบฉบับสำหรับปีภาษี 2568/2569
+ * ไฟล์นี้จึงเก็บเฉพาะ **ค่าลดหย่อนถาวร** และแยกมาตรการชั่วคราวออกไปเป็น list ต่างหาก
+ * ที่ตอนนี้ว่างโดยตั้งใจ — ห้ามเดามาตรการของปีภาษีปัจจุบันมาใส่
+ */
+
+export interface TaxBracket {
+  upTo: number;
+  rate: number;
+}
+
+/** ใช้ตั้งแต่ปีภาษี 2560 เป็นต้นไป — ขั้นแรกยกเว้นภาษีตาม พ.ร.ฎ. (ฉบับที่ 470) พ.ศ. 2551 */
+export const TAX_BRACKETS: TaxBracket[] = [
+  { upTo: 150_000, rate: 0 },
+  { upTo: 300_000, rate: 0.05 },
+  { upTo: 500_000, rate: 0.1 },
+  { upTo: 750_000, rate: 0.15 },
+  { upTo: 1_000_000, rate: 0.2 },
+  { upTo: 2_000_000, rate: 0.25 },
+  { upTo: 5_000_000, rate: 0.3 },
+  { upTo: Infinity, rate: 0.35 },
+];
+
+/**
+ * เพดานค่าลดหย่อนถาวร
+ *
+ * `socialSecurityCap` = 9,000 มาจากเอกสารปีภาษี 2567 ซึ่งตรงกับเพดานเงินสมทบเดิม
+ * (750 × 12) — เมื่อเพดานค่าจ้างขึ้นเป็น 17,500 ในปี 2569 เงินสมทบจริงจะถึง 10,500 บาท/ปี
+ * **ยังไม่พบเอกสารสรรพากรที่ยืนยันว่าเพดานลดหย่อนถูกปรับตาม** จึงยังใช้ 9,000
+ * และต้องบอกผู้ใช้ผ่าน assumptions ของเครื่องมือ
+ */
+export const TAX_LIMITS = {
+  expenseRate: 0.5,
+  expenseCap: 100_000,
+  personal: 60_000,
+  spouse: 60_000,
+  child: 30_000,
+  childBorn2018Plus: 60_000,
+  parent: 30_000,
+  /** ตัวเองสูงสุด 2 คน + ของคู่สมรสอีก 2 คน */
+  parentMax: 4,
+  disabledCare: 60_000,
+  maternityCap: 60_000,
+  socialSecurityCap: 9_000,
+  /** ประกันชีวิต + ประกันสุขภาพของตัวเอง รวมกันไม่เกินยอดนี้ */
+  lifeInsuranceCap: 100_000,
+  /** ประกันสุขภาพตัวเองไม่ใช่เพดานอิสระ — อยู่ภายใต้ lifeInsuranceCap อีกชั้น */
+  healthInsuranceCap: 25_000,
+  parentHealthInsuranceCap: 15_000,
+  /** เพดานรวมของกลุ่มการออมเพื่อเกษียณ: RMF + PVD + กบข. + กองทุนสงเคราะห์ครูฯ + ประกันบำนาญ + SSF */
+  retirementCap: 500_000,
+  ssfCap: 200_000,
+  pensionInsuranceCap: 200_000,
+  nsfCap: 30_000,
+  thaiEsgCap: 300_000,
+  homeLoanCap: 100_000,
+  socialEnterpriseCap: 100_000,
+  politicalDonationCap: 10_000,
+  donationRate: 0.1,
+} as const;
+
+export interface TemporaryMeasure {
+  id: string;
+  label: string;
+  cap: number;
+  effectiveFrom: string;
+  effectiveTo: string;
+}
+
+/**
+ * มาตรการลดหย่อนชั่วคราวที่ยัง **verify แล้ว** ว่ามีผลกับปีภาษีปัจจุบัน
+ *
+ * ว่างโดยตั้งใจ: มาตรการที่พบในเอกสาร (Easy E-Receipt, ท่องเที่ยวเมืองรอง, ค่าซ่อมบ้าน/รถจากอุทกภัย)
+ * ล้วนเป็นของปีภาษี 2567 และหมดอายุแล้ว ส่วนมาตรการของปีภาษี 2568/2569 ยังไม่มีเอกสารทางการยืนยัน
+ * เครื่องมือจึงให้ผู้ใช้กรอกยอดเองในช่อง "ลดหย่อนอื่น" แทนการเดาแทนผู้ใช้
+ */
+export const TEMPORARY_MEASURES: TemporaryMeasure[] = [];
+
+/** มาตรการชั่วคราวที่ยังใช้ได้ ณ วันที่กำหนด */
+export function activeTemporaryMeasures(asOf: string): TemporaryMeasure[] {
+  return TEMPORARY_MEASURES.filter((m) => m.effectiveFrom <= asOf && asOf <= m.effectiveTo);
+}
+
+export const INCOME_TAX_SOURCES: RateSource[] = [
+  {
+    effectiveFrom: 'ปีภาษี 2560 เป็นต้นไป',
+    lastVerifiedAt: '2026-09-08',
+    sourceName: 'กรมสรรพากร — อัตราภาษีเงินได้บุคคลธรรมดา',
+    sourceUrl: 'https://www.rd.go.th/59670.html',
+    summary:
+      'ขั้นบันไดภาษีเงินได้สุทธิ: 0–150,000 ยกเว้น · 150,001–300,000 = 5% · 300,001–500,000 = 10% · 500,001–750,000 = 15% · 750,001–1,000,000 = 20% · 1,000,001–2,000,000 = 25% · 2,000,001–5,000,000 = 30% · เกิน 5,000,000 = 35%',
+  },
+  {
+    effectiveFrom: 'ปีภาษี 2567',
+    lastVerifiedAt: '2026-09-08',
+    sourceName: 'กรมสรรพากร — ค่าลดหย่อนและการหักค่าใช้จ่าย',
+    sourceUrl: 'https://www.rd.go.th/fileadmin/download/tax_deductions_update280168.pdf',
+    summary:
+      'เงินได้ประเภทที่ 1 และ 2 หักค่าใช้จ่าย 50% แต่ไม่เกิน 100,000 บาท · ลดหย่อนส่วนตัว 60,000 · คู่สมรสไม่มีเงินได้ 60,000 · บุตร 30,000/คน (คนที่ 2 ขึ้นไปที่เกิดตั้งแต่ปี 2561 = 60,000) · เงินสมทบประกันสังคมตามจริงไม่เกิน 9,000 · กลุ่มการออมเพื่อเกษียณรวมกันไม่เกิน 500,000',
+  },
+];

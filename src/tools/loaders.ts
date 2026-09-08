@@ -29,4 +29,13 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'fuel-cost': () => import('./daily/fuel-cost/Tool'),
   'profit-margin': () => import('./business/profit-margin/Tool'),
   'selling-price': () => import('./business/selling-price/Tool'),
+  'social-security': () => import('./finance/social-security/Tool'),
+  'severance-pay': () => import('./finance/severance-pay/Tool'),
+  'wht-calculator': () => import('./finance/wht-calculator/Tool'),
+  'home-loan': () => import('./loan/home-loan/Tool'),
+  'car-loan': () => import('./loan/car-loan/Tool'),
+  'credit-card-debt': () => import('./loan/credit-card-debt/Tool'),
+  'flat-effective-rate': () => import('./loan/flat-effective-rate/Tool'),
+  'electricity-bill': () => import('./daily/electricity-bill/Tool'),
+  'shop-profit': () => import('./business/shop-profit/Tool'),
 };
