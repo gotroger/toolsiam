@@ -19,12 +19,10 @@
   // อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
   // JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ ไม่มี login (§28.2)
   //
-  // ยังไม่เปิดใช้จนกว่าจะสร้าง namespace จริง — ดูขั้นตอนใน workers/lottery-cron/README.md
-  // ระหว่างที่ยังไม่เปิด `/api/lottery/latest` ตอบ 204 และเว็บใช้ข้อมูล static ตามปกติทุกประการ
-  // จงใจไม่ใส่ id ปลอมไว้ เพราะจะทำให้ deploy ของทั้งเว็บล้มทั้งที่ยังไม่ได้ใช้ฟีเจอร์นี้
-  // "kv_namespaces": [
-  //   { "binding": "LOTTERY", "id": "<KV_NAMESPACE_ID>" }
-  // ],
+  // ต้องเป็น namespace เดียวกับที่ workers/lottery-cron/ ใช้เขียน ไม่ใช่คนละอัน
+  "kv_namespaces": [
+    { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" }
+  ],
 
   "vars": {
     // kill switch — ต้องเป็น "on" เท่านั้นจึงจะเปิด /api/lottery/latest
