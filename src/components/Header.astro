@@ -107,10 +107,34 @@ const current = Astro.url.pathname;
   }
 
   if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!open));
-      menu.hidden = open;
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      menu.hidden = !open;
+    };
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+
+    toggle.addEventListener('click', () => setOpen(!isOpen()));
+
+    // Esc ปิดเมนูแล้วคืนโฟกัสให้ปุ่ม ไม่ใช่ปล่อยโฟกัสค้างในเมนูที่ซ่อนไปแล้ว
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // แตะลิงก์ในเมนูแล้วปิดเอง — ลิงก์ '#categories' อยู่หน้าเดียวกัน ถ้าไม่ปิดเมนูจะบังจุดที่เลื่อนไปถึง
+    menu.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) setOpen(false);
+    });
+
+    /**
+     * ขยายจอข้ามไป md แล้วต้องปิด — เมนูมือถือเป็น `md:hidden` จึงหายไปจากตาแต่ยัง hidden=false อยู่
+     * พอย่อจอกลับมาเมนูจะเด้งค้างเปิดเองทั้งที่ผู้ใช้ไม่ได้กด และ aria-expanded ก็ค้างเป็น true
+     */
+    const desktop = window.matchMedia('(min-width: 768px)');
+    desktop.addEventListener('change', (e) => {
+      if (e.matches && isOpen()) setOpen(false);
     });
   }
 </script>

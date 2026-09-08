@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BASIS_LABEL, sellingPrice, type PriceBasis } from './logic';
-import { ErrorText, Field, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
+import { Field, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
 import { formatBaht, formatNumber } from '@/lib/format';
 import { getToolUrl } from '@/lib/routes';
 

@@ -1,27 +1,29 @@
-# push ขึ้น main → ตรวจ typecheck + เทสต์ → build → deploy ขึ้น Cloudflare Workers
+# ตรวจทุก PR และทุก push ขึ้น main — ผ่านแล้วค่อย deploy (เฉพาะ main)
 #
 # ต้องตั้ง secret สองตัวใน repo ก่อนใช้งาน (ดู README ของ workflow นี้ในคำสั่ง gh secret set):
 #   CLOUDFLARE_API_TOKEN   token ที่มีสิทธิ์ Workers Scripts:Edit + Workers Routes:Edit
 #   CLOUDFLARE_ACCOUNT_ID  account id ของ Cloudflare
 #
-# ตั้งใจให้ deploy เฉพาะเมื่อ typecheck และเทสต์ผ่านเท่านั้น — ถ้าเทสต์แดง
-# งานจะหยุดก่อนถึงขั้น deploy ของบน production จึงไม่ถูกแตะ
-name: Deploy
+# job `check` แยกออกมาเพื่อให้ PR ได้ถูกตรวจก่อน merge — ก่อนหน้านี้ workflow ยิงเฉพาะ
+# ตอน push ขึ้น main แปลว่าไม่มีอะไรตรวจโค้ดเลยจนกว่าจะ merge ไปแล้ว
+name: CI & Deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   # ปุ่มสั่ง deploy เองจากหน้า Actions เผื่อกรณีอยาก redeploy โดยไม่มี commit ใหม่
   workflow_dispatch:
 
-# ถ้า push รัวหลายครั้ง ให้ยกเลิกคิวเก่าแล้วเอาตัวล่าสุดขึ้นแทน
-# แต่ไม่ยกเลิกตัวที่ deploy ไปแล้วระหว่างทาง (cancel-in-progress: false)
+# push/PR รัวหลายครั้งบน ref เดียวกัน ให้ยกเลิกคิวเก่าแล้วเอาตัวล่าสุดขึ้นแทน
+# แต่บน main ไม่ยกเลิกตัวที่ deploy ไปแล้วระหว่างทาง
 concurrency:
-  group: deploy-production
-  cancel-in-progress: false
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  deploy:
+  check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,6 +35,9 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      - name: ตรวจสไตล์โค้ดและ a11y
+        run: npm run lint
 
       - name: ตรวจชนิดข้อมูล
         run: npm run typecheck
@@ -49,6 +54,32 @@ jobs:
           # ฉีด beacon ให้เองที่ขอบเครือข่าย ตั้ง token ทับจะนับ pageview ซ้ำสองเท่า (ดู .env.example)
           #
           # คงบรรทัดนี้ไว้เพื่อให้สลับกลับมาใช้ JS snippet ได้โดยไม่ต้องแก้ workflow
+          PUBLIC_CF_BEACON_TOKEN: ${{ vars.PUBLIC_CF_BEACON_TOKEN }}
+
+      # budget อยู่ใน docs/perf-budget.md — เกินเมื่อไหร่ job แดงทันที ไม่ต้องรอให้ใครนึกได้ว่าต้องรันเอง
+      - name: ตรวจขนาดหน้าเว็บเทียบ budget
+        run: npm run size
+
+  deploy:
+    needs: check
+    # PR ไม่ deploy — ขึ้น production เฉพาะ main และตอนกดเองจากหน้า Actions
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # ดูคำเตือนเรื่อง token ใน job check ด้านบน
           PUBLIC_CF_BEACON_TOKEN: ${{ vars.PUBLIC_CF_BEACON_TOKEN }}
 
       - name: Deploy ขึ้น Cloudflare Workers

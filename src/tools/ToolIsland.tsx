@@ -1,5 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react';
 import { toolLoaders } from './loaders';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export default function ToolIsland({ slug }: { slug: string }) {
   const Tool = useMemo(() => {
@@ -10,8 +11,11 @@ export default function ToolIsland({ slug }: { slug: string }) {
   if (!Tool) return <p className="text-red-600">ไม่พบเครื่องมือ: {slug}</p>;
 
   return (
-    <Suspense fallback={<p className="text-slate-500">กำลังโหลดเครื่องมือ…</p>}>
-      <Tool />
-    </Suspense>
+    <ErrorBoundary name={slug}>
+      <Suspense fallback={<p className="text-slate-500">กำลังโหลดเครื่องมือ…</p>}>
+        {/* eslint-disable-next-line react-hooks/static-components -- lazy() ถูก memo ด้วย slug จึงเป็นคอมโพเนนต์ตัวเดิมตลอดอายุ island (slug ไม่เปลี่ยนกลางคัน) */}
+        <Tool />
+      </Suspense>
+    </ErrorBoundary>
   );
 }

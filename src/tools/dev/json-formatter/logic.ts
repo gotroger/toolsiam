@@ -24,7 +24,7 @@ function parse(input: string): { ok: true; value: unknown } | { ok: false; error
     const pos = /position (\d+)/.exec(msg);
     const lc = /line (\d+) column (\d+)/.exec(msg);
     let position = pos ? Number(pos[1]) : 0;
-    let { line, column } = lc ? { line: Number(lc[1]), column: Number(lc[2]) } : locate(input, position);
+    const { line, column } = lc ? { line: Number(lc[1]), column: Number(lc[2]) } : locate(input, position);
     if (!pos && lc) {
       const lines = input.split('\n');
       position = lines.slice(0, line - 1).reduce((n, l) => n + l.length + 1, 0) + column - 1;
