@@ -1,27 +1,76 @@
 ---
-import { PRIZE_STRUCTURE, type LotteryDraw } from '@/data/lottery/schema';
+import { HEADLINE_PRIZES, MAJOR_PRIZES, N3_PRIZE_STRUCTURE, type LotteryDraw } from '@/data/lottery/schema';
 import { formatBaht } from '@/lib/format';
 
-/** ตารางผลรางวัลของหนึ่งงวด — ใช้ทั้งหน้าผลงวดล่าสุดและหน้าผลรายงวด */
+/**
+ * ผลรางวัลของหนึ่งงวด เรียงตามที่ประกาศของสำนักงานสลากฯ จัดวาง
+ *
+ *   แถวบน   รางวัลที่ 1 · เลขหน้า 3 ตัว · เลขท้าย 3 ตัว · เลขท้าย 2 ตัว   ← สี่ช่องที่คนดูก่อนเสมอ
+ *   แถวถัดมา สลากตัวเลขสามหลัก (N3) ถ้างวดนั้นมี
+ *   แถวล่าง  รางวัลข้างเคียง · รางวัลที่ 2–5 เรียงตามลำดับรางวัล
+ */
 interface Props { draw: LotteryDraw }
 const { draw } = Astro.props;
 ---
-<div class="space-y-4">
-  {PRIZE_STRUCTURE.map((spec) => (
-    <section class="rounded-xl border border-slate-200 bg-white p-4">
-      <div class="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 class="font-semibold text-slate-900">{spec.name}</h3>
-        <p class="text-sm text-slate-500">
-          รางวัลละ {formatBaht(spec.amount)} บาท · {spec.count} รางวัล
-        </p>
+<div class="space-y-6">
+  <section>
+    <h3 class="sr-only">รางวัลหลัก</h3>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {HEADLINE_PRIZES.map((spec) => (
+        <div class="rounded-xl border border-slate-200 bg-white p-4">
+          <p class="font-semibold text-slate-900">{spec.name}</p>
+          <p class="text-xs text-slate-500">รางวัลละ {formatBaht(spec.amount)} บาท</p>
+          <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-2xl font-bold tabular-nums text-slate-900">
+            {draw.prizes[spec.id].map((n) => <span>{n}</span>)}
+          </p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {draw.n3 && (
+    <section>
+      <h3 class="text-base font-semibold text-slate-900">สลากตัวเลขสามหลัก (N3)</h3>
+      <p class="mt-0.5 text-sm text-slate-600">
+        เป็นสลากคนละใบกับสลากกินแบ่งรัฐบาล 6 หลัก และเงินรางวัลไม่คงที่
+        เพราะแบ่งจากยอดขายของงวดนั้น จึงเปลี่ยนไปทุกงวด
+      </p>
+      <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {N3_PRIZE_STRUCTURE.map((spec) => {
+          const result = draw.n3![spec.id];
+          return (
+            <div class="rounded-xl border border-slate-200 bg-white p-4">
+              <p class="font-semibold text-slate-900">{spec.name}</p>
+              <p class="text-xs text-slate-500">รางวัลละ {formatBaht(result.price)} บาท</p>
+              <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xl font-bold tabular-nums text-slate-900">
+                {result.numbers.map((n) => <span>{n}</span>)}
+              </p>
+              <p class="mt-1.5 text-xs text-slate-500">{spec.note}</p>
+            </div>
+          );
+        })}
       </div>
-      <ul class="mt-3 flex flex-wrap gap-2">
-        {draw.prizes[spec.id].map((n) => (
-          <li class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-sm tabular-nums text-slate-900">
-            {n}
-          </li>
-        ))}
-      </ul>
     </section>
-  ))}
+  )}
+
+  <section class="space-y-4">
+    <h3 class="sr-only">รางวัลอื่นของสลากกินแบ่งรัฐบาล</h3>
+    {MAJOR_PRIZES.map((spec) => (
+      <div class="rounded-xl border border-slate-200 bg-white p-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h4 class="font-semibold text-slate-900">{spec.name}</h4>
+          <p class="text-sm text-slate-500">
+            รางวัลละ {formatBaht(spec.amount)} บาท · {spec.count} รางวัล
+          </p>
+        </div>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {draw.prizes[spec.id].map((n) => (
+            <li class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-sm tabular-nums text-slate-900">
+              {n}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
 </div>
