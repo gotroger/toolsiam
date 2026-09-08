@@ -1,0 +1,51 @@
+---
+import Breadcrumb from './Breadcrumb.astro';
+import { Disclaimer } from './ui';
+import type { Crumb } from '@/lib/seo';
+
+/**
+ * โครงหน้าของ vertical `/horoscope` และ `/dream` (§9.3, §9.4)
+ *
+ * ตั้งใจให้หน้าตาต่างจาก ToolShell อย่างชัดเจน — พื้นหลังไล่สีและหัวข้อที่มีไอคอนใหญ่ —
+ * เพราะแผนระบุว่าหมวดดวงต้องไม่ทำให้เครื่องมือการเงินดูน่าเชื่อถือน้อยลง (Brand risk §9.5)
+ *
+ * disclaimer เป็น prop ที่มีค่าเริ่มต้น ไม่ใช่ optional ที่ลืมใส่ได้ — ทุกหน้าใน vertical
+ * นี้ต้องมีคำเตือนว่าเป็นความเชื่อ จึง render ให้เสมอโดยไม่ต้องรอให้แต่ละหน้าจำ
+ */
+interface Props {
+  title: string;
+  description: string;
+  icon: string;
+  crumbs: Crumb[];
+  /** ไล่สีพื้นหลังหัวเรื่อง [เริ่ม, จบ] */
+  gradient?: [string, string];
+  disclaimer?: string;
+}
+const {
+  title, description, icon, crumbs,
+  gradient = ['#fdf2f8', '#faf5ff'],
+  disclaimer = 'เนื้อหาในหน้านี้เป็นความเชื่อและเรื่องเล่าตามตำรา จัดทำเพื่อความบันเทิงเท่านั้น ไม่ใช่คำทำนายอนาคตและไม่ควรใช้แทนการตัดสินใจด้วยข้อมูลจริง',
+} = Astro.props;
+---
+<Breadcrumb items={crumbs} />
+
+<header
+  class="mt-3 overflow-hidden rounded-2xl border border-slate-200 p-6 sm:p-8"
+  style={`background-image: linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`}
+>
+  <div class="flex items-start gap-4">
+    <span aria-hidden="true" class="text-4xl leading-none sm:text-5xl">{icon}</span>
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.75rem]">{title}</h1>
+      <p class="mt-2 max-w-3xl text-slate-700">{description}</p>
+    </div>
+  </div>
+</header>
+
+<div class="mt-6">
+  <slot />
+</div>
+
+<div class="mt-8">
+  <Disclaimer>{disclaimer}</Disclaimer>
+</div>

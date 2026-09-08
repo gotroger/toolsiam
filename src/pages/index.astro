@@ -1,13 +1,16 @@
 ---
 import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
-import { getActiveCategories, getFeaturedTools, getToolsByCategory, getVisibleTools } from '@/tools/registry';
+import { getActiveCategories, getBrowsableCategories, getFeaturedTools, getToolsByCategory, getVisibleTools } from '@/tools/registry';
 import { cardGrid, cardGridItem } from '@/components/grids';
 import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 
 // หมวด planned ไม่ขึ้นหน้าแรก (§8.4) — ที่เหลือจึงมีเครื่องมือจริงทุกใบ
-const categoryCounts = getActiveCategories().map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
+const categoryCounts = getBrowsableCategories().map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
+// vertical แยกออกมาเป็นอีกส่วนโดยตั้งใจ (Brand risk §9.5) — หมวดดวงและทำนายฝัน
+// ต้องไม่ขึ้นปนแถวเดียวกับเครื่องคำนวณภาษี และไม่มีตัวนับ "N เครื่องมือ" เพราะไม่ใช่เครื่องมือ
+const verticals = getActiveCategories().filter((c) => c.landingPath);
 const featured = getFeaturedTools(8);
 const visibleToolCount = getVisibleTools().length;
 const jsonLd = [organizationJsonLd(), websiteJsonLd()];
@@ -52,6 +55,28 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
       ))}
     </div>
   </section>
+
+  {verticals.length > 0 && (
+    <section id="verticals" class="mt-12 scroll-mt-24 sm:mt-16">
+      <h2 class="text-[1.375rem] font-bold tracking-tight text-slate-900 sm:text-2xl">ดูดวงและความเชื่อ</h2>
+      <p class="mt-1.5 text-sm text-slate-500">เนื้อหาตามความเชื่อ อ่านเพลิน ๆ แยกจากเครื่องมือคำนวณ</p>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        {verticals.map((c) => (
+          <a
+            href={getCategoryUrl(c)}
+            class="group flex items-start gap-4 rounded-xl border border-slate-200 p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            style={`background-image: linear-gradient(135deg, ${c.gradient[0]}, ${c.gradient[1]})`}
+          >
+            <span class="text-3xl leading-none" aria-hidden="true">{c.icon}</span>
+            <span>
+              <span class="block font-semibold text-slate-900">{c.name}</span>
+              <span class="mt-0.5 block text-sm text-slate-600">{c.description}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 
   <section id="featured" class="mt-12 scroll-mt-24 sm:mt-16">
     <div class="flex flex-wrap items-end justify-between gap-3">

@@ -1,0 +1,77 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import DreamSearch from '@/components/DreamSearch';
+import { collectionPageJsonLd } from '@/lib/seo';
+import { getDreamEntryUrl, getDreamUrl, getHomeUrl, getHoroscopeUrl } from '@/lib/routes';
+import { DREAM_ENTRIES, DREAM_GROUPS, dreamsByGroup } from '@/content/dream/entries';
+
+const title = 'ทำนายฝัน — ความหมายของความฝันตามตำราไทย';
+const description = `รวมความหมายของความฝัน ${DREAM_ENTRIES.length} เรื่องตามตำราไทย ทั้งฝันเห็นงู ปลา ฟันหลุด น้ำ ไฟ และอื่น ๆ พร้อมอธิบายว่าบริบทที่ต่างกันทำให้ความหมายเปลี่ยนอย่างไร`;
+---
+<Base
+  title={`${title} — ทูลสยาม`}
+  description={description}
+  wide
+  jsonLd={[collectionPageJsonLd({
+    name: title,
+    description,
+    path: getDreamUrl(),
+    items: DREAM_ENTRIES.map((e) => ({ name: e.title, path: getDreamEntryUrl(e.slug) })),
+  })]}
+>
+  <VerticalShell
+    title="ทำนายฝัน"
+    description={description}
+    icon="💤"
+    gradient={['#faf5ff', '#e9d5ff']}
+    crumbs={[{ name: 'ทูลสยาม', path: getHomeUrl() }, { name: 'ทำนายฝัน', path: getDreamUrl() }]}
+  >
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      <DreamSearch client:load />
+    </section>
+
+    {DREAM_GROUPS.map((g) => (
+      <section class="mt-8">
+        <h2 class="text-lg font-bold tracking-tight text-slate-900">ฝันเกี่ยวกับ{g.label}</h2>
+        <ul class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {dreamsByGroup(g.id).map((e) => (
+            <li>
+              <a
+                href={getDreamEntryUrl(e.slug)}
+                class="block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+              >
+                {e.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <section class="mt-8">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">ทำไมคนเราถึงฝัน</h2>
+      <div class="mt-2 space-y-3 text-sm text-slate-600">
+        <p>
+          ความฝันเกิดขึ้นระหว่างการนอนหลับและมักหยิบเรื่องที่ค้างอยู่ในความคิดของวันก่อนหน้ามาเรียบเรียงใหม่
+          ตำราทำนายฝันของไทยจึงมักตีความความฝันเป็นสัญลักษณ์ของสิ่งที่กำลังเกิดในชีวิต
+          มากกว่าจะเป็นการบอกเหตุการณ์ที่จะเกิดขึ้นตรง ๆ
+        </p>
+        <p>
+          หน้าเหล่านี้รวบรวมความหมายตามตำราไว้เป็นข้อมูลอ้างอิงและความบันเทิง
+          แต่ละเรื่องยังเขียนบริบทที่ทำให้ความหมายต่างกันไว้ด้วย เพราะตำราไทยแทบทุกเล่มตีความตามรายละเอียดของฝัน
+          ไม่ได้ให้ความหมายเดียวกับทุกกรณี
+        </p>
+        <p>
+          ถ้าฝันเรื่องเดิมซ้ำ ๆ จนกระทบการนอนหรือความรู้สึกในเวลากลางวัน
+          การพูดคุยกับผู้เชี่ยวชาญด้านสุขภาพจิตช่วยได้มากกว่าการหาความหมายของความฝัน
+        </p>
+      </div>
+    </section>
+
+    <p class="mt-8 text-sm text-slate-600">
+      สนใจเรื่องราศีและสีมงคล ดูได้ที่{' '}
+      <a href={getHoroscopeUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">หน้าดูดวงและความเชื่อ</a>
+    </p>
+  </VerticalShell>
+</Base>

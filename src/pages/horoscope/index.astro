@@ -1,0 +1,69 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import { collectionPageJsonLd } from '@/lib/seo';
+import { getDreamUrl, getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
+import { ZODIAC_SIGNS } from '@/lib/thai-astro';
+
+const pages = [
+  { path: getHoroscopePageUrl('daily'), icon: '🌤️', name: 'ดวงรายวัน 12 ราศี', desc: 'ความรัก การเงิน การงาน และสุขภาพ เปลี่ยนทุกเที่ยงคืนตามเวลาไทย' },
+  { path: getHoroscopePageUrl('zodiac'), icon: '♒', name: 'ราศีจากวันเกิด', desc: 'กรอกวันเกิดแล้วรู้ราศีทันที พร้อมสารบัญครบทั้ง 12 ราศี' },
+  { path: getHoroscopePageUrl('chinese-zodiac'), icon: '🐉', name: 'ปีนักษัตรจากปีเกิด', desc: 'ใช้วันตรุษจีนเป็นเกณฑ์ตัดปี ตอบได้ถูกแม้เกิดต้นปี' },
+  { path: getHoroscopePageUrl('lucky-color'), icon: '🎨', name: 'สีมงคลประจำวันเกิด', desc: 'สีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ควรเลี่ยง' },
+  { path: getHoroscopePageUrl('numerology'), icon: '🔢', name: 'เลขศาสตร์วันเกิด', desc: 'บวกเลขวันเดือนปีเกิดจนเหลือหลักเดียว พร้อมแสดงขั้นตอน' },
+  { path: getHoroscopePageUrl('birthday'), icon: '🎂', name: 'ดูดวงจากวันเกิด (รวมทุกอย่าง)', desc: 'ราศี ปีนักษัตร วันเกิด สีมงคล และเลขศาสตร์ ในหน้าเดียว' },
+];
+
+const title = 'ดูดวงและความเชื่อ — ราศี ปีนักษัตร สีมงคล และดวงรายวัน';
+const description = 'รวมเครื่องมือดูดวงตามความเชื่อไทยและสากล ทั้งราศีจากวันเกิด ปีนักษัตรที่ตัดปีด้วยตรุษจีน สีมงคลประจำวัน เลขศาสตร์วันเกิด และดวงรายวัน 12 ราศีที่เปลี่ยนทุกเที่ยงคืนตามเวลาไทย';
+---
+<Base
+  title={`${title} — ทูลสยาม`}
+  description={description}
+  wide
+  jsonLd={[collectionPageJsonLd({ name: title, description, path: getHoroscopeUrl(), items: pages.map((p) => ({ name: p.name, path: p.path })) })]}
+>
+  <VerticalShell
+    title="ดูดวงและความเชื่อ"
+    description={description}
+    icon="🔮"
+    gradient={['#fdf2f8', '#fbcfe8']}
+    crumbs={[{ name: 'ทูลสยาม', path: getHomeUrl() }, { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() }]}
+  >
+    <div class="grid gap-4 sm:grid-cols-2">
+      {pages.map((p) => (
+        <a
+          href={p.path}
+          class="rounded-xl border border-slate-200 bg-white p-4 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+        >
+          <h2 class="flex items-center gap-2 font-semibold text-slate-900">
+            <span aria-hidden="true">{p.icon}</span> {p.name}
+          </h2>
+          <p class="mt-1 text-sm text-slate-600">{p.desc}</p>
+        </a>
+      ))}
+    </div>
+
+    <section class="mt-8">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">ราศีทั้ง 12 และช่วงวันเกิด</h2>
+      <p class="mt-1 text-sm text-slate-600">
+        ทูลสยามใช้ราศีสากล (Western/Tropical) ซึ่งแบ่งตามตำแหน่งดวงอาทิตย์ในรอบปี
+        และเป็นระบบเดียวกับที่ใช้ในสื่อดูดวงทั่วไป
+      </p>
+      <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {ZODIAC_SIGNS.map((s) => (
+          <li class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+            <span aria-hidden="true">{s.symbol}</span>{' '}
+            <span class="font-medium text-slate-900">{s.name}</span>{' '}
+            <span class="text-slate-500">ธาตุ{s.element}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <p class="mt-8 text-sm text-slate-600">
+      สนใจเรื่องความฝัน ดูความหมายตามตำราไทยได้ที่{' '}
+      <a href={getDreamUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">หน้าทำนายฝัน</a>
+    </p>
+  </VerticalShell>
+</Base>

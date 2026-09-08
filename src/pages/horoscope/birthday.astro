@@ -1,0 +1,50 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import BirthdayProfile from '@/components/horoscope/BirthdayProfile';
+import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
+
+const title = 'ดูดวงจากวันเกิด — ราศี นักษัตร สีมงคล และเลขศาสตร์ในหน้าเดียว';
+const description = 'กรอกวันเกิดครั้งเดียวแล้วได้ครบทั้งราศีสากล ปีนักษัตรที่ตัดปีด้วยตรุษจีน วันในสัปดาห์ที่เกิด สีมงคลประจำวัน และเลขชีวิตตามเลขศาสตร์';
+---
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <VerticalShell
+    title="ดูดวงจากวันเกิด"
+    description="กรอกวันเกิดครั้งเดียว ได้ครบทั้งราศี ปีนักษัตร วันเกิด สีมงคล และเลขศาสตร์"
+    icon="🎂"
+    gradient={['#faf5ff', '#e9d5ff']}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() },
+      { name: 'ดูดวงจากวันเกิด', path: getHoroscopePageUrl('birthday') },
+    ]}
+  >
+    <section class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+      <BirthdayProfile client:load />
+    </section>
+
+    <section class="mt-8 space-y-4">
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">หน้านี้รวมอะไรไว้บ้าง</h2>
+      <p class="text-sm text-slate-600">
+        หน้านี้เรียกการคำนวณชุดเดียวกับหน้าย่อยแต่ละหน้ามาแสดงรวมกัน
+        ผลลัพธ์จึงตรงกันเสมอไม่ว่าจะเปิดจากหน้าไหน ถ้าต้องการรายละเอียดของเรื่องใดเรื่องหนึ่ง
+        ให้ตามลิงก์ในการ์ดแต่ละใบไปยังหน้าเฉพาะเรื่องนั้น
+      </p>
+      <h2 class="text-lg font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย</h2>
+      <div>
+        <h3 class="font-medium text-slate-900">ทำไมบางคนไม่เห็นปีนักษัตร</h3>
+        <p class="text-sm text-slate-600">
+          เพราะการหาปีนักษัตรต้องใช้วันตรุษจีนของปีเกิด ซึ่งเก็บเป็นตารางรายปีในช่วง ค.ศ. 1940–2040
+          ผู้ที่เกิดนอกช่วงนี้จะยังเห็นราศี สีมงคล และเลขศาสตร์ตามปกติ
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">ต้องกรอกเวลาเกิดด้วยไหม</h3>
+        <p class="text-sm text-slate-600">
+          ไม่ต้อง ทุกอย่างในหน้านี้คำนวณจากวันเดือนปีเกิดเท่านั้น
+          โหราศาสตร์ที่ละเอียดกว่านี้อย่างการผูกดวงต้องใช้เวลาและสถานที่เกิดประกอบด้วย ซึ่งอยู่นอกขอบเขตของหน้านี้
+        </p>
+      </div>
+    </section>
+  </VerticalShell>
+</Base>
