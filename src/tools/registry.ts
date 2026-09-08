@@ -46,12 +46,50 @@ export function getTool(slug: string): ToolMeta | undefined {
   return tools.find((t) => t.slug === slug);
 }
 
+/** เครื่องมือที่แสดงได้ทุกที่ (รายการ ค้นหา หน้าแรก related) — ตัดตัวที่ hidden ออก (§13.3) */
+export function getVisibleTools(): ToolMeta[] {
+  return tools.filter((t) => !t.hidden);
+}
+
+/** เครื่องมือในหมวด — เครื่องมือที่ category เป็น null หรือ hidden ไม่เข้าเงื่อนไขใด ๆ */
 export function getToolsByCategory(id: CategoryId): ToolMeta[] {
-  return tools.filter((t) => t.category === id);
+  return tools.filter((t) => t.category === id && !t.hidden);
 }
 
 export function getCategory(id: CategoryId): CategoryMeta {
   const c = categories.find((c) => c.id === id);
   if (!c) throw new Error(`unknown category: ${id}`);
   return c;
+}
+
+/** หมวดที่เปิดใช้จริง เรียงตาม order — รวม vertical ที่มี landingPath (§8.4) */
+export function getActiveCategories(): CategoryMeta[] {
+  return categories.filter((c) => c.status === 'active').sort((a, b) => a.order - b.order);
+}
+
+/** หมวดที่มีหน้า /categories/<id> ของตัวเอง — vertical ใช้ landingPath จึงไม่อยู่ในนี้ (§8.3) */
+export function getBrowsableCategories(): CategoryMeta[] {
+  return getActiveCategories().filter((c) => !c.landingPath);
+}
+
+/** "เครื่องมือแนะนำ" ที่ทีมเลือกเอง ไม่ใช่ยอดนิยมจากข้อมูลจริง (§19) */
+export function getFeaturedTools(n = 8): ToolMeta[] {
+  return getVisibleTools()
+    .filter((t) => t.featuredRank !== undefined)
+    .sort((a, b) => b.featuredRank! - a.featuredRank!)
+    .slice(0, n);
+}
+
+/** related ที่กำหนดมือมาก่อนเสมอ แล้วเติมด้วยเครื่องมือหมวดเดียวกัน (§13.4) */
+export function getRelatedTools(tool: ToolMeta, n = 6): ToolMeta[] {
+  const picked: ToolMeta[] = [];
+  const seen = new Set([tool.slug]);
+  const push = (t: ToolMeta | undefined) => {
+    if (!t || t.hidden || seen.has(t.slug)) return;
+    seen.add(t.slug);
+    picked.push(t);
+  };
+  for (const slug of tool.related ?? []) push(getTool(slug));
+  if (tool.category) for (const t of getToolsByCategory(tool.category)) push(t);
+  return picked.slice(0, n);
 }

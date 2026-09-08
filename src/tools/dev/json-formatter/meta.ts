@@ -4,8 +4,12 @@ export const jsonFormatterMeta: ToolMeta = {
   slug: 'json-formatter',
   name: 'JSON Formatter จัดรูปแบบ ตรวจสอบ ย่อ JSON',
   nameEn: 'JSON Formatter & Validator',
-  category: 'dev',
-  tier: 'free',
+  // ปลดระวางเชิง SEO (§18): URL ยัง 200 แต่ไม่สังกัดหมวด ไม่แสดงในรายการ และไม่ถูก index
+  // เงื่อนไขพลิกกลับ: ถ้ามีเครื่องมือกลุ่มนักพัฒนาจริง ≥ 3 ตัว ค่อยเพิ่มหมวดกลับและถอด flag ทั้งสาม
+  category: null,
+  retired: true,
+  hidden: true,
+  noindex: true,
   description:
     'จัดรูปแบบ JSON ให้อ่านง่าย (pretty print) ตรวจสอบความถูกต้องพร้อมบอกตำแหน่งบรรทัดที่ผิด และย่อ JSON (minify) ทำงานในเบราว์เซอร์ ข้อมูลไม่ถูกส่งออกไปไหน',
   keywords: ['json formatter', 'จัดรูปแบบ json', 'ตรวจสอบ json', 'json validator', 'json minify', 'pretty print'],

@@ -5,7 +5,7 @@ export const promptpayQrMeta: ToolMeta = {
   name: 'สร้าง QR Code รับเงิน PromptPay',
   nameEn: 'PromptPay QR Generator',
   category: 'qr',
-  tier: 'free',
+  featuredRank: 70,
   description:
     'สร้าง QR Code พร้อมเพย์สำหรับรับเงินโอนจากเบอร์โทรศัพท์ เลขบัตรประชาชน หรือ e-Wallet ระบุจำนวนเงินได้ ดาวน์โหลดเป็นรูปไปใส่ป้ายหน้าร้านหรือส่งให้ลูกค้า ไม่ต้องสมัคร',
   keywords: ['QR PromptPay', 'พร้อมเพย์', 'สร้าง QR รับเงิน', 'คิวอาร์โค้ดรับเงิน', 'promptpay qr'],

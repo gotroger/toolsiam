@@ -12,8 +12,13 @@
 /** เครื่องมือที่ปลดระวางเชิง SEO — URL ยังเปิดได้ 200 แต่ไม่เข้า sitemap และไม่ถูก index (§18) */
 export const NOINDEX_TOOL_SLUGS = ['json-formatter'];
 
-/** หมวดที่ยังไม่มีเครื่องมือ — Phase 0B จะเลิก build หน้าพวกนี้ไปเลย */
-export const NOINDEX_CATEGORY_IDS = ['image', 'pdf', 'web'];
+/**
+ * หมวดที่มีหน้าอยู่แต่ห้าม index
+ *
+ * ว่างตั้งแต่ Phase 0B: หมวดที่ยังไม่มีเครื่องมือเป็น status 'planned' ซึ่ง getStaticPaths
+ * ไม่ build ให้ตั้งแต่ต้น จึงไม่มีหน้าหมวดว่างบน production ให้ต้อง noindex อีก (§8.4)
+ */
+export const NOINDEX_CATEGORY_IDS: string[] = [];
 
 /** หน้าที่ไม่ควร index ตรง ๆ */
 export const NOINDEX_EXACT_PATHS = ['/404'];

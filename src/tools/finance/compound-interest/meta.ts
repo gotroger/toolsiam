@@ -5,7 +5,6 @@ export const compoundInterestMeta: ToolMeta = {
   name: 'คำนวณดอกเบี้ยทบต้นและเป้าหมายการออม',
   nameEn: 'Compound Interest & Savings Goal',
   category: 'finance',
-  tier: 'free',
   description:
     'คำนวณเงินออมในอนาคตจากดอกเบี้ยทบต้น พร้อมตารางการเติบโตรายปี และคำนวณย้อนกลับว่าต้องออมเดือนละเท่าไหร่จึงจะถึงเป้าหมายที่ตั้งไว้',
   keywords: ['ดอกเบี้ยทบต้น', 'คำนวณเงินออม', 'เป้าหมายการออม', 'compound interest', 'ออมเดือนละเท่าไหร่'],

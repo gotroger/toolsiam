@@ -4,8 +4,8 @@ export const loanInstallmentMeta: ToolMeta = {
   slug: 'loan-installment',
   name: 'คำนวณค่างวดผ่อนบ้าน ผ่อนรถ',
   nameEn: 'Loan Installment Calculator',
-  category: 'finance',
-  tier: 'free',
+  category: 'loan',
+  featuredRank: 80,
   description:
     'คำนวณค่างวดต่อเดือน ดอกเบี้ยรวม และตารางผ่อนชำระแบบลดต้นลดดอก สำหรับสินเชื่อบ้าน รถยนต์ หรือสินเชื่อส่วนบุคคล กรอกเงินต้น ดอกเบี้ย และระยะเวลา',
   keywords: ['คำนวณค่างวด', 'ผ่อนบ้าน', 'ผ่อนรถ', 'ตารางผ่อนชำระ', 'ดอกเบี้ยลดต้นลดดอก', 'สินเชื่อ'],

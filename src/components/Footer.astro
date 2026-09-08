@@ -1,22 +1,22 @@
 ---
-import { categories, getToolsByCategory, tools } from '@/tools/registry';
+import { getActiveCategories, getToolsByCategory, getVisibleTools } from '@/tools/registry';
 import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
 
 /**
  * Footer — แสดงเฉพาะลิงก์ที่มี route จริงเท่านั้น (ไม่มี dead link)
- * หมวดหมู่ยอดนิยม = หมวดที่มีเครื่องมือแล้ว เรียงตามจำนวนเครื่องมือ
+ * หมวดหมู่ที่แสดง = หมวด active เรียงตามจำนวนเครื่องมือ (ไม่ใช่ความนิยม — ยังไม่มี analytics §19)
  */
-const topCategories = categories
+const topCategories = getActiveCategories()
   .map((c) => ({ ...c, count: getToolsByCategory(c.id).length }))
-  .filter((c) => c.count > 0)
   .sort((a, b) => b.count - a.count)
   .slice(0, 4);
 
+const visibleToolCount = getVisibleTools().length;
+
 const toolLinks = [
   { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด' },
-  { href: `${getHomeUrl()}#popular`, label: 'เครื่องมือยอดนิยม' },
+  { href: `${getHomeUrl()}#featured`, label: 'เครื่องมือแนะนำ' },
   { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่' },
-  { href: `${getToolsUrl()}?tier=free`, label: 'เครื่องมือฟรี' },
 ];
 
 const linkClass =
@@ -50,7 +50,7 @@ const linkClass =
       </div>
 
       <div>
-        <h2 class="text-sm font-semibold text-slate-900">หมวดหมู่ยอดนิยม</h2>
+        <h2 class="text-sm font-semibold text-slate-900">หมวดหมู่เครื่องมือ</h2>
         <ul class="mt-4 space-y-2.5">
           {topCategories.map((c) => (
             <li><a href={getCategoryUrl(c)} class={linkClass}>{c.name}</a></li>
@@ -68,7 +68,7 @@ const linkClass =
 
     <div class="mt-12 flex flex-col gap-1 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
       <p>© {new Date().getFullYear()} ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย</p>
-      <p>{tools.length} เครื่องมือ ใช้ฟรี ไม่ต้องสมัคร</p>
+      <p>{visibleToolCount} เครื่องมือ ใช้ฟรี ไม่ต้องสมัคร</p>
     </div>
   </div>
 </footer>

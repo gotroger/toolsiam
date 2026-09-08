@@ -2,10 +2,12 @@
 import Base from '@/layouts/Base.astro';
 import Breadcrumb from '@/components/Breadcrumb.astro';
 import ToolSearch from '@/components/ToolSearch';
-import { tools } from '@/tools/registry';
+import { getVisibleTools } from '@/tools/registry';
 import { collectionPageJsonLd } from '@/lib/seo';
 import { getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
 
+// เครื่องมือที่ปลดระวางไม่อยู่ในรายการและไม่อยู่ใน ItemList (§18)
+const tools = getVisibleTools();
 const title = 'เครื่องมือทั้งหมด';
 const description = `รวมเครื่องมือออนไลน์ภาษาไทย ${tools.length} รายการ ค้นหาตามหมวดหมู่ ใช้งานได้ทันทีบนเบราว์เซอร์ ไม่ต้องติดตั้ง`;
 const crumbs = [

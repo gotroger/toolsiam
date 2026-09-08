@@ -4,8 +4,7 @@ export const thaiNumeralsMeta: ToolMeta = {
   slug: 'thai-numerals',
   name: 'แปลงเลขไทย ↔ เลขอารบิก และเปลี่ยนตัวพิมพ์',
   nameEn: 'Thai Numerals & Text Case Converter',
-  category: 'text',
-  tier: 'free',
+  category: 'daily',
   description:
     'แปลงเลขอารบิก 0-9 เป็นเลขไทย ๐-๙ และแปลงกลับ พร้อมเปลี่ยนตัวพิมพ์ใหญ่ เล็ก ขึ้นต้นคำ หรือขึ้นต้นประโยค ใช้กับหนังสือราชการและงานเอกสารไทย',
   keywords: ['เลขไทย', 'แปลงเลขไทยเป็นเลขอารบิก', 'เลขอารบิกเป็นเลขไทย', 'ตัวพิมพ์ใหญ่', 'แปลงตัวอักษร'],

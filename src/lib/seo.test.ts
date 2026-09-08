@@ -3,7 +3,7 @@ import { breadcrumbJsonLd, collectionPageJsonLd, organizationJsonLd, toolJsonLd,
 import type { ToolMeta } from '@/tools/types';
 
 const tool: ToolMeta = {
-  slug: 'x', name: 'เครื่องมือ X', nameEn: 'X', category: 'dev', tier: 'free',
+  slug: 'x', name: 'เครื่องมือ X', nameEn: 'X', category: 'daily',
   description: 'คำอธิบายยาวพอสมควรสำหรับทดสอบ JSON-LD ของเครื่องมือ',
   keywords: ['a', 'b', 'c'], howTo: ['1', '2'],
   faq: [{ q: 'ถาม1', a: 'ตอบ1' }, { q: 'ถาม2', a: 'ตอบ2' }],
@@ -15,14 +15,16 @@ describe('toolJsonLd', () => {
     expect(app['@type']).toBe('SoftwareApplication');
     expect(app.name).toBe('เครื่องมือ X');
     expect(app.url).toBe('https://toolsiam.com/tools/x');
-    expect(app.offers.price).toBe('0');
+    expect(app.isAccessibleForFree).toBe(true);
+    expect(app.offers).toBeUndefined();
     expect(faq['@type']).toBe('FAQPage');
     expect(faq.mainEntity).toHaveLength(2);
     expect(faq.mainEntity[0].acceptedAnswer.text).toBe('ตอบ1');
   });
-  it('premium ใส่ราคา 99', () => {
-    const [app] = toolJsonLd({ ...tool, tier: 'premium' }, 'https://toolsiam.com/tools/x') as any[];
-    expect(app.offers.price).toBe('99');
+  it('ไม่ประกาศราคาใด ๆ เพราะไม่มี paywall จริง (§20 M7)', () => {
+    const json = JSON.stringify(toolJsonLd(tool, 'https://toolsiam.com/tools/x'));
+    expect(json).not.toContain('Offer');
+    expect(json).not.toContain('priceCurrency');
   });
 });
 

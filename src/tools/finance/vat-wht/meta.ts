@@ -4,8 +4,8 @@ export const vatWhtMeta: ToolMeta = {
   slug: 'vat-wht',
   name: 'คำนวณ VAT 7% (ถอด/รวม) และภาษีหัก ณ ที่จ่าย',
   nameEn: 'VAT & Withholding Tax Calculator',
-  category: 'finance',
-  tier: 'free',
+  category: 'business',
+  featuredRank: 30,
   description:
     'ถอด VAT ออกจากยอดรวม หรือบวก VAT 7% เข้ากับราคาก่อนภาษี พร้อมคำนวณภาษีหัก ณ ที่จ่าย 1–15% และยอดที่ต้องจ่ายจริง ใช้ทำใบกำกับภาษีและใบสำคัญจ่าย',
   keywords: ['ถอด vat', 'คำนวณ vat 7%', 'แยก vat จากยอดรวม', 'หัก ณ ที่จ่าย 3%', 'ภาษีหัก ณ ที่จ่าย'],

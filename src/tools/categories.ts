@@ -1,12 +1,69 @@
 import type { CategoryMeta } from './types';
+import { getDreamUrl, getHoroscopeUrl, getLotteryUrl } from '@/lib/routes';
 
+/**
+ * หมวดทั้งหมด (§8) — เรียงตาม order
+ *
+ * 1–7  หมวดเครื่องคำนวณ มีหน้า /categories/<id>
+ * 8–10 vertical มี landingPath เป็นบ้านหลัก จึงไม่สร้างหน้า /categories/<id>
+ *
+ * status 'planned' = ยังไม่มีเครื่องมือจริง → ไม่ build ไม่แสดง ไม่ index
+ * (registry.test.ts บังคับว่าหมวด active ที่ไม่มี landingPath ต้องมีเครื่องมือ ≥ 1)
+ */
 export const categories: CategoryMeta[] = [
-  { id: 'finance', name: 'การเงินและภาษี', nameEn: 'Finance & Tax', description: 'คำนวณภาษี ค่างวด ดอกเบี้ย เงินเดือนสุทธิ', icon: '💰' },
-  { id: 'text', name: 'ข้อความภาษาไทย', nameEn: 'Thai Text', description: 'บาทถ้วน นับคำ แปลงเลขไทย จัดการข้อความ', icon: '🔤' },
-  { id: 'date', name: 'วันที่และเวลา', nameEn: 'Date & Time', description: 'คำนวณอายุ นับวัน แปลง พ.ศ./ค.ศ. วันหยุด', icon: '📅' },
-  { id: 'qr', name: 'QR และ PromptPay', nameEn: 'QR & PromptPay', description: 'สร้าง QR รับเงิน PromptPay, WiFi, vCard', icon: '🔳' },
-  { id: 'image', name: 'รูปภาพ', nameEn: 'Image', description: 'ย่อ บีบอัด แปลงไฟล์ ลบ EXIF', icon: '🖼️' },
-  { id: 'pdf', name: 'PDF', nameEn: 'PDF', description: 'รวม แยก หมุน แปลงรูปเป็น PDF', icon: '📄' },
-  { id: 'dev', name: 'นักพัฒนา', nameEn: 'Developer', description: 'JSON, Base64, UUID, hash, regex', icon: '💻' },
-  { id: 'web', name: 'เว็บและ SEO', nameEn: 'Web & SEO', description: 'Meta tag, Open Graph, UTM, slug', icon: '🌐' },
+  {
+    id: 'finance', order: 1, status: 'active', icon: '💰',
+    name: 'การเงิน ภาษี และเงินเดือน', nameEn: 'Finance, Tax & Salary',
+    description: 'คำนวณภาษีเงินได้ เงินเดือนสุทธิ ประกันสังคม OT และดอกเบี้ยเงินออม',
+  },
+  {
+    id: 'loan', order: 2, status: 'active', icon: '🏦',
+    name: 'หนี้ สินเชื่อ และการผ่อน', nameEn: 'Loans & Debt',
+    description: 'คำนวณค่างวด ดอกเบี้ยลดต้นลดดอก ผ่อนบ้าน ผ่อนรถ และหนี้บัตรเครดิต',
+  },
+  {
+    id: 'business', order: 3, status: 'active', icon: '🛒',
+    name: 'ค้าขายและธุรกิจ', nameEn: 'Business & Commerce',
+    description: 'คำนวณกำไร ราคาขาย ต้นทุนร้านค้า VAT ภาษีหัก ณ ที่จ่าย และบาทถ้วน',
+  },
+  {
+    id: 'land', order: 4, status: 'planned', icon: '🏡',
+    name: 'ที่ดินและอสังหาฯ', nameEn: 'Land & Property',
+    description: 'แปลงหน่วยที่ดิน ไร่ งาน ตารางวา และคำนวณราคาที่ดิน',
+  },
+  {
+    id: 'date', order: 5, status: 'active', icon: '📅',
+    name: 'วัน เวลา และปฏิทิน', nameEn: 'Date & Time',
+    description: 'คำนวณอายุ นับวันระหว่างวันที่ แปลง พ.ศ./ค.ศ. และวันหยุดราชการ',
+  },
+  {
+    id: 'daily', order: 6, status: 'active', icon: '🏠',
+    name: 'ชีวิตประจำวันและภาษาไทย', nameEn: 'Daily Life & Thai Language',
+    description: 'ค่าไฟ ค่าน้ำมัน นับคำ แปลงเลขไทย ตรวจเลขบัตรประชาชน และจัดการข้อความ',
+  },
+  {
+    id: 'qr', order: 7, status: 'active', icon: '🔳',
+    name: 'QR และ PromptPay', nameEn: 'QR & PromptPay',
+    description: 'สร้าง QR รับเงิน PromptPay, WiFi, vCard และอ่าน QR จากรูปภาพ',
+  },
+
+  /* --- vertical: มีบ้านหลักของตัวเอง ไม่มีหน้า /categories/ --- */
+  {
+    id: 'lottery', order: 8, status: 'planned', icon: '🎫',
+    name: 'หวยและสลาก', nameEn: 'Thai Lottery',
+    description: 'ตรวจสลากกินแบ่งรัฐบาล ผลรางวัลงวดล่าสุด และผลย้อนหลัง',
+    landingPath: getLotteryUrl(),
+  },
+  {
+    id: 'dream', order: 9, status: 'planned', icon: '💤',
+    name: 'ทำนายฝัน', nameEn: 'Dream Meanings',
+    description: 'ความหมายของความฝันตามความเชื่อไทย',
+    landingPath: getDreamUrl(),
+  },
+  {
+    id: 'horoscope', order: 10, status: 'planned', icon: '🔮',
+    name: 'ดูดวงและความเชื่อ', nameEn: 'Horoscope & Beliefs',
+    description: 'ราศี ปีนักษัตร สีมงคล เลขศาสตร์ และดวงรายวัน',
+    landingPath: getHoroscopeUrl(),
+  },
 ];

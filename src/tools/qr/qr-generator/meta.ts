@@ -5,7 +5,6 @@ export const qrGeneratorMeta: ToolMeta = {
   name: 'สร้าง QR Code ข้อความ ลิงก์ WiFi และ vCard',
   nameEn: 'QR Code Generator (Text / URL / WiFi / vCard)',
   category: 'qr',
-  tier: 'free',
   description:
     'สร้าง QR Code ฟรีจากข้อความ ลิงก์เว็บไซต์ รหัส WiFi หรือนามบัตร vCard ดาวน์โหลดเป็นไฟล์ PNG ความละเอียดสูงได้ทันที ทุกอย่างสร้างในเบราว์เซอร์ ข้อมูลไม่ถูกส่งออกไปไหน',
   keywords: ['สร้าง qr code', 'qr code wifi', 'qr code นามบัตร', 'สร้างคิวอาร์โค้ดฟรี', 'qr code ลิงก์'],

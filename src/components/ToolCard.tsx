@@ -1,24 +1,18 @@
 import type { ToolMeta } from '@/tools/types';
 import { categories } from '@/tools/categories';
 import { getToolUrl } from '@/lib/routes';
-import { COVER_HEIGHT, COVER_WIDTH, resolveCover, resolveTierLabel, tierLabels } from '@/tools/covers';
-
-const tierStyles: Record<string, string> = {
-  free: 'bg-brand-50 text-brand-700 ring-brand-600/15',
-  freemium: 'bg-sky-50 text-sky-700 ring-sky-600/15',
-  premium: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-};
+import { COVER_HEIGHT, COVER_WIDTH, resolveCover } from '@/tools/covers';
 
 /**
  * การ์ดเครื่องมือใช้ร่วมกันทั้งหน้า static (Astro) และหน้าค้นหา (React island)
  * ไม่มี state จึง render เป็น HTML ล้วนได้โดยไม่ต้อง hydrate
  *
- * โครงเดียวกันทุกใบ: ภาพ 16:9 → ชื่อ + ป้ายสถานะ → คำอธิบาย → หมวดหมู่ (ชิดล่างเสมอ)
+ * โครงเดียวกันทุกใบ: ภาพ 16:9 → ชื่อ → คำอธิบาย → หมวดหมู่ (ชิดล่างเสมอ)
+ * ไม่มีป้ายสถานะราคา — ทุกเครื่องมือใช้ฟรี ป้ายจึงไม่ให้ข้อมูลอะไร (§20 M5)
  */
 export default function ToolCard({ tool }: { tool: ToolMeta }) {
   const cat = categories.find((c) => c.id === tool.category);
   const cover = resolveCover(tool);
-  const tier = resolveTierLabel(tool);
 
   return (
     <a
@@ -39,16 +33,9 @@ export default function ToolCard({ tool }: { tool: ToolMeta }) {
       </div>
 
       <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug text-slate-900 transition-colors duration-150 group-hover:text-brand-700">
-            {tool.name}
-          </h3>
-          <span
-            className={`mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-medium ring-1 ring-inset ${tierStyles[tier]}`}
-          >
-            {tierLabels[tier]}
-          </span>
-        </div>
+        <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug text-slate-900 transition-colors duration-150 group-hover:text-brand-700">
+          {tool.name}
+        </h3>
 
         <p className="mt-1.5 line-clamp-2 text-[0.8125rem] leading-relaxed text-slate-500">{tool.description}</p>
 

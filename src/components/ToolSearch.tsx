@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
-import { tools, categories, type ToolMeta, type CategoryId } from '@/tools/registry';
+import { getBrowsableCategories, getVisibleTools, type ToolMeta, type CategoryId } from '@/tools/registry';
 import { Input, Select } from '@/components/ui';
 import ToolCard from '@/components/ToolCard';
 import { cardGrid, cardGridItem } from '@/components/grids';
 
-const fuse = new Fuse(tools, {
+const visibleTools = getVisibleTools();
+const browsableCategories = getBrowsableCategories();
+
+const fuse = new Fuse(visibleTools, {
   keys: [
     { name: 'name', weight: 3 },
     { name: 'keywords', weight: 2 },
@@ -16,44 +19,29 @@ const fuse = new Fuse(tools, {
   ignoreLocation: true,
 });
 
-type TierFilter = 'all' | 'free' | 'premium';
-
 export default function ToolSearch({ initialCategory }: { initialCategory?: CategoryId }) {
   const [q, setQ] = useState('');
-  const [tier, setTier] = useState<TierFilter>('all');
   const [category, setCategory] = useState<CategoryId | 'all'>(initialCategory ?? 'all');
 
-  // รองรับลิงก์ /tools?tier=free จาก header/footer — อ่านหลัง mount เพื่อไม่ให้ HTML ที่ build ไว้ไม่ตรงกัน
-  useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get('tier');
-    if (value === 'free' || value === 'premium') setTier(value);
-  }, []);
-
   const results: ToolMeta[] = useMemo(() => {
-    const base = q.trim() ? fuse.search(q.trim()).map((r) => r.item) : tools;
-    return base.filter((t) => (tier === 'all' || t.tier === tier) && (category === 'all' || t.category === category));
-  }, [q, tier, category]);
+    const base = q.trim() ? fuse.search(q.trim()).map((r) => r.item) : visibleTools;
+    return base.filter((t) => category === 'all' || t.category === category);
+  }, [q, category]);
 
-  const isFiltered = q.trim() !== '' || tier !== 'all' || category !== (initialCategory ?? 'all');
+  const isFiltered = q.trim() !== '' || category !== (initialCategory ?? 'all');
 
   function resetFilters() {
     setQ('');
-    setTier('all');
     setCategory(initialCategory ?? 'all');
   }
 
   return (
     <div>
-      <div className="grid gap-2.5 sm:grid-cols-[1fr_auto_auto]">
+      <div className="grid gap-2.5 sm:grid-cols-[1fr_auto]">
         <Input type="search" placeholder="ค้นหาเครื่องมือ เช่น ภาษี, บาทถ้วน, QR" value={q} onChange={(e) => setQ(e.target.value)} aria-label="ค้นหาเครื่องมือ" />
         <Select value={category} onChange={(e) => setCategory(e.target.value as CategoryId | 'all')} aria-label="หมวดหมู่">
           <option value="all">ทุกหมวด</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-        </Select>
-        <Select value={tier} onChange={(e) => setTier(e.target.value as TierFilter)} aria-label="ประเภท">
-          <option value="all">ฟรี + พรีเมียม</option>
-          <option value="free">เฉพาะฟรี</option>
-          <option value="premium">เฉพาะพรีเมียม</option>
+          {browsableCategories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
         </Select>
       </div>
 

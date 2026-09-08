@@ -7,7 +7,6 @@ import { getHomeUrl, getToolsUrl } from '@/lib/routes';
 const links = [
   { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด', match: (p: string) => p.startsWith('/tools') },
   { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่', match: (p: string) => p.startsWith('/categories/') },
-  { href: `${getToolsUrl()}?tier=free`, label: 'ฟรีทั้งหมด', match: () => false },
 ];
 const current = Astro.url.pathname;
 ---

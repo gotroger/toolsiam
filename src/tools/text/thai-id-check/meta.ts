@@ -4,8 +4,7 @@ export const thaiIdCheckMeta: ToolMeta = {
   slug: 'thai-id-check',
   name: 'ตรวจสอบเลขบัตรประชาชน 13 หลัก',
   nameEn: 'Thai National ID Validator',
-  category: 'text',
-  tier: 'free',
+  category: 'daily',
   description:
     'ตรวจสอบว่าเลขประจำตัวประชาชน 13 หลักถูกต้องตามสูตรหลักตรวจสอบหรือไม่ พร้อมจัดรูปแบบใส่ขีดให้อัตโนมัติ และสุ่มเลขที่ผ่าน checksum สำหรับทดสอบระบบ',
   keywords: ['ตรวจเลขบัตรประชาชน', 'เช็คเลขบัตรประชาชน', 'checksum บัตรประชาชน', 'สุ่มเลขบัตรประชาชน', 'เลข 13 หลัก'],
