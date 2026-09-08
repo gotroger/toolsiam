@@ -1,0 +1,27 @@
+---
+import { PRIZE_STRUCTURE, type LotteryDraw } from '@/data/lottery/schema';
+import { formatBaht } from '@/lib/format';
+
+/** ตารางผลรางวัลของหนึ่งงวด — ใช้ทั้งหน้าผลงวดล่าสุดและหน้าผลรายงวด */
+interface Props { draw: LotteryDraw }
+const { draw } = Astro.props;
+---
+<div class="space-y-4">
+  {PRIZE_STRUCTURE.map((spec) => (
+    <section class="rounded-xl border border-slate-200 bg-white p-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 class="font-semibold text-slate-900">{spec.name}</h3>
+        <p class="text-sm text-slate-500">
+          รางวัลละ {formatBaht(spec.amount)} บาท · {spec.count} รางวัล
+        </p>
+      </div>
+      <ul class="mt-3 flex flex-wrap gap-2">
+        {draw.prizes[spec.id].map((n) => (
+          <li class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-sm tabular-nums text-slate-900">
+            {n}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</div>

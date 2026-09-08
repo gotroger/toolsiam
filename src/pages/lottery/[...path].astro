@@ -1,0 +1,211 @@
+---
+import Base from '@/layouts/Base.astro';
+import VerticalShell from '@/components/VerticalShell.astro';
+import PrizeTable from '@/components/lottery/PrizeTable.astro';
+import DrawMeta from '@/components/lottery/DrawMeta.astro';
+import TicketChecker from '@/components/lottery/TicketChecker';
+import { DRAWS, drawsByYear, HAS_DRAWS } from '@/data/lottery';
+import type { LotteryDraw } from '@/data/lottery/schema';
+import { formatThaiDate } from '@/lib/thai-date';
+import { collectionPageJsonLd } from '@/lib/seo';
+import {
+  getHomeUrl, getLotteryArchiveUrl, getLotteryCheckUrl, getLotteryDrawUrl,
+  getLotteryLatestUrl, getLotteryUrl,
+} from '@/lib/routes';
+
+/**
+ * ทุกหน้าของ vertical หวยอยู่ในไฟล์เดียวโดยตั้งใจ
+ *
+ * เหตุผล: `getStaticPaths` เป็นทางเดียวที่จะ **ไม่ build หน้าเลย** เมื่อยังไม่มีข้อมูลงวด
+ * ซึ่งเป็นกฎเดียวกับหมวด `planned` (§8.4) — หน้าเปล่าไม่ควรขึ้น production
+ * ถ้าแยกเป็นไฟล์ละหน้า หน้า static อย่าง `/lottery` จะถูก build เสมอไม่ว่ามีข้อมูลหรือไม่
+ *
+ * วันที่วางไฟล์ JSON งวดแรกลง `src/data/lottery/` ทุกหน้าจะปรากฏพร้อมกันเอง
+ */
+export function getStaticPaths() {
+  if (!HAS_DRAWS) return [];
+  return [
+    { params: { path: undefined }, props: { view: 'hub' as const } },
+    { params: { path: 'check' }, props: { view: 'check' as const } },
+    { params: { path: 'results' }, props: { view: 'results' as const } },
+    { params: { path: 'archive' }, props: { view: 'archive' as const } },
+    ...DRAWS.map((draw) => ({
+      params: { path: `results/${draw.drawDate}` },
+      props: { view: 'draw' as const, draw },
+    })),
+  ];
+}
+
+interface Props {
+  view: 'hub' | 'check' | 'results' | 'archive' | 'draw';
+  draw?: LotteryDraw;
+}
+const { view, draw } = Astro.props as Props;
+const latest = DRAWS[0];
+const shown = draw ?? latest;
+const years = drawsByYear();
+
+const META = {
+  hub: {
+    title: 'ตรวจหวย ผลสลากกินแบ่งรัฐบาล',
+    description: `ตรวจสลากกินแบ่งรัฐบาลด้วยตัวเองในเบราว์เซอร์ ดูผลรางวัลงวดล่าสุดและผลย้อนหลัง ${DRAWS.length} งวด พร้อมอธิบายโครงสร้างรางวัลครบทุกประเภท อ้างอิงประกาศของสำนักงานสลากกินแบ่งรัฐบาล`,
+    path: getLotteryUrl(),
+  },
+  check: {
+    title: 'ตรวจหวย — กรอกเลขสลากแล้วรู้ผลทันที',
+    description: 'กรอกหมายเลขสลากกินแบ่งรัฐบาลได้หลายใบพร้อมกัน แล้วดูว่าถูกรางวัลอะไรและได้เงินเท่าไหร่ ตรวจในเบราว์เซอร์ของคุณเอง หมายเลขที่กรอกไม่ถูกส่งออกไปที่ไหน',
+    path: getLotteryCheckUrl(),
+  },
+  results: {
+    title: 'ผลสลากกินแบ่งรัฐบาลงวดล่าสุด',
+    description: 'ผลรางวัลสลากกินแบ่งรัฐบาลงวดล่าสุดครบทุกรางวัล ตั้งแต่รางวัลที่ 1 รางวัลข้างเคียง รางวัลที่ 2 ถึง 5 เลขหน้า 3 ตัว เลขท้าย 3 ตัว และเลขท้าย 2 ตัว',
+    path: getLotteryLatestUrl(),
+  },
+  archive: {
+    title: 'ผลสลากย้อนหลังทุกงวด',
+    description: `รายการผลสลากกินแบ่งรัฐบาลย้อนหลัง ${DRAWS.length} งวด จัดกลุ่มตามปี เลือกดูผลรางวัลครบทุกประเภทของแต่ละงวดได้`,
+    path: getLotteryArchiveUrl(),
+  },
+  draw: {
+    title: shown ? `ผลสลากกินแบ่งรัฐบาล งวด ${formatThaiDate(shown.drawDate, { style: 'medium' })}` : '',
+    description: shown ? `ผลรางวัลสลากกินแบ่งรัฐบาลงวดวันที่ ${formatThaiDate(shown.drawDate, { style: 'medium' })} ครบทุกรางวัล พร้อมลิงก์ไปยังประกาศของสำนักงานสลากกินแบ่งรัฐบาล` : '',
+    path: shown ? getLotteryDrawUrl(shown.drawDate) : getLotteryUrl(),
+  },
+}[view];
+
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: 'หวยและสลาก', path: getLotteryUrl() },
+  ...(view === 'hub' ? [] : [{ name: META.title, path: META.path }]),
+];
+
+const jsonLd = view === 'archive'
+  ? [collectionPageJsonLd({
+      name: META.title,
+      description: META.description,
+      path: META.path,
+      items: DRAWS.map((d) => ({ name: `งวด ${d.drawDate}`, path: getLotteryDrawUrl(d.drawDate) })),
+    })]
+  : [];
+
+const links = [
+  { path: getLotteryCheckUrl(), icon: '🔍', name: 'ตรวจหวย', desc: 'กรอกหมายเลขสลากแล้วรู้ผลทันทีในเบราว์เซอร์' },
+  { path: getLotteryLatestUrl(), icon: '📋', name: 'ผลงวดล่าสุด', desc: 'ผลรางวัลครบทุกประเภทของงวดล่าสุด' },
+  { path: getLotteryArchiveUrl(), icon: '🗂️', name: 'ผลย้อนหลัง', desc: `ผลสลากย้อนหลัง ${DRAWS.length} งวด จัดกลุ่มตามปี` },
+];
+---
+<Base title={`${META.title} — ทูลสยาม`} description={META.description} jsonLd={jsonLd} wide={view === 'archive'}>
+  <VerticalShell
+    title={META.title}
+    description={META.description}
+    icon="🎫"
+    gradient={['#fefce8', '#fde68a']}
+    crumbs={crumbs}
+    disclaimer="ผลรางวัลที่แสดงเป็นข้อมูลที่กรอกและตรวจสอบด้วยคนจากประกาศของสำนักงานสลากกินแบ่งรัฐบาล เพื่อความสะดวกในการตรวจสอบเบื้องต้นเท่านั้น การขึ้นเงินรางวัลต้องยึดประกาศอย่างเป็นทางการของสำนักงานสลากกินแบ่งรัฐบาลเสมอ"
+  >
+    {view === 'hub' && (
+      <>
+        <div class="grid gap-4 sm:grid-cols-3">
+          {links.map((l) => (
+            <a
+              href={l.path}
+              class="rounded-xl border border-slate-200 bg-white p-4 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+            >
+              <h2 class="flex items-center gap-2 font-semibold text-slate-900">
+                <span aria-hidden="true">{l.icon}</span> {l.name}
+              </h2>
+              <p class="mt-1 text-sm text-slate-600">{l.desc}</p>
+            </a>
+          ))}
+        </div>
+
+        {latest && (
+          <section class="mt-8">
+            <h2 class="text-lg font-bold tracking-tight text-slate-900">ผลงวดล่าสุด</h2>
+            <div class="mt-2"><DrawMeta draw={latest} /></div>
+            <div class="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <p class="text-sm text-slate-500">รางวัลที่ 1</p>
+              <p class="mt-1 font-mono text-3xl font-bold tabular-nums text-slate-900">{latest.prizes.first[0]}</p>
+              <p class="mt-3 text-sm text-slate-600">
+                เลขท้าย 2 ตัว <span class="font-mono font-semibold text-slate-900">{latest.prizes.twoDigitBack[0]}</span>
+                {' · '}เลขท้าย 3 ตัว <span class="font-mono font-semibold text-slate-900">{latest.prizes.threeDigitBack.join(' ')}</span>
+              </p>
+              <a href={getLotteryLatestUrl()} class="mt-3 inline-block text-sm text-brand-700 underline underline-offset-2 hover:text-brand-800">
+                ดูผลครบทุกรางวัล
+              </a>
+            </div>
+          </section>
+        )}
+
+        <section class="mt-8">
+          <h2 class="text-lg font-bold tracking-tight text-slate-900">โครงสร้างรางวัลสลากกินแบ่งรัฐบาล</h2>
+          <div class="mt-2 space-y-3 text-sm text-slate-600">
+            <p>
+              สลากหนึ่งฉบับมีหมายเลข 6 หลัก และมีรางวัลหลายประเภทที่ตรวจคนละแบบกัน
+              รางวัลที่ 1 ถึงรางวัลที่ 5 และรางวัลข้างเคียงเทียบทั้ง 6 หลัก
+              ส่วนรางวัลเลขหน้า 3 ตัวเทียบจากสามหลักแรก เลขท้าย 3 ตัวเทียบจากสามหลักสุดท้าย
+              และเลขท้าย 2 ตัวเทียบจากสองหลักสุดท้าย
+            </p>
+            <p>
+              สลากใบเดียวถูกได้หลายรางวัลพร้อมกัน เช่น ถูกรางวัลที่ 1 แล้วสองหลักสุดท้ายบังเอิญตรงกับเลขท้าย 2 ตัวด้วย
+              ก็ได้รับทั้งสองรางวัล เครื่องมือตรวจหวยของทูลสยามจึงรวมทุกรางวัลที่ถูกให้เสมอ
+            </p>
+            <p>
+              รางวัลข้างเคียงรางวัลที่ 1 คือหมายเลขที่อยู่ก่อนหน้าและถัดจากรางวัลที่ 1 หนึ่งหมายเลข
+              ซึ่งเป็นกฎที่ตรวจสอบความถูกต้องของข้อมูลได้อัตโนมัติ และทูลสยามใช้ตรวจข้อมูลทุกงวดก่อนเผยแพร่
+            </p>
+          </div>
+        </section>
+      </>
+    )}
+
+    {view === 'check' && latest && (
+      <>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+          <DrawMeta draw={latest} />
+          <div class="mt-4"><TicketChecker client:load draw={latest} /></div>
+        </div>
+        <p class="mt-4 text-sm text-slate-600">
+          ต้องการตรวจกับงวดเก่า เลือกงวดที่ต้องการได้จาก{' '}
+          <a href={getLotteryArchiveUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">หน้าผลย้อนหลัง</a>
+          {' '}แล้วเทียบหมายเลขจากตารางผลรางวัลของงวดนั้น
+        </p>
+      </>
+    )}
+
+    {(view === 'results' || view === 'draw') && shown && (
+      <>
+        <DrawMeta draw={shown} />
+        <div class="mt-4"><PrizeTable draw={shown} /></div>
+        <p class="mt-6 text-sm text-slate-600">
+          <a href={getLotteryCheckUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ตรวจหมายเลขสลากของคุณ</a>
+          {' · '}
+          <a href={getLotteryArchiveUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">ดูผลย้อนหลังงวดอื่น</a>
+        </p>
+      </>
+    )}
+
+    {view === 'archive' && (
+      <>
+        {years.map((g) => (
+          <section class="mt-6 first:mt-0">
+            <h2 class="text-lg font-bold tracking-tight text-slate-900">พ.ศ. {g.year + 543}</h2>
+            <ul class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {g.draws.map((d) => (
+                <li>
+                  <a
+                    href={getLotteryDrawUrl(d.drawDate)}
+                    class="flex items-baseline justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+                  >
+                    <span class="text-slate-800">งวด {formatThaiDate(d.drawDate, { style: 'short' })}</span>
+                    <span class="font-mono tabular-nums text-slate-500">{d.prizes.first[0]}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </>
+    )}
+  </VerticalShell>
+</Base>
