@@ -17,6 +17,14 @@ import { promptpayQrMeta } from './qr/promptpay-qr/meta';
 import { qrGeneratorMeta } from './qr/qr-generator/meta';
 import { qrReaderMeta } from './qr/qr-reader/meta';
 import { jsonFormatterMeta } from './dev/json-formatter/meta';
+import { dateAddMeta } from './date/date-add/meta';
+import { workTenureMeta } from './finance/work-tenure/meta';
+import { otCalculatorMeta } from './finance/ot-calculator/meta';
+import { landUnitConvertMeta } from './land/land-unit-convert/meta';
+import { landPriceMeta } from './land/land-price/meta';
+import { fuelCostMeta } from './daily/fuel-cost/meta';
+import { profitMarginMeta } from './business/profit-margin/meta';
+import { sellingPriceMeta } from './business/selling-price/meta';
 
 export { categories };
 export type { ToolMeta, CategoryMeta, CategoryId };
@@ -26,6 +34,8 @@ export const tools: ToolMeta[] = [
   thaiIncomeTaxMeta,
   loanInstallmentMeta,
   netSalaryMeta,
+  otCalculatorMeta,
+  workTenureMeta,
   vatWhtMeta,
   compoundInterestMeta,
   bahtTextMeta,
@@ -34,11 +44,17 @@ export const tools: ToolMeta[] = [
   textLinesMeta,
   thaiIdCheckMeta,
   ageDaysMeta,
+  dateAddMeta,
   thaiYearConvertMeta,
   thaiHolidaysMeta,
   promptpayQrMeta,
   qrGeneratorMeta,
   qrReaderMeta,
+  landUnitConvertMeta,
+  landPriceMeta,
+  profitMarginMeta,
+  sellingPriceMeta,
+  fuelCostMeta,
   jsonFormatterMeta,
 ];
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateAge, daysBetween } from './logic';
+import { calculateAge } from './logic';
 
 describe('calculateAge', () => {
   it('อายุ ณ วันอ้างอิงพร้อมวันเกิดครั้งถัดไป', () => {
@@ -37,35 +37,5 @@ describe('calculateAge', () => {
 
   it('วันที่ไม่ถูกต้อง → error', () => {
     expect(() => calculateAge('2026-02-30', '2026-09-08')).toThrow();
-  });
-});
-
-describe('daysBetween', () => {
-  it('นับวันในเดือนมกราคม 2569 ทั้งเดือน', () => {
-    const r = daysBetween('2026-01-01', '2026-01-31');
-    expect(r.days).toBe(30);
-    expect(r.inclusiveDays).toBe(31);
-    expect(r.weeks).toBe(4);
-    expect(r.remainderDays).toBe(2);
-    expect(r.weekdayCount).toBe(22);
-    expect(r.weekendCount).toBe(9);
-    expect(r.parts).toEqual({ years: 0, months: 0, days: 30 });
-  });
-
-  it('สลับวันเริ่ม/วันสิ้นสุดได้ผลเท่ากัน', () => {
-    expect(daysBetween('2026-01-31', '2026-01-01')).toEqual(daysBetween('2026-01-01', '2026-01-31'));
-  });
-
-  it('วันเดียวกัน → 0 วัน แต่นับรวมได้ 1 วัน', () => {
-    const r = daysBetween('2026-09-08', '2026-09-08');
-    expect(r.days).toBe(0);
-    expect(r.inclusiveDays).toBe(1);
-    expect(r.weekdayCount).toBe(1);
-    expect(r.weekendCount).toBe(0);
-  });
-
-  it('weekdayCount + weekendCount = inclusiveDays เสมอ', () => {
-    const r = daysBetween('2026-04-01', '2026-06-30');
-    expect(r.weekdayCount + r.weekendCount).toBe(r.inclusiveDays);
   });
 });

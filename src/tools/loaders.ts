@@ -21,4 +21,12 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'qr-generator': () => import('./qr/qr-generator/Tool'),
   'qr-reader': () => import('./qr/qr-reader/Tool'),
   'json-formatter': () => import('./dev/json-formatter/Tool'),
+  'date-add': () => import('./date/date-add/Tool'),
+  'work-tenure': () => import('./finance/work-tenure/Tool'),
+  'ot-calculator': () => import('./finance/ot-calculator/Tool'),
+  'land-unit-convert': () => import('./land/land-unit-convert/Tool'),
+  'land-price': () => import('./land/land-price/Tool'),
+  'fuel-cost': () => import('./daily/fuel-cost/Tool'),
+  'profit-margin': () => import('./business/profit-margin/Tool'),
+  'selling-price': () => import('./business/selling-price/Tool'),
 };

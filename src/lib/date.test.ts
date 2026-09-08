@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   MS_PER_DAY, parseIsoDate, toIsoDate, daysBetweenDates, addDays,
   weekdayIndex, isWeekend, daysInMonth, isLeapYear, countWeekends, dateDiffParts,
+  daysBetween, shiftDate,
 } from './date';
 
 describe('parseIsoDate', () => {
@@ -129,5 +130,52 @@ describe('dateDiffParts', () => {
 
   it('สลับลำดับก็ได้ผลเท่ากัน', () => {
     expect(dateDiffParts('2026-09-08', '1990-05-15')).toEqual({ years: 36, months: 3, days: 24 });
+  });
+});
+
+describe('daysBetween', () => {
+  it('สลับลำดับวันแล้วได้ผลเท่ากัน', () => {
+    expect(daysBetween('2026-01-01', '2026-01-31')).toEqual(daysBetween('2026-01-31', '2026-01-01'));
+  });
+
+  it('นับวันทำการและวันหยุดสุดสัปดาห์รวมปลายทั้งสองข้าง', () => {
+    // 2026-01-05 คือวันจันทร์ ถึง 2026-01-11 วันอาทิตย์ = 1 สัปดาห์เต็ม
+    const s = daysBetween('2026-01-05', '2026-01-11');
+    expect(s.days).toBe(6);
+    expect(s.inclusiveDays).toBe(7);
+    expect(s.weekdayCount).toBe(5);
+    expect(s.weekendCount).toBe(2);
+  });
+
+  it('วันเดียวกันได้ 0 วัน แต่นับรวมได้ 1 วัน', () => {
+    const s = daysBetween('2026-03-10', '2026-03-10');
+    expect(s.days).toBe(0);
+    expect(s.inclusiveDays).toBe(1);
+  });
+});
+
+describe('shiftDate', () => {
+  it('บวกและลบวัน/สัปดาห์', () => {
+    expect(shiftDate('2026-09-08', 10, 'day')).toBe('2026-09-18');
+    expect(shiftDate('2026-09-08', -10, 'day')).toBe('2026-08-29');
+    expect(shiftDate('2026-09-08', 2, 'week')).toBe('2026-09-22');
+  });
+
+  it('บวกเดือนแล้วหนีบวันไว้ที่สิ้นเดือน', () => {
+    expect(shiftDate('2026-01-31', 1, 'month')).toBe('2026-02-28');
+    expect(shiftDate('2024-01-31', 1, 'month')).toBe('2024-02-29');
+    expect(shiftDate('2026-03-31', -1, 'month')).toBe('2026-02-28');
+  });
+
+  it('ข้ามปีทั้งขึ้นและลง', () => {
+    expect(shiftDate('2026-11-15', 3, 'month')).toBe('2027-02-15');
+    expect(shiftDate('2026-02-15', -3, 'month')).toBe('2025-11-15');
+    expect(shiftDate('2026-09-08', 1, 'year')).toBe('2027-09-08');
+    expect(shiftDate('2024-02-29', 1, 'year')).toBe('2025-02-28');
+  });
+
+  it('ปฏิเสธจำนวนที่ไม่ใช่ตัวเลข และผลลัพธ์นอกช่วงปี', () => {
+    expect(() => shiftDate('2026-09-08', Number.NaN, 'day')).toThrow();
+    expect(() => shiftDate('2026-09-08', 99_999, 'year')).toThrow('นอกช่วงปี');
   });
 });

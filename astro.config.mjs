@@ -13,5 +13,11 @@ export default defineConfig({
   adapter: cloudflare({ imageService: 'passthrough' }),
   // sitemap อ่าน noindex list ชุดเดียวกับ Base.astro → หน้า noindex ไม่มีทางหลุดเข้า sitemap (§7.3)
   integrations: [react(), sitemap({ filter: (page) => !isNoindexPath(new URL(page).pathname) })],
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    // workerd runner ถือ hash ของ optimize รอบแรกไว้ พอ vite ค้นพบ dep เพิ่มแล้ว
+    // re-optimize รอบสอง ไฟล์ hash เก่าถูกลบ → dev server ตายตอน cold start
+    // ประกาศ dep ที่ถูกค้นพบทีหลังไว้ล่วงหน้า ให้ optimize จบในรอบเดียว
+    optimizeDeps: { include: ['astro/assets/services/noop', 'astro/logger/console'] },
+  },
 });

@@ -1,4 +1,4 @@
-import { countWeekends, dateDiffParts, daysBetweenDates, isLeapYear, orderDates, parseIsoDate, type DiffParts } from '@/lib/date';
+import { dateDiffParts, daysBetweenDates, isLeapYear, parseIsoDate, type DiffParts } from '@/lib/date';
 
 export type { DiffParts };
 
@@ -10,19 +10,6 @@ export interface AgeResult extends DiffParts {
   /** YYYY-MM-DD ของวันเกิดครั้งถัดไป (ถ้าวันนี้เป็นวันเกิด = วันนี้) */
   nextBirthday: string;
   daysToNextBirthday: number;
-}
-
-export interface DateSpan {
-  /** ผลต่างเป็นวัน (ไม่นับวันเริ่มต้น) */
-  days: number;
-  /** นับรวมทั้งวันเริ่มและวันสิ้นสุด */
-  inclusiveDays: number;
-  weeks: number;
-  remainderDays: number;
-  /** จันทร์–ศุกร์ ในช่วง (นับรวมปลายทั้งสองข้าง) */
-  weekdayCount: number;
-  weekendCount: number;
-  parts: DiffParts;
 }
 
 /** วันเกิดในปีที่กำหนด — 29 ก.พ. ในปีที่ไม่ใช่อธิกสุรทินให้นับเป็น 1 มี.ค. */
@@ -52,23 +39,5 @@ export function calculateAge(birthIso: string, refIso: string): AgeResult {
     totalMonths: parts.years * 12 + parts.months,
     nextBirthday: next,
     daysToNextBirthday: daysBetweenDates(refIso, next),
-  };
-}
-
-export function daysBetween(startIso: string, endIso: string): DateSpan {
-  const [fromIso, toIso] = orderDates(startIso, endIso);
-  const days = daysBetweenDates(fromIso, toIso);
-  const inclusiveDays = days + 1;
-
-  const weekendCount = countWeekends(fromIso, toIso);
-
-  return {
-    days,
-    inclusiveDays,
-    weeks: Math.floor(days / 7),
-    remainderDays: days % 7,
-    weekdayCount: inclusiveDays - weekendCount,
-    weekendCount,
-    parts: dateDiffParts(fromIso, toIso),
   };
 }
