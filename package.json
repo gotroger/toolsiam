@@ -17,7 +17,8 @@
     "covers": "bash scripts/build-covers.sh",
     "covers:fallback": "node scripts/gen-fallback-covers.mjs",
     "size": "node scripts/size.mjs",
-    "brand": "python3 scripts/build-brand.py"
+    "brand": "python3 scripts/build-brand.py",
+    "lottery": "node scripts/fetch-lottery.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
