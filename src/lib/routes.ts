@@ -9,6 +9,8 @@ import type { CategoryId } from '@/tools/types';
 export const SITE = 'https://toolsiam.com';
 
 export const getHomeUrl = () => '/';
+/** หน้ารวม primitive สำหรับคนทำเว็บ — ไม่ได้เชื่อมจากเมนู และไม่เข้า sitemap */
+export const getDesignSystemUrl = () => '/design-system';
 export const getToolsUrl = () => '/tools';
 export const getToolUrl = (slug: string) => `/tools/${slug}`;
 
