@@ -31,6 +31,17 @@ const isNoindex = noindex || isNoindexPath(canonicalPathname);
 // crawler ส่วนใหญ่ต้องการ URL เต็ม ไม่ใช่ path
 const ogImageUrl = new URL(ogImage, Astro.site);
 const ogImageType = ogImage.endsWith('.png') ? 'image/png' : ogImage.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+
+/**
+ * Cloudflare Web Analytics (§Phase 5)
+ *
+ * เลือก Cloudflare Web Analytics เพราะไม่ใช้คุกกี้ ไม่เก็บข้อมูลระบุตัวบุคคล และไม่ต้องมีแบนเนอร์ขอความยินยอม
+ * ซึ่งตรงกับคำสัญญาบนหน้าเว็บว่าข้อมูลที่ผู้ใช้กรอกไม่ถูกส่งออกไปที่ไหน
+ *
+ * token มาจาก env `PUBLIC_CF_BEACON_TOKEN` ไม่ได้ฝังไว้ในซอร์ส — ถ้ายังไม่ตั้งค่า
+ * จะไม่มี script ใด ๆ ออกไปที่หน้าเว็บเลย (ไม่ใช่ script เปล่าที่ยิง request ทิ้ง)
+ */
+const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
 ---
 <!doctype html>
 <html lang="th">
@@ -74,5 +85,13 @@ const ogImageType = ogImage.endsWith('.png') ? 'image/png' : ogImage.endsWith('.
       {wide ? <slot /> : <div class="mx-auto w-full max-w-4xl"><slot /></div>}
     </main>
     <Footer />
+    {beaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: beaconToken })}
+      />
+    )}
   </body>
 </html>

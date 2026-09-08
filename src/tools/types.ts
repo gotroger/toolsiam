@@ -51,10 +51,26 @@ export interface ToolMeta {
   featuredRank?: number;
   /** วันที่หน้า/logic ถูกแก้จริง → dateModified ใน JSON-LD (§16) */
   contentUpdatedAt?: string;
+  /**
+   * ตารางตัวอย่างในหน้าแม่ (§22.3)
+   *
+   * ใช้กิน long-tail แทนการ generate หน้าตามค่าพารามิเตอร์อย่าง `/salary-20000`
+   * ซึ่งเป็น doorway page ที่แผนห้ามทำเด็ดขาดไม่ว่าเฟสไหน
+   * ตัวเลขในตารางต้องคำนวณจาก logic ของเครื่องมือเอง ไม่ใช่พิมพ์มือ — จะได้ไม่มีวันขัดกับผลจริง
+   */
+  examples?: ToolExamples;
   /** อัตรา/กฎหมายที่อ้างอิง → Trust panel (§17) */
   rates?: RateSource[];
   disclaimer?: string;
   assumptions?: string[];
+}
+
+export interface ToolExamples {
+  heading: string;
+  /** อธิบายว่าตัวเลขในตารางมาจากสมมติฐานอะไร */
+  note: string;
+  columns: string[];
+  rows: string[][];
 }
 
 export interface CategoryMeta {

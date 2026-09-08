@@ -76,12 +76,20 @@ export interface OtResult {
 }
 
 export function calculateOt(base: WageBase, lines: OtLine[]): OtResult {
-  const hourly = hourlyWage(base);
+  assertBase(base);
+  // คิดจากค่าจ้างต่อชั่วโมงแบบเต็มความละเอียด แล้วปัดครั้งเดียวตอนแสดง
+  // ถ้าปัดค่าจ้างต่อชั่วโมงก่อนแล้วค่อยคูณ เงินเดือน 20,000 จะได้ OT สามเท่าเป็น 249.99 แทน 250
+  const exactHourly = base.monthlySalary / base.workDaysPerMonth / base.hoursPerDay;
+  const hourly = round2(exactHourly);
   const rows: OtLineResult[] = lines.map((line) => {
     if (!Number.isFinite(line.hours) || line.hours < 0) throw new Error('จำนวนชั่วโมงต้องเป็นตัวเลขไม่ติดลบ');
     const multiplier = OT_MULTIPLIERS[line.kind];
-    const ratePerHour = round2(hourly * multiplier);
-    return { ...line, multiplier, ratePerHour, amount: round2(ratePerHour * line.hours) };
+    return {
+      ...line,
+      multiplier,
+      ratePerHour: round2(exactHourly * multiplier),
+      amount: round2(exactHourly * multiplier * line.hours),
+    };
   });
 
   const totalOt = round2(rows.reduce((sum, r) => sum + r.amount, 0));

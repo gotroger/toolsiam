@@ -51,3 +51,26 @@ describe('ค่าล่วงเวลา', () => {
     expect(() => calculateOt(base, [{ kind: 'workdayOt', hours: -1 }])).toThrow();
   });
 });
+
+describe('การปัดเศษของค่าล่วงเวลา', () => {
+  it('เงินเดือนที่หารไม่ลงตัวยังได้อัตราคูณที่ถูกต้อง ไม่เพี้ยนเป็น 249.99', () => {
+    // 20,000 ÷ 30 ÷ 8 = 83.333… ถ้าปัดเป็น 83.33 ก่อนคูณสาม จะได้ 249.99
+    const r = calculateOt({ monthlySalary: 20_000, workDaysPerMonth: 30, hoursPerDay: 8 }, [
+      { kind: 'holidayOt', hours: 1 },
+    ]);
+    expect(r.hourly).toBe(83.33);
+    expect(r.lines[0].ratePerHour).toBe(250);
+    expect(r.lines[0].amount).toBe(250);
+  });
+
+  it('เงินเดือน 25,000 ได้ OT 1.5 เท่าเป็น 156.25 ไม่ใช่ 156.26', () => {
+    const r = calculateOt({ monthlySalary: 25_000, workDaysPerMonth: 30, hoursPerDay: 8 }, [
+      { kind: 'workdayOt', hours: 1 },
+    ]);
+    expect(r.lines[0].ratePerHour).toBe(156.25);
+  });
+
+  it('ยังปฏิเสธฐานที่เป็นไปไม่ได้แม้ไม่มีบรรทัด OT เลย', () => {
+    expect(() => calculateOt({ monthlySalary: 20_000, workDaysPerMonth: 0, hoursPerDay: 8 }, [])).toThrow();
+  });
+});
