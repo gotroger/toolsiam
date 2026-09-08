@@ -44,7 +44,7 @@ export default function OtCalculatorTool() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-base font-semibold text-slate-900">จำนวนชั่วโมงล่วงเวลา</h2>
+        <h2 className="mb-2 text-base font-medium text-slate-900">จำนวนชั่วโมงล่วงเวลา</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {OT_KINDS.map((kind) => (
             <NumberInput

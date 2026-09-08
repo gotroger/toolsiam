@@ -50,7 +50,7 @@ export default function AgeDaysTool() {
             <Stat label="วันเกิดครั้งถัดไป" value={age.nextBirthday} />
             <Stat
               label="อีกกี่วันถึงวันเกิด"
-              value={age.daysToNextBirthday === 0 ? 'วันนี้คือวันเกิด 🎂' : `${age.daysToNextBirthday} วัน`}
+              value={age.daysToNextBirthday === 0 ? 'วันนี้คือวันเกิด' : `${age.daysToNextBirthday} วัน`}
             />
           </div>
         </>

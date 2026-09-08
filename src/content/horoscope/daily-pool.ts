@@ -15,10 +15,10 @@
  */
 
 export const DAILY_CATEGORIES = [
-  { id: 'love', label: 'ความรัก', icon: '💗' },
-  { id: 'money', label: 'การเงิน', icon: '💰' },
-  { id: 'work', label: 'การงาน', icon: '💼' },
-  { id: 'health', label: 'สุขภาพ', icon: '🌿' },
+  { id: 'love', label: 'ความรัก' },
+  { id: 'money', label: 'การเงิน' },
+  { id: 'work', label: 'การงาน' },
+  { id: 'health', label: 'สุขภาพ' },
 ] as const;
 
 export type DailyCategory = (typeof DAILY_CATEGORIES)[number]['id'];

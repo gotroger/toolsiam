@@ -85,7 +85,7 @@ export default function ShopProfitTool() {
           </div>
 
           <div>
-            <h2 className="mb-2 text-base font-semibold text-slate-900">เงินหายไปไหนบ้าง (ต่อชิ้น)</h2>
+            <h2 className="mb-2 text-base font-medium text-slate-900">เงินหายไปไหนบ้าง (ต่อชิ้น)</h2>
             <DataTable
               caption="รายละเอียดรายรับและค่าใช้จ่ายต่อสินค้าหนึ่งชิ้น"
               columns={[

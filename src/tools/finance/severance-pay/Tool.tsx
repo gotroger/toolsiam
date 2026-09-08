@@ -78,7 +78,7 @@ export default function SeverancePayTool() {
           </div>
 
           <div>
-            <h2 className="mb-2 text-base font-semibold text-slate-900">ตารางค่าชดเชยตามมาตรา 118</h2>
+            <h2 className="mb-2 text-base font-medium text-slate-900">ตารางค่าชดเชยตามมาตรา 118</h2>
             <DataTable
               caption="อัตราค่าชดเชยตามอายุงานตามพระราชบัญญัติคุ้มครองแรงงาน"
               columns={[
@@ -91,7 +91,7 @@ export default function SeverancePayTool() {
           </div>
 
           <div>
-            <h2 className="mb-2 text-base font-semibold text-slate-900">กรณีที่นายจ้างไม่ต้องจ่ายค่าชดเชย (มาตรา 119)</h2>
+            <h2 className="mb-2 text-base font-medium text-slate-900">กรณีที่นายจ้างไม่ต้องจ่ายค่าชดเชย (มาตรา 119)</h2>
             <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
               {NO_SEVERANCE_REASONS.map((r) => <li key={r}>{r}</li>)}
             </ul>

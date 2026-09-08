@@ -71,7 +71,7 @@ export default function BirthdayProfile() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <section className="rounded-[10px] border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">ลักษณะตามราศี</h3>
+              <h3 className="text-sm font-medium text-slate-900">ลักษณะตามราศี</h3>
               <p className="mt-1.5 text-sm text-slate-700">{sign.summary}</p>
               <p className="mt-2 text-xs text-slate-500">
                 ดูรายละเอียดที่ <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('zodiac')}>หน้าราศีจากวันเกิด</a>
@@ -79,7 +79,7 @@ export default function BirthdayProfile() {
             </section>
 
             <section className="rounded-[10px] border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">สีมงคลประจำวันเกิด</h3>
+              <h3 className="text-sm font-medium text-slate-900">สีมงคลประจำวันเกิด</h3>
               <ul className="mt-1.5 space-y-0.5 text-sm text-slate-700">
                 <li>การงาน: {colors.work.join(' · ')}</li>
                 <li>การเงิน: {colors.money.join(' · ')}</li>
@@ -92,7 +92,7 @@ export default function BirthdayProfile() {
             </section>
 
             <section className="rounded-[10px] border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">เลขศาสตร์วันเกิด</h3>
+              <h3 className="text-sm font-medium text-slate-900">เลขศาสตร์วันเกิด</h3>
               <p className="mt-1.5 text-sm text-slate-700">{numbers.meaning}</p>
               <p className="mt-2 text-xs text-slate-500">
                 ดูวิธีคำนวณที่ <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('numerology')}>หน้าเลขศาสตร์วันเกิด</a>
@@ -101,7 +101,7 @@ export default function BirthdayProfile() {
 
             {chinese && (
               <section className="rounded-[10px] border border-slate-200 bg-white p-4">
-                <h3 className="text-sm font-semibold text-slate-900">ปีนักษัตร</h3>
+                <h3 className="text-sm font-medium text-slate-900">ปีนักษัตร</h3>
                 <p className="mt-1.5 text-sm text-slate-700">{chinese.animal.summary}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   ตรุษจีนของปีเกิดคือ {formatThaiDate(chinese.newYearDate, { style: 'medium' })} ·{' '}

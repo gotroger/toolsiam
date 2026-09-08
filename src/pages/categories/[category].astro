@@ -2,6 +2,7 @@
 import Base from '@/layouts/Base.astro';
 import Breadcrumb from '@/components/Breadcrumb.astro';
 import ToolCard from '@/components/ToolCard.astro';
+import CategoryIcon from '@/components/CategoryIcon.astro';
 import { getBrowsableCategories, getToolsByCategory } from '@/tools/registry';
 import { cardGrid, cardGridItem } from '@/components/grids';
 import { resolveOgImage } from '@/tools/covers';
@@ -30,9 +31,11 @@ const jsonLd = [
 <Base wide title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={description} jsonLd={jsonLd} ogImage={og.src} ogImageAlt={og.alt}>
   <Breadcrumb items={crumbs} />
   <div class="mt-2 flex items-start gap-3">
-    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-2xl" aria-hidden="true">{category.icon}</div>
+    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+      <CategoryIcon category={category.id} class="h-[22px] w-[22px]" />
+    </div>
     <div>
-      <h1 class="text-[1.75rem] font-bold tracking-tight text-slate-900 sm:text-3xl">{category.name}</h1>
+      <h1 class="text-[1.75rem] font-medium tracking-tight text-slate-900 sm:text-3xl">{category.name}</h1>
       <p class="mt-1.5 max-w-2xl text-slate-600">{category.description}</p>
     </div>
   </div>

@@ -39,7 +39,7 @@ export default function ChineseZodiacFinder() {
       {result && (
         <>
           <ResultBox label="ปีนักษัตรของคุณ">
-            <span aria-hidden="true">{result.animal.emoji}</span> ปี{result.animal.name}
+            ปี{result.animal.name}
           </ResultBox>
 
           <div className="grid gap-3 sm:grid-cols-2">

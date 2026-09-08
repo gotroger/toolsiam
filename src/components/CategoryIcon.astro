@@ -1,0 +1,29 @@
+---
+import { CATEGORY_ICON_PATHS, CATEGORY_ICON_VIEWBOX } from '@/lib/category-icons.mjs';
+import type { CategoryId } from '@/tools/types';
+
+/**
+ * ไอคอนหมวด — SVG เส้นจากชุดกลาง `src/lib/category-icons.mjs` (ชุดเดียวกับที่ใช้ทำภาพปกสำรอง)
+ *
+ * สีและขนาดมาจากคลาสของผู้เรียก ไม่ใช่จากตัวไอคอน — เปลี่ยนโทนทีเดียวได้ทั้งชุด
+ */
+interface Props {
+  category: CategoryId;
+  /** คลาสของ <svg> — กำหนดขนาดและสีจากฝั่งผู้เรียก */
+  class?: string;
+}
+const { category, class: className = 'h-5 w-5' } = Astro.props;
+---
+<svg
+  class={className}
+  viewBox={`0 0 ${CATEGORY_ICON_VIEWBOX} ${CATEGORY_ICON_VIEWBOX}`}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  <path d={CATEGORY_ICON_PATHS[category]} />
+</svg>

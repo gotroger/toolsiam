@@ -1,7 +1,9 @@
 ---
 import Breadcrumb from './Breadcrumb.astro';
+import CategoryIcon from './CategoryIcon.astro';
 import { Disclaimer } from './ui';
 import type { Crumb } from '@/lib/seo';
+import type { CategoryId } from '@/tools/types';
 
 /**
  * โครงหน้าของ vertical `/horoscope` และ `/dream` (§9.3, §9.4)
@@ -15,14 +17,15 @@ import type { Crumb } from '@/lib/seo';
 interface Props {
   title: string;
   description: string;
-  icon: string;
+  /** หมวดของ vertical นี้ — ใช้เลือกไอคอนเส้นจากชุดกลาง แทนอิโมจิที่แต่ละ OS วาดคนละแบบ */
+  category: CategoryId;
   crumbs: Crumb[];
   /** ไล่สีพื้นหลังหัวเรื่อง [เริ่ม, จบ] */
   gradient?: [string, string];
   disclaimer?: string;
 }
 const {
-  title, description, icon, crumbs,
+  title, description, category, crumbs,
   gradient = ['#fdf2f8', '#faf5ff'],
   disclaimer = 'เนื้อหาในหน้านี้เป็นความเชื่อและเรื่องเล่าตามตำรา จัดทำเพื่อความบันเทิงเท่านั้น ไม่ใช่คำทำนายอนาคตและไม่ควรใช้แทนการตัดสินใจด้วยข้อมูลจริง',
 } = Astro.props;
@@ -34,9 +37,11 @@ const {
   style={`background-image: linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`}
 >
   <div class="flex items-start gap-4">
-    <span aria-hidden="true" class="text-4xl leading-none sm:text-5xl">{icon}</span>
+    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/70 text-slate-700 sm:h-14 sm:w-14">
+      <CategoryIcon category={category} class="h-6 w-6 sm:h-7 sm:w-7" />
+    </span>
     <div>
-      <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.75rem]">{title}</h1>
+      <h1 class="text-2xl font-medium tracking-tight text-slate-900 sm:text-[1.75rem]">{title}</h1>
       <p class="mt-2 max-w-3xl text-slate-700">{description}</p>
     </div>
   </div>

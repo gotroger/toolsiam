@@ -7,5 +7,7 @@
   </defs>
   <rect width="1200" height="675" fill="url(#g)"/>
   <circle cx="210" cy="170" r="96" fill="#ffffff" opacity="0.35"/><circle cx="980" cy="210" r="130" fill="#ffffff" opacity="0.35"/><circle cx="330" cy="520" r="74" fill="#ffffff" opacity="0.35"/><circle cx="900" cy="540" r="60" fill="#ffffff" opacity="0.35"/>
-  <text x="600" y="337.5" font-size="240" text-anchor="middle" dominant-baseline="central">🏡</text>
+  <g transform="translate(470 207.5) scale(10.833333333333334)" fill="none" stroke="#0f172a" stroke-opacity="0.72" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3.5 7.5 9.5 4.5l5 3 6-3v12l-6 3-5-3-6 3v-12Zm6-3v12m5-9v12"/>
+  </g>
 </svg>

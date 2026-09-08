@@ -86,7 +86,7 @@ export default function CreditCardDebtTool() {
           </div>
 
           <div>
-            <h2 className="mb-2 text-base font-semibold text-slate-900">จ่ายเพิ่มแล้วต่างกันแค่ไหน</h2>
+            <h2 className="mb-2 text-base font-medium text-slate-900">จ่ายเพิ่มแล้วต่างกันแค่ไหน</h2>
             <DataTable
               caption="เปรียบเทียบระยะเวลาปลดหนี้และดอกเบี้ยรวมตามยอดที่จ่ายต่อเดือน"
               columns={[

@@ -33,7 +33,7 @@ export default function ToolCard({ tool }: { tool: ToolMeta }) {
       </div>
 
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug text-slate-900 transition-colors duration-150 group-hover:text-brand-700">
+        <h3 className="line-clamp-2 text-[0.9375rem] font-medium leading-snug text-slate-900 transition-colors duration-150 group-hover:text-brand-700">
           {tool.name}
         </h3>
 
@@ -41,7 +41,7 @@ export default function ToolCard({ tool }: { tool: ToolMeta }) {
 
         {cat && (
           <div className="mt-auto pt-3 text-xs text-slate-400">
-            <span aria-hidden="true">{cat.icon}</span> {cat.name}
+            {cat.name}
           </div>
         )}
       </div>

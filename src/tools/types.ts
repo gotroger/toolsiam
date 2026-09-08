@@ -78,8 +78,6 @@ export interface CategoryMeta {
   name: string;
   nameEn: string;
   description: string;
-  /** emoji */
-  icon: string;
   /** สีพื้นของปกสำรอง [เริ่ม, จบ] ของ gradient — ใช้โดย scripts/gen-fallback-covers.mjs (§15.2 ชั้น A) */
   gradient: [string, string];
   order: number;

@@ -85,7 +85,8 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    {/* Prompt = หัวข้อ · Sarabun = เนื้อความ — ขอในลิงก์เดียวเพื่อไม่เพิ่มจำนวน request */}
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj).replace(/</g, '\\u003c')} />)}
   </head>
   <body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 antialiased">

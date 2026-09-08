@@ -1,6 +1,8 @@
 ---
 import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
+import LotteryBanner from '@/components/lottery/LotteryBanner.astro';
+import CategoryIcon from '@/components/CategoryIcon.astro';
 import { getActiveCategories, getBrowsableCategories, getFeaturedTools, getToolsByCategory, getVisibleTools } from '@/tools/registry';
 import { cardGrid, cardGridItem } from '@/components/grids';
 import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
@@ -10,14 +12,18 @@ import { organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 const categoryCounts = getBrowsableCategories().map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
 // vertical แยกออกมาเป็นอีกส่วนโดยตั้งใจ (Brand risk §9.5) — หมวดดวงและทำนายฝัน
 // ต้องไม่ขึ้นปนแถวเดียวกับเครื่องคำนวณภาษี และไม่มีตัวนับ "N เครื่องมือ" เพราะไม่ใช่เครื่องมือ
-const verticals = getActiveCategories().filter((c) => c.landingPath);
+//
+// หวย (`lottery`) ถูกกันออกจากแถวนี้เพราะเลื่อนขึ้นไปเป็นแบนเนอร์เดี่ยวใต้ hero แล้ว —
+// ต่างจากดวงและทำนายฝันตรงที่มีผลรางวัลจริงให้ตอบได้ทันทีบนหน้าแรก ไม่ใช่แค่ทางเข้าไปอ่านต่อ
+// (ยังเป็น vertical ตามปกติใน categories.ts — ตัดเฉพาะการแสดงผลบนหน้าแรกเท่านั้น)
+const verticals = getActiveCategories().filter((c) => c.landingPath && c.id !== 'lottery');
 const featured = getFeaturedTools(8);
 const visibleToolCount = getVisibleTools().length;
 const jsonLd = [organizationJsonLd(), websiteJsonLd()];
 ---
 <Base wide jsonLd={jsonLd} title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง">
   <section class="py-6 text-center sm:py-10">
-    <h1 class="mx-auto max-w-3xl text-balance text-[1.875rem] font-bold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.75rem]">
+    <h1 class="mx-auto max-w-3xl text-balance text-[1.875rem] font-medium leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.75rem]">
       เครื่องมือออนไลน์ภาษาไทย ใช้ง่าย ใช้ฟรี
     </h1>
     <p class="mx-auto mt-4 max-w-xl text-[0.9375rem] leading-relaxed text-slate-600 sm:text-base">
@@ -26,21 +32,23 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
       <a
         href={getToolsUrl()}
-        class="inline-flex items-center rounded-[11px] bg-brand-600 px-5 py-2.5 text-[0.9375rem] font-medium text-white transition-colors duration-150 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
+        class="inline-flex items-center rounded-[10px] bg-brand-600 px-5 py-2.5 text-[0.9375rem] font-medium text-white transition-colors duration-150 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
       >
         ดูเครื่องมือทั้งหมด ({visibleToolCount})
       </a>
       <a
         href={`${getHomeUrl()}#categories`}
-        class="inline-flex items-center rounded-[11px] border border-slate-200 bg-white px-5 py-2.5 text-[0.9375rem] font-medium text-slate-700 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
+        class="inline-flex items-center rounded-[10px] border border-slate-200 bg-white px-5 py-2.5 text-[0.9375rem] font-medium text-slate-700 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
       >
         เลือกตามหมวดหมู่
       </a>
     </div>
   </section>
 
+  <LotteryBanner />
+
   <section id="categories" class="mt-10 scroll-mt-24 sm:mt-14">
-    <h2 class="text-[1.375rem] font-bold tracking-tight text-slate-900 sm:text-2xl">หมวดหมู่</h2>
+    <h2 class="text-[1.375rem] font-medium tracking-tight text-slate-900 sm:text-2xl">หมวดหมู่</h2>
     <p class="mt-1.5 text-sm text-slate-500">เลือกหมวดที่ตรงกับงานของคุณ</p>
     <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
       {categoryCounts.map((c) => (
@@ -48,8 +56,10 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
           href={getCategoryUrl(c)}
           class="group rounded-xl border border-slate-200 bg-white p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-brand-500/50 hover:shadow-[0_6px_18px_-8px_rgb(5_150_105/0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-xl" aria-hidden="true">{c.icon}</div>
-          <div class="mt-3 font-semibold text-slate-900 group-hover:text-brand-700">{c.name}</div>
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700 transition-colors duration-200 group-hover:bg-brand-100">
+            <CategoryIcon category={c.id} class="h-5 w-5" />
+          </div>
+          <div class="mt-3 font-heading font-medium text-slate-900 group-hover:text-brand-700">{c.name}</div>
           <div class="mt-0.5 text-xs text-slate-500">{c.count} เครื่องมือ</div>
         </a>
       ))}
@@ -58,7 +68,7 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
 
   {verticals.length > 0 && (
     <section id="verticals" class="mt-12 scroll-mt-24 sm:mt-16">
-      <h2 class="text-[1.375rem] font-bold tracking-tight text-slate-900 sm:text-2xl">ดูดวงและความเชื่อ</h2>
+      <h2 class="text-[1.375rem] font-medium tracking-tight text-slate-900 sm:text-2xl">ดูดวงและความเชื่อ</h2>
       <p class="mt-1.5 text-sm text-slate-500">เนื้อหาตามความเชื่อ อ่านเพลิน ๆ แยกจากเครื่องมือคำนวณ</p>
       <div class="mt-5 grid gap-4 sm:grid-cols-2">
         {verticals.map((c) => (
@@ -67,9 +77,11 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
             class="group flex items-start gap-4 rounded-xl border border-slate-200 p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             style={`background-image: linear-gradient(135deg, ${c.gradient[0]}, ${c.gradient[1]})`}
           >
-            <span class="text-3xl leading-none" aria-hidden="true">{c.icon}</span>
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/70 text-slate-700">
+              <CategoryIcon category={c.id} class="h-5 w-5" />
+            </span>
             <span>
-              <span class="block font-semibold text-slate-900">{c.name}</span>
+              <span class="block font-heading font-medium text-slate-900">{c.name}</span>
               <span class="mt-0.5 block text-sm text-slate-600">{c.description}</span>
             </span>
           </a>
@@ -81,7 +93,7 @@ const jsonLd = [organizationJsonLd(), websiteJsonLd()];
   <section id="featured" class="mt-12 scroll-mt-24 sm:mt-16">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h2 class="text-[1.375rem] font-bold tracking-tight text-slate-900 sm:text-2xl">เครื่องมือแนะนำ</h2>
+        <h2 class="text-[1.375rem] font-medium tracking-tight text-slate-900 sm:text-2xl">เครื่องมือแนะนำ</h2>
         <p class="mt-1.5 text-sm text-slate-500">เครื่องมือที่เราแนะนำให้เริ่มใช้</p>
       </div>
       <a

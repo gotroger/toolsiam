@@ -101,7 +101,7 @@ export default function HomeLoanTool() {
           )}
 
           <div>
-            <h2 className="mb-2 text-base font-semibold text-slate-900">สรุปรายปี</h2>
+            <h2 className="mb-2 text-base font-medium text-slate-900">สรุปรายปี</h2>
             <DataTable
               caption="ยอดคงเหลือและดอกเบี้ยที่จ่ายในแต่ละปี"
               columns={[

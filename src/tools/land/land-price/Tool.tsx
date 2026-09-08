@@ -66,7 +66,7 @@ export default function LandPriceTool() {
           </div>
 
           <div>
-            <h2 className="mb-2 text-base font-semibold text-slate-900">ราคาต่อหน่วยแบบต่าง ๆ</h2>
+            <h2 className="mb-2 text-base font-medium text-slate-900">ราคาต่อหน่วยแบบต่าง ๆ</h2>
             <p className="mb-2 text-sm text-slate-600">ใช้เทียบกับประกาศขายแปลงอื่นที่บอกราคาคนละหน่วยกัน</p>
             <DataTable
               caption="ราคาต่อหน่วยของที่ดินแปลงนี้"
