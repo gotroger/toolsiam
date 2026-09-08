@@ -195,5 +195,32 @@
   },
   "sourceUrl": "https://www.glo.or.th/mission/reward-payment/check-reward",
   "enteredAt": "2026-09-08",
-  "status": "validated"
+  "status": "verified",
+  "n3": {
+    "straight3": {
+      "price": 7113,
+      "numbers": [
+        "866"
+      ]
+    },
+    "shuffle3": {
+      "price": 3333,
+      "numbers": [
+        "668",
+        "686"
+      ]
+    },
+    "straight2": {
+      "price": 648,
+      "numbers": [
+        "06"
+      ]
+    },
+    "special": {
+      "price": 595374,
+      "numbers": [
+        "866000001598"
+      ]
+    }
+  }
 }

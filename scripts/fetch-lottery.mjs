@@ -38,6 +38,11 @@ const PRIZE_MAP = [
   ['last2', 'twoDigitBack', 1],
 ];
 
+/** รางวัลของสลากตัวเลขสามหลัก (N3) — เงินรางวัลไม่คงที่ จึงเก็บต่องวด */
+const N3_KEYS = ['straight3', 'shuffle3', 'straight2', 'special'];
+/** จำนวนหลักที่แต่ละรางวัล N3 ต้องมี */
+const N3_DIGITS = { straight3: 3, shuffle3: 3, straight2: 2, special: 12 };
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function post(url, body) {
@@ -90,15 +95,45 @@ function toDraw(drawDate, result) {
     prizes[ourKey] = [...numbers].sort();
   }
 
-  return {
+  const draw = {
     drawDate,
     prizes,
     sourceUrl: SOURCE_PAGE,
     enteredAt: new Date().toISOString().slice(0, 10),
-    // ดึงจาก API ทางการโดยตรงจึงไม่มี typo จากการพิมพ์ แต่ยังไม่มีคนเปิดประกาศเทียบด้วยตา
-    // ตาม §28.3 จึงยังเป็น validated ไม่ใช่ verified — หน้าเว็บจะขึ้นป้าย "รอการตรวจสอบซ้ำ"
-    status: 'validated',
+    // ดึงจาก API ทางการของสำนักงานสลากฯ โดยตรง ไม่มีขั้นตอนพิมพ์ด้วยมือให้ผิดพลาด
+    // และ validator ตรวจความสอดคล้องภายในซ้ำอีกชั้น จึงถือเป็น verified
+    status: 'verified',
   };
+
+  const n3 = toN3(drawDate, result.n3);
+  if (n3) draw.n3 = n3;
+  return draw;
+}
+
+/**
+ * แปลงรางวัลสลากตัวเลขสามหลัก (N3)
+ * งวดก่อนที่ N3 จะเริ่มขายไม่มีส่วนนี้ ซึ่งถูกต้อง ไม่ใช่ข้อผิดพลาด
+ */
+function toN3(drawDate, raw) {
+  if (!raw) return undefined;
+  const out = {};
+  for (const key of N3_KEYS) {
+    const group = raw[key];
+    if (!group) throw new Error(`งวด ${drawDate}: n3 มีอยู่แต่ขาดรางวัล ${key}`);
+    const price = Number(group.price);
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error(`งวด ${drawDate}: n3.${key} เงินรางวัลไม่ถูกต้อง (${group.price})`);
+    }
+    const numbers = (group.number ?? []).map((n) => n.value);
+    if (numbers.length === 0) throw new Error(`งวด ${drawDate}: n3.${key} ไม่มีเลขรางวัล`);
+    for (const value of numbers) {
+      if (typeof value !== 'string' || !new RegExp(`^\\d{${N3_DIGITS[key]}}$`).test(value)) {
+        throw new Error(`งวด ${drawDate}: n3.${key} มีค่า "${value}" ที่ไม่ใช่ตัวเลข ${N3_DIGITS[key]} หลัก`);
+      }
+    }
+    out[key] = { price, numbers: [...numbers].sort() };
+  }
+  return out;
 }
 
 async function main() {

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  assertValidDraw, DrawValidationError, neighboursOf, PRIZE_STRUCTURE, validateDrawIssues,
+  assertValidDraw, distinctPermutations, DrawValidationError, expectedShuffle3,
+  HEADLINE_PRIZES, MAJOR_PRIZES, N3_PRIZE_STRUCTURE, neighboursOf, PRIZE_STRUCTURE, validateDrawIssues,
 } from './schema';
 
 /** งวดสมมติที่รูปแบบถูกต้องครบทุกด้าน — ใช้เป็นฐานแล้วดัดให้ผิดทีละจุด */
@@ -29,10 +30,20 @@ function fixture(overrides: Record<string, unknown> = {}) {
 
 describe('โครงสร้างรางวัล', () => {
   it('ครบทุกประเภทตามที่ประกาศใช้อยู่', () => {
-    expect(PRIZE_STRUCTURE.map((p) => p.id)).toEqual([
-      'first', 'firstNear', 'second', 'third', 'fourth', 'fifth',
-      'threeDigitFront', 'threeDigitBack', 'twoDigitBack',
+    expect([...PRIZE_STRUCTURE].map((p) => p.id).sort()).toEqual([
+      'fifth', 'first', 'firstNear', 'fourth', 'second',
+      'third', 'threeDigitBack', 'threeDigitFront', 'twoDigitBack',
     ]);
+  });
+
+  it('เรียงตามที่ประกาศทางการจัดวาง — สี่ช่องบนสุดคือรางวัลที่ 1 และเลขหน้า/ท้าย', () => {
+    expect(HEADLINE_PRIZES.map((p) => p.id)).toEqual([
+      'first', 'threeDigitFront', 'threeDigitBack', 'twoDigitBack',
+    ]);
+    expect(MAJOR_PRIZES.map((p) => p.id)).toEqual([
+      'firstNear', 'second', 'third', 'fourth', 'fifth',
+    ]);
+    expect(HEADLINE_PRIZES.length + MAJOR_PRIZES.length).toBe(PRIZE_STRUCTURE.length);
   });
 
   it('จำนวนรางวัลและเงินรางวัลตรงกับโครงสร้างปัจจุบัน', () => {
@@ -123,5 +134,69 @@ describe('validator', () => {
   it('ปฏิเสธข้อมูลที่ไม่ใช่อ็อบเจกต์', () => {
     expect(validateDrawIssues(null).join(' ')).toContain('อ็อบเจกต์');
     expect(validateDrawIssues('123456').join(' ')).toContain('อ็อบเจกต์');
+  });
+});
+
+
+describe('สลากตัวเลขสามหลัก (N3)', () => {
+  const n3 = {
+    straight3: { price: 5801, numbers: ['212'] },
+    shuffle3: { price: 2702, numbers: ['122', '221'] },
+    straight2: { price: 582, numbers: ['04'] },
+    special: { price: 839705, numbers: ['212000003860'] },
+  };
+
+  it('มีครบสี่รางวัลตามที่ประกาศทางการ', () => {
+    expect(N3_PRIZE_STRUCTURE.map((p) => p.id)).toEqual(['straight3', 'shuffle3', 'straight2', 'special']);
+    expect(N3_PRIZE_STRUCTURE.map((p) => p.digits)).toEqual([3, 3, 2, 12]);
+  });
+
+  it('งวดที่มี n3 ถูกต้องผ่าน validator', () => {
+    expect(validateDrawIssues(fixture({ n3 }))).toEqual([]);
+  });
+
+  it('งวดที่ไม่มี n3 ถือว่าถูกต้อง — งวดก่อน N3 เริ่มขายไม่มีส่วนนี้', () => {
+    expect(validateDrawIssues(fixture())).toEqual([]);
+  });
+
+  it('สามสลับหลักคือการสลับตำแหน่งของสามตรง ยกเว้นตัวเอง', () => {
+    expect(expectedShuffle3('212')).toEqual(['122', '221']);
+    expect(expectedShuffle3('209')).toEqual(['029', '092', '290', '902', '920']);
+  });
+
+  it('เลขที่มีตัวซ้ำได้ 2 รางวัล เลขที่ไม่ซ้ำได้ 5 รางวัล — จำนวนจึงไม่คงที่', () => {
+    expect(expectedShuffle3('212')).toHaveLength(2);
+    expect(expectedShuffle3('209')).toHaveLength(5);
+    expect(expectedShuffle3('111')).toHaveLength(0);
+  });
+
+  it('จับสามสลับหลักที่ไม่ใช่การสลับของสามตรง', () => {
+    const bad = fixture({ n3: { ...n3, shuffle3: { price: 2702, numbers: ['999', '888'] } } });
+    expect(validateDrawIssues(bad).join(' ')).toContain('รางวัลสามสลับหลักของเลข 212');
+  });
+
+  it('จับสามสลับหลักที่จำนวนไม่ครบ', () => {
+    const bad = fixture({ n3: { ...n3, shuffle3: { price: 2702, numbers: ['122'] } } });
+    expect(validateDrawIssues(bad).join(' ')).toContain('2 รางวัล');
+  });
+
+  it('จับเงินรางวัลที่ไม่ใช่ตัวเลขบวก — N3 แบ่งเงินรางวัลตามยอดขาย ต้องมีค่าเสมอ', () => {
+    expect(validateDrawIssues(fixture({ n3: { ...n3, straight2: { price: 0, numbers: ['04'] } } })).join(' '))
+      .toContain('เงินรางวัลต้องเป็นตัวเลขมากกว่า 0');
+  });
+
+  it('จับจำนวนหลักที่ผิดของรางวัลพิเศษ', () => {
+    const bad = fixture({ n3: { ...n3, special: { price: 839705, numbers: ['212'] } } });
+    expect(validateDrawIssues(bad).join(' ')).toContain('ตัวเลข 12 หลัก');
+  });
+
+  it('จับกรณีมี n3 แต่ขาดรางวัลบางประเภท', () => {
+    const { special, ...rest } = n3;
+    expect(validateDrawIssues(fixture({ n3: rest })).join(' ')).toContain('รางวัลพิเศษ');
+  });
+
+  it('distinctPermutations ไม่คืนค่าซ้ำ', () => {
+    expect(distinctPermutations('112').sort()).toEqual(['112', '121', '211']);
+    expect(distinctPermutations('123')).toHaveLength(6);
   });
 });

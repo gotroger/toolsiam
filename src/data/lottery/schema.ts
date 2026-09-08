@@ -17,12 +17,17 @@ export interface PrizeSpec {
   name: string;
   /** จำนวนหลักของเลขในรางวัลนี้ */
   digits: number;
-  /** จำนวนรางวัล — null = ผันแปร (รางวัลข้างเคียงขึ้นกับเลขรางวัลที่ 1) */
+  /** จำนวนรางวัล */
   count: number;
   /** เงินรางวัลต่อหนึ่งรางวัล (บาท) */
   amount: number;
   /** เทียบกับเลขท้าย / เลขหน้า แทนที่จะเทียบทั้งหมายเลข */
   match: 'full' | 'prefix3' | 'suffix3' | 'suffix2';
+  /**
+   * กลุ่มการแสดงผลตามที่ประกาศทางการจัดวาง — ไม่ใช่ลำดับการตรวจรางวัล
+   * headline = สี่ช่องบนสุดที่คนดูก่อนเสมอ · major = รางวัลที่เหลือเรียงตามลำดับรางวัล
+   */
+  displayGroup: 'headline' | 'major';
 }
 
 /**
@@ -33,16 +38,57 @@ export interface PrizeSpec {
  * เพราะงวดเก่าต้องยังตรวจด้วยโครงสร้างที่ใช้ ณ งวดนั้น
  */
 export const PRIZE_STRUCTURE: PrizeSpec[] = [
-  { id: 'first', name: 'รางวัลที่ 1', digits: 6, count: 1, amount: 6_000_000, match: 'full' },
-  { id: 'firstNear', name: 'รางวัลข้างเคียงรางวัลที่ 1', digits: 6, count: 2, amount: 100_000, match: 'full' },
-  { id: 'second', name: 'รางวัลที่ 2', digits: 6, count: 5, amount: 200_000, match: 'full' },
-  { id: 'third', name: 'รางวัลที่ 3', digits: 6, count: 10, amount: 80_000, match: 'full' },
-  { id: 'fourth', name: 'รางวัลที่ 4', digits: 6, count: 50, amount: 40_000, match: 'full' },
-  { id: 'fifth', name: 'รางวัลที่ 5', digits: 6, count: 100, amount: 20_000, match: 'full' },
-  { id: 'threeDigitFront', name: 'รางวัลเลขหน้า 3 ตัว', digits: 3, count: 2, amount: 4_000, match: 'prefix3' },
-  { id: 'threeDigitBack', name: 'รางวัลเลขท้าย 3 ตัว', digits: 3, count: 2, amount: 4_000, match: 'suffix3' },
-  { id: 'twoDigitBack', name: 'รางวัลเลขท้าย 2 ตัว', digits: 2, count: 1, amount: 2_000, match: 'suffix2' },
+  { id: 'first', name: 'รางวัลที่ 1', digits: 6, count: 1, amount: 6_000_000, match: 'full', displayGroup: 'headline' },
+  { id: 'threeDigitFront', name: 'รางวัลเลขหน้า 3 ตัว', digits: 3, count: 2, amount: 4_000, match: 'prefix3', displayGroup: 'headline' },
+  { id: 'threeDigitBack', name: 'รางวัลเลขท้าย 3 ตัว', digits: 3, count: 2, amount: 4_000, match: 'suffix3', displayGroup: 'headline' },
+  { id: 'twoDigitBack', name: 'รางวัลเลขท้าย 2 ตัว', digits: 2, count: 1, amount: 2_000, match: 'suffix2', displayGroup: 'headline' },
+  { id: 'firstNear', name: 'รางวัลข้างเคียงรางวัลที่ 1', digits: 6, count: 2, amount: 100_000, match: 'full', displayGroup: 'major' },
+  { id: 'second', name: 'รางวัลที่ 2', digits: 6, count: 5, amount: 200_000, match: 'full', displayGroup: 'major' },
+  { id: 'third', name: 'รางวัลที่ 3', digits: 6, count: 10, amount: 80_000, match: 'full', displayGroup: 'major' },
+  { id: 'fourth', name: 'รางวัลที่ 4', digits: 6, count: 50, amount: 40_000, match: 'full', displayGroup: 'major' },
+  { id: 'fifth', name: 'รางวัลที่ 5', digits: 6, count: 100, amount: 20_000, match: 'full', displayGroup: 'major' },
 ];
+
+/** รางวัลเรียงตามที่ประกาศทางการจัดวางบนหน้าเว็บ */
+export const HEADLINE_PRIZES = PRIZE_STRUCTURE.filter((p) => p.displayGroup === 'headline');
+export const MAJOR_PRIZES = PRIZE_STRUCTURE.filter((p) => p.displayGroup === 'major');
+
+/* ------------------------------------------------------------------ *
+ * สลากตัวเลขสามหลัก (N3) — คนละใบกับสลากกินแบ่ง 6 หลัก
+ * ------------------------------------------------------------------ */
+
+export type N3PrizeId = 'straight3' | 'shuffle3' | 'straight2' | 'special';
+
+export interface N3PrizeSpec {
+  id: N3PrizeId;
+  name: string;
+  digits: number;
+  /** คำอธิบายว่ารางวัลนี้ตัดสินอย่างไร */
+  note: string;
+}
+
+/**
+ * โครงสร้างรางวัลของสลาก N3
+ *
+ * ⚠️ ต่างจากสลากกินแบ่ง 6 หลักตรงที่ **เงินรางวัลไม่คงที่** เป็นการแบ่งเงินรางวัลตามยอดขาย
+ * และเปลี่ยนทุกงวด (เคยพบตั้งแต่ 380 ถึง 5,801 บาทสำหรับรางวัลเดียวกัน)
+ * เงินรางวัลจึงเก็บไว้ที่ข้อมูลรายงวด ไม่ใช่ในโครงสร้างนี้
+ *
+ * ⚠️ จำนวนรางวัลสามสลับหลักก็ไม่คงที่ ขึ้นกับว่าเลขสามตรงมีตัวเลขซ้ำหรือไม่
+ * (209 สลับได้ 5 แบบ · 212 สลับได้ 2 แบบ) — validator คำนวณจำนวนที่ถูกต้องเองได้
+ */
+export const N3_PRIZE_STRUCTURE: N3PrizeSpec[] = [
+  { id: 'straight3', name: 'รางวัลสามตรง', digits: 3, note: 'เลข 3 หลักตรงตำแหน่ง' },
+  { id: 'shuffle3', name: 'รางวัลสามสลับหลัก', digits: 3, note: 'เลขชุดเดียวกับสามตรงแต่สลับตำแหน่ง' },
+  { id: 'straight2', name: 'รางวัลสองตรง', digits: 2, note: 'เลข 2 หลักท้ายตรงตำแหน่ง' },
+  { id: 'special', name: 'รางวัลพิเศษ', digits: 12, note: 'หมายเลขสลากเต็มที่ได้รับรางวัลพิเศษ' },
+];
+
+export interface N3PrizeResult {
+  /** เงินรางวัลต่อหนึ่งรางวัลของงวดนั้น (บาท) — เปลี่ยนทุกงวด */
+  price: number;
+  numbers: string[];
+}
 
 export const PRIZE_BY_ID: Record<PrizeId, PrizeSpec> = Object.fromEntries(
   PRIZE_STRUCTURE.map((p) => [p.id, p]),
@@ -58,6 +104,11 @@ export interface LotteryDraw {
   drawDate: string;
   /** ผลรางวัลแต่ละประเภท — key ต้องครบทุก PrizeId */
   prizes: Record<PrizeId, string[]>;
+  /**
+   * ผลรางวัลสลากตัวเลขสามหลัก (N3) ของงวดนั้น
+   * optional เพราะงวดก่อนที่ N3 จะเริ่มขาย (พบว่าถึงราวปี 2566) ไม่มีข้อมูลส่วนนี้
+   */
+  n3?: Record<N3PrizeId, N3PrizeResult>;
   /** URL ประกาศของสำนักงานสลากฯ ที่ใช้อ้างอิงตอนกรอก */
   sourceUrl: string;
   /** วันที่คนกรอกตรวจกับประกาศ */
@@ -139,7 +190,70 @@ export function validateDrawIssues(input: unknown): string[] {
     }
   }
 
+  validateN3(draw.n3, issues);
   return issues;
+}
+
+/** การเรียงสับเปลี่ยนที่ไม่ซ้ำกันทั้งหมดของสตริงตัวเลข */
+export function distinctPermutations(value: string): string[] {
+  if (value.length <= 1) return [value];
+  const out = new Set<string>();
+  for (let i = 0; i < value.length; i++) {
+    const rest = value.slice(0, i) + value.slice(i + 1);
+    for (const p of distinctPermutations(rest)) out.add(value[i] + p);
+  }
+  return [...out];
+}
+
+/**
+ * รางวัลสามสลับหลักที่ถูกต้องของเลขสามตรงหนึ่งค่า
+ * = การเรียงสับเปลี่ยนทั้งหมดที่ไม่ซ้ำกัน ยกเว้นตัวเลขเดิม (ซึ่งเป็นรางวัลสามตรงไปแล้ว)
+ * เลขที่มีตัวซ้ำอย่าง 212 จึงได้ 2 รางวัล ส่วนเลขที่ไม่ซ้ำอย่าง 209 ได้ 5 รางวัล
+ */
+export function expectedShuffle3(straight3: string): string[] {
+  return distinctPermutations(straight3).filter((v) => v !== straight3).sort();
+}
+
+function validateN3(n3: unknown, issues: string[]): void {
+  if (n3 === undefined) return; // งวดก่อน N3 เริ่มขายไม่มีส่วนนี้ ถือว่าถูกต้อง
+  if (typeof n3 !== 'object' || n3 === null) {
+    issues.push('n3 ต้องเป็นอ็อบเจกต์ หรือไม่มีเลยถ้างวดนั้นยังไม่มีสลาก N3');
+    return;
+  }
+  const groups = n3 as Record<string, unknown>;
+
+  for (const spec of N3_PRIZE_STRUCTURE) {
+    const group = groups[spec.id] as Partial<N3PrizeResult> | undefined;
+    if (!group || typeof group !== 'object') {
+      issues.push(`n3.${spec.id} (${spec.name}) ไม่มีข้อมูล`);
+      continue;
+    }
+    if (typeof group.price !== 'number' || !Number.isFinite(group.price) || group.price <= 0) {
+      issues.push(`${spec.name}: เงินรางวัลต้องเป็นตัวเลขมากกว่า 0`);
+    }
+    if (!Array.isArray(group.numbers) || group.numbers.length === 0) {
+      issues.push(`${spec.name}: numbers ต้องเป็น array ที่มีอย่างน้อยหนึ่งรายการ`);
+      continue;
+    }
+    for (const n of group.numbers) {
+      if (typeof n !== 'string' || !new RegExp(`^\\d{${spec.digits}}$`).test(n)) {
+        issues.push(`${spec.name}: "${String(n)}" ต้องเป็นตัวเลข ${spec.digits} หลักในรูปสตริง`);
+      }
+    }
+  }
+
+  // สามสลับหลักต้องเป็นการสลับตำแหน่งของสามตรงพอดี — ตรวจอัตโนมัติได้ทั้งชุดและจำนวน
+  const straight = (groups.straight3 as N3PrizeResult | undefined)?.numbers?.[0];
+  const shuffle = (groups.shuffle3 as N3PrizeResult | undefined)?.numbers;
+  if (typeof straight === 'string' && /^\d{3}$/.test(straight) && Array.isArray(shuffle)) {
+    const expected = expectedShuffle3(straight);
+    const got = [...shuffle].sort();
+    if (JSON.stringify(got) !== JSON.stringify(expected)) {
+      issues.push(
+        `รางวัลสามสลับหลักของเลข ${straight} ต้องเป็น ${expected.join(' ')} (${expected.length} รางวัล) แต่พบ ${got.join(' ')}`,
+      );
+    }
+  }
 }
 
 /** เลขก่อนหน้าและถัดจากรางวัลที่ 1 — วนรอบที่ 000000 และ 999999 */
