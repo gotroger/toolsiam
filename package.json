@@ -18,7 +18,9 @@
     "covers:fallback": "node scripts/gen-fallback-covers.mjs",
     "size": "node scripts/size.mjs",
     "brand": "python3 scripts/build-brand.py",
-    "lottery": "node scripts/fetch-lottery.mjs"
+    "lottery": "node scripts/fetch-lottery.mjs",
+    "deploy:cron": "wrangler deploy -c workers/lottery-cron/wrangler.jsonc",
+    "dev:cron": "wrangler dev -c workers/lottery-cron/wrangler.jsonc --test-scheduled"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
