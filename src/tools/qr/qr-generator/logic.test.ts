@@ -4,7 +4,7 @@ import { normalizeUrl, buildWifiPayload, buildVCardPayload, buildQrPayload } fro
 describe('normalizeUrl', () => {
   it('เติม https:// ให้อัตโนมัติเมื่อไม่มี scheme', () => {
     expect(normalizeUrl('toolsiam.com')).toBe('https://toolsiam.com');
-    expect(normalizeUrl('  toolsiam.com/t/qr-generator ')).toBe('https://toolsiam.com/t/qr-generator');
+    expect(normalizeUrl('  toolsiam.com/tools/qr-generator ')).toBe('https://toolsiam.com/tools/qr-generator');
   });
 
   it('ไม่แตะ scheme ที่มีอยู่แล้ว', () => {

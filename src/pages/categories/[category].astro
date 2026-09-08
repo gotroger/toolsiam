@@ -1,20 +1,36 @@
 ---
 import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
 import ToolCard from '@/components/ToolCard.astro';
 import { categories, getToolsByCategory } from '@/tools/registry';
 import { cardGrid, cardGridItem } from '@/components/grids';
 import { DEFAULT_OG_IMAGE, resolveOgImage } from '@/tools/covers';
+import { collectionPageJsonLd } from '@/lib/seo';
+import { getCategoryUrl, getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
 
 export function getStaticPaths() {
   return categories.map((category) => ({ params: { category: category.id }, props: { category } }));
 }
 const { category } = Astro.props;
 const list = getToolsByCategory(category.id);
+const path = getCategoryUrl(category);
+const description = `เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`;
 // ใช้ภาพของเครื่องมือตัวแรกในหมวดเป็นตัวแทน หมวดที่ยังว่างใช้ภาพเริ่มต้น
 const og = list.length > 0 ? resolveOgImage(list[0]) : { src: DEFAULT_OG_IMAGE, alt: `เครื่องมือหมวด${category.name} — ทูลสยาม` };
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: 'เครื่องมือทั้งหมด', path: getToolsUrl() },
+  { name: category.name, path },
+];
+const jsonLd = [
+  ...(list.length > 0
+    ? [collectionPageJsonLd({ name: category.name, description, path, items: list.map((t) => ({ name: t.name, path: getToolUrl(t.slug) })) })]
+    : []),
+];
 ---
-<Base wide title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`} noindex={list.length === 0} ogImage={og.src} ogImageAlt={og.alt}>
-  <div class="flex items-start gap-3">
+<Base wide title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={description} jsonLd={jsonLd} ogImage={og.src} ogImageAlt={og.alt}>
+  <Breadcrumb items={crumbs} />
+  <div class="mt-2 flex items-start gap-3">
     <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-2xl" aria-hidden="true">{category.icon}</div>
     <div>
       <h1 class="text-[1.75rem] font-bold tracking-tight text-slate-900 sm:text-3xl">{category.name}</h1>
@@ -26,7 +42,7 @@ const og = list.length > 0 ? resolveOgImage(list[0]) : { src: DEFAULT_OG_IMAGE, 
       <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-2xl" aria-hidden="true">{category.icon}</div>
       <h2 class="mt-4 font-semibold text-slate-900">กำลังเพิ่มเครื่องมือในหมวดนี้</h2>
       <p class="mx-auto mt-1 max-w-sm text-sm text-slate-600">เร็ว ๆ นี้ ระหว่างนี้ลองดูเครื่องมือหมวดอื่นได้เลย</p>
-      <a href="/tools" class="mt-5 inline-block rounded-[11px] bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2">ดูเครื่องมือทั้งหมด</a>
+      <a href={getToolsUrl()} class="mt-5 inline-block rounded-[11px] bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2">ดูเครื่องมือทั้งหมด</a>
     </div>
   ) : (
     <div class:list={['mt-8', cardGrid]}>

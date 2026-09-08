@@ -3,11 +3,14 @@ import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
 import { tools, categories, getToolsByCategory } from '@/tools/registry';
 import { cardGrid, cardGridItem } from '@/components/grids';
+import { getCategoryUrl, getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
+import { collectionPageJsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 
 const categoryCounts = categories.map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
 const popular = tools.slice(0, 8);
+const jsonLd = [organizationJsonLd(), websiteJsonLd()];
 ---
-<Base wide title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง">
+<Base wide jsonLd={jsonLd} title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง">
   <section class="py-6 text-center sm:py-10">
     <h1 class="mx-auto max-w-3xl text-balance text-[1.875rem] font-bold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.75rem]">
       เครื่องมือออนไลน์ภาษาไทย ใช้ง่าย ใช้ฟรี
@@ -17,13 +20,13 @@ const popular = tools.slice(0, 8);
     </p>
     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
       <a
-        href="/tools"
+        href={getToolsUrl()}
         class="inline-flex items-center rounded-[11px] bg-brand-600 px-5 py-2.5 text-[0.9375rem] font-medium text-white transition-colors duration-150 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
       >
         ดูเครื่องมือทั้งหมด ({tools.length})
       </a>
       <a
-        href="#categories"
+        href={`${getHomeUrl()}#categories`}
         class="inline-flex items-center rounded-[11px] border border-slate-200 bg-white px-5 py-2.5 text-[0.9375rem] font-medium text-slate-700 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
       >
         เลือกตามหมวดหมู่
@@ -37,7 +40,7 @@ const popular = tools.slice(0, 8);
     <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
       {categoryCounts.map((c) => (
         <a
-          href={`/c/${c.id}`}
+          href={getCategoryUrl(c)}
           class="group rounded-xl border border-slate-200 bg-white p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-brand-500/50 hover:shadow-[0_6px_18px_-8px_rgb(5_150_105/0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
           <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-xl" aria-hidden="true">{c.icon}</div>
@@ -57,7 +60,7 @@ const popular = tools.slice(0, 8);
         <p class="mt-1.5 text-sm text-slate-500">เครื่องมือที่คนไทยใช้บ่อยที่สุด</p>
       </div>
       <a
-        href="/tools"
+        href={getToolsUrl()}
         class="rounded-lg text-sm font-medium text-brand-700 transition-colors duration-150 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
       >
         ดูทั้งหมด

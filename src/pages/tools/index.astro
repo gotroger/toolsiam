@@ -1,0 +1,31 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import ToolSearch from '@/components/ToolSearch';
+import { tools } from '@/tools/registry';
+import { collectionPageJsonLd } from '@/lib/seo';
+import { getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
+
+const title = 'เครื่องมือทั้งหมด';
+const description = `รวมเครื่องมือออนไลน์ภาษาไทย ${tools.length} รายการ ค้นหาตามหมวดหมู่ ใช้งานได้ทันทีบนเบราว์เซอร์ ไม่ต้องติดตั้ง`;
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: title, path: getToolsUrl() },
+];
+const jsonLd = [
+  collectionPageJsonLd({
+    name: title,
+    description,
+    path: getToolsUrl(),
+    items: tools.map((t) => ({ name: t.name, path: getToolUrl(t.slug) })),
+  }),
+];
+---
+<Base wide title={`${title} — ทูลสยาม`} description={description} jsonLd={jsonLd}>
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-[1.75rem] font-bold tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
+  <p class="mt-2 max-w-xl text-slate-600">ค้นหาหรือกรองตามหมวดหมู่ ทุกเครื่องมือใช้ได้ทันทีไม่ต้องสมัคร</p>
+  <div class="mt-6">
+    <ToolSearch client:load />
+  </div>
+</Base>

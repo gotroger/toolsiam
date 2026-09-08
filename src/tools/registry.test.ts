@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { tools, categories, getTool, getToolsByCategory, getCategory } from './registry';
 import { toolLoaders } from './loaders';
 import { DEFAULT_OG_IMAGE, FALLBACK_COVER, resolveCover, resolveOgImage } from './covers';
+import { NOINDEX_CATEGORY_IDS, NOINDEX_TOOL_SLUGS } from '@/lib/noindex';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -33,6 +34,17 @@ describe('registry', () => {
     for (const c of categories) {
       for (const t of getToolsByCategory(c.id)) expect(t.category).toBe(c.id);
     }
+  });
+});
+
+describe('noindex list ตรงกับ registry', () => {
+  it('NOINDEX_CATEGORY_IDS = หมวดที่ยังไม่มีเครื่องมือ', () => {
+    const empty = categories.filter((c) => getToolsByCategory(c.id).length === 0).map((c) => c.id);
+    expect([...NOINDEX_CATEGORY_IDS].sort()).toEqual(empty.sort());
+  });
+
+  it('NOINDEX_TOOL_SLUGS ชี้ไปเครื่องมือที่มีอยู่จริง', () => {
+    for (const slug of NOINDEX_TOOL_SLUGS) expect(getTool(slug)).toBeDefined();
   });
 });
 

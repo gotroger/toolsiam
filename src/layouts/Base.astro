@@ -3,12 +3,15 @@ import '@/styles/global.css';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import { COVER_HEIGHT, COVER_WIDTH, DEFAULT_OG_IMAGE } from '@/tools/covers';
+import { isNoindexPath, normalizePath } from '@/lib/noindex';
 
 interface Props {
   title: string;
   description: string;
   jsonLd?: Record<string, unknown>[];
   noindex?: boolean;
+  /** override path ที่ใช้คำนวณ canonical (ปกติไม่ต้องระบุ — ใช้ pathname ของหน้าเอง) */
+  canonicalPath?: string;
   /** true = ใช้ความกว้างเต็มคอนเทนเนอร์ 1320px (หน้ากริดการ์ด) / false = จำกัดความกว้างเพื่อให้อ่านง่าย */
   wide?: boolean;
   /** ภาพ og:image (path จาก root) ถ้าไม่ระบุจะใช้ภาพเริ่มต้นของเว็บ */
@@ -16,11 +19,15 @@ interface Props {
   ogImageAlt?: string;
 }
 const {
-  title, description, jsonLd = [], noindex = false, wide = false,
+  title, description, jsonLd = [], noindex = false, wide = false, canonicalPath,
   ogImage = DEFAULT_OG_IMAGE,
   ogImageAlt = 'ทูลสยาม ToolSiam — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี',
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, ''), Astro.site);
+// normalizePath ตัด .html / trailing slash ให้ทุกหน้า รวม nested route เช่น /lottery/results/2026-09-01
+const canonicalPathname = canonicalPath ?? normalizePath(Astro.url.pathname);
+const canonical = new URL(canonicalPathname, Astro.site);
+// noindex มาจากรายการกลางเสมอ prop เป็นแค่ตัวเสริม → sitemap กับ meta ไม่มีทางไม่ตรงกัน
+const isNoindex = noindex || isNoindexPath(canonicalPathname);
 // crawler ส่วนใหญ่ต้องการ URL เต็ม ไม่ใช่ path
 const ogImageUrl = new URL(ogImage, Astro.site);
 const ogImageType = ogImage.endsWith('.png') ? 'image/png' : ogImage.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
@@ -32,7 +39,7 @@ const ogImageType = ogImage.endsWith('.png') ? 'image/png' : ogImage.endsWith('.
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {isNoindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
