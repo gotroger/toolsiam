@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
  */
 export function ResultBox({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="rounded-[10px] border border-brand-600/20 bg-brand-50 p-4" aria-live="polite">
+    <div className="result-box border border-brand-600/20" aria-live="polite">
       <div className="text-xs font-medium text-brand-700">{label}</div>
       <div className="mt-1 break-words text-lg font-semibold">{children}</div>
     </div>
@@ -28,19 +28,38 @@ export function Stat({ label, value }: { label: string; value: ReactNode }) {
  * ไอคอนต่างกันด้วยรูปทรง ไม่ใช่แค่สี — ผู้ใช้ที่แยกสีไม่ได้ต้องอ่านออกเหมือนกัน (A6)
  */
 export function Alert({
-  tone = 'note', title, children,
-}: { tone?: 'note' | 'danger'; title?: string; children: ReactNode }) {
-  const styles = tone === 'danger'
-    ? 'border-red-200 bg-red-50 text-red-900'
-    : 'border-amber-200 bg-amber-50 text-amber-900';
+  tone = 'note',
+  title,
+  children,
+}: {
+  tone?: 'note' | 'danger';
+  title?: string;
+  children: ReactNode;
+}) {
+  const styles =
+    tone === 'danger' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900';
   // note = วงกลมมีเครื่องหมายตกใจ · danger = สามเหลี่ยม
-  const path = tone === 'danger'
-    ? 'M12 4.5 21 19.5H3L12 4.5Zm0 5.5v4.2m0 2.6v.2'
-    : 'M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17Zm0 7.3v5.4m0-8.2v.2';
+  const path =
+    tone === 'danger'
+      ? 'M12 4.5 21 19.5H3L12 4.5Zm0 5.5v4.2m0 2.6v.2'
+      : 'M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17Zm0 7.3v5.4m0-8.2v.2';
 
   return (
-    <div role={tone === 'danger' ? 'alert' : undefined} className={`flex items-start gap-2 rounded-[10px] border p-3 text-sm ${styles}`}>
-      <svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <div
+      role={tone === 'danger' ? 'alert' : undefined}
+      className={`flex items-start gap-2 rounded-[10px] border p-3 text-sm ${styles}`}
+    >
+      <svg
+        className="mt-0.5 h-4 w-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
         <path d={path} />
       </svg>
       <div>
@@ -62,12 +81,28 @@ export function Disclaimer({ children }: { children: ReactNode }) {
  * ต้องมีทางออกเสมอ (`action`) กล่องที่บอกว่าไม่เจอแล้วปล่อยผู้ใช้ค้างคือทางตัน
  */
 export function EmptyState({
-  title, description, action,
-}: { title: string; description?: ReactNode; action?: ReactNode }) {
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: ReactNode;
+  action?: ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-dashed border-slate-300 bg-surface px-6 py-14 text-center">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
-        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+        <svg
+          className="h-6 w-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
           <path d="M10.8 4a6.8 6.8 0 1 1 0 13.6 6.8 6.8 0 0 1 0-13.6Zm4.9 11.7L20 20" />
         </svg>
       </div>

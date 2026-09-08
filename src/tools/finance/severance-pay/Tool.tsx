@@ -1,7 +1,14 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { useDateInput } from '@/lib/use-today';
-import { calculateSeverance, DAILY_WAGE_DIVISORS, NO_SEVERANCE_REASONS, SEVERANCE_BANDS, type DailyWageDivisor } from './logic';
-import { DataTable, Disclaimer, ErrorText, Field, Input, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
+import {
+  calculateSeverance,
+  DAILY_WAGE_DIVISORS,
+  NO_SEVERANCE_REASONS,
+  SEVERANCE_BANDS,
+  type DailyWageDivisor,
+} from './logic';
+import { DataTable, Disclaimer, ErrorText, Field, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
 import { formatBaht, formatNumber } from '@/lib/format';
 import { getToolUrl } from '@/lib/routes';
 
@@ -32,25 +39,30 @@ export default function SeverancePayTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <NumberInput id="salary" label="ค่าจ้างอัตราสุดท้ายต่อเดือน" mode="decimal" value={salary} onValueChange={setSalary} suffix="บาท" />
+        <NumberInput
+          id="salary"
+          label="ค่าจ้างอัตราสุดท้ายต่อเดือน"
+          mode="decimal"
+          value={salary}
+          onValueChange={setSalary}
+          suffix="บาท"
+        />
         <Field label="วันเริ่มงาน" htmlFor="start">
-          <Input id="start" type="date" min={MIN_DATE} max={MAX_DATE} value={start} onChange={(e) => setStart(e.target.value)} />
+          <DatePicker id="start" min={MIN_DATE} max={MAX_DATE} value={start} onValueChange={setStart} />
         </Field>
         <Field label="วันสุดท้ายของการทำงาน" htmlFor="end">
-          <Input id="end" type="date" min={MIN_DATE} max={MAX_DATE} value={end} onChange={(e) => setEnd(e.target.value)} />
+          <DatePicker id="end" min={MIN_DATE} max={MAX_DATE} value={end} onValueChange={setEnd} />
         </Field>
-        <Field
-          label="ตัวหารค่าจ้างรายวัน"
-          htmlFor="divisor"
-          hint="กฎหมายไม่ได้กำหนดไว้ ให้ดูจากระเบียบของนายจ้าง"
-        >
+        <Field label="ตัวหารค่าจ้างรายวัน" htmlFor="divisor" hint="กฎหมายไม่ได้กำหนดไว้ ให้ดูจากระเบียบของนายจ้าง">
           <Select
             id="divisor"
             value={String(divisor)}
             onChange={(e) => setDivisor(Number(e.target.value) as DailyWageDivisor)}
             aria-describedby="divisor-hint"
           >
-            {DAILY_WAGE_DIVISORS.map((d) => <option key={d} value={String(d)}>{`หารด้วย ${d} วัน`}</option>)}
+            {DAILY_WAGE_DIVISORS.map((d) => (
+              <option key={d} value={String(d)}>{`หารด้วย ${d} วัน`}</option>
+            ))}
           </Select>
         </Field>
       </div>
@@ -91,13 +103,18 @@ export default function SeverancePayTool() {
           <div>
             <h2 className="mb-2 text-base font-medium text-slate-900">กรณีที่นายจ้างไม่ต้องจ่ายค่าชดเชย (มาตรา 119)</h2>
             <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-              {NO_SEVERANCE_REASONS.map((r) => <li key={r}>{r}</li>)}
+              {NO_SEVERANCE_REASONS.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
             </ul>
           </div>
 
           <p className="text-sm text-slate-600">
             ต้องการดูแค่อายุงานอย่างเดียว ใช้{' '}
-            <a href={getToolUrl('work-tenure')} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+            <a
+              href={getToolUrl('work-tenure')}
+              className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+            >
               เครื่องมือคำนวณอายุงาน
             </a>
           </p>

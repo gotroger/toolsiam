@@ -1,0 +1,71 @@
+---
+import type { ToolMeta } from '@/tools/types';
+type Props = Pick<ToolMeta, 'howTo' | 'faq'>;
+const { howTo, faq } = Astro.props;
+---
+
+<div class="tool-help">
+  <section class="tool-help-guide" aria-labelledby="how-to-heading">
+    <header class="tool-help-heading">
+      <span class="help-symbol" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+          ><path
+            d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5zm0 13A2.5 2.5 0 0 1 6.5 16H20M8 7h8M8 11h5"
+          ></path></svg
+        >
+      </span>
+      <div><h2 id="how-to-heading">วิธีใช้งาน</h2><p>เริ่มต้นได้ใน {howTo.length} ขั้นตอน</p></div>
+    </header>
+    <ol class="help-steps">
+      {
+        howTo.map((step, index) => (
+          <li>
+            <>
+              <span class="help-step-number" aria-hidden="true">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <p>{step}</p>
+            </>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+  <section class="tool-help-faq" aria-labelledby="faq-heading">
+    <header class="tool-help-heading">
+      <span class="help-symbol" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+          ><path d="M8 19 3 21V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2Z"></path><path
+            d="M9.5 8a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1-1.5 2M12 14v1"></path></svg
+        >
+      </span>
+      <div><h2 id="faq-heading">คำถามที่พบบ่อย</h2><p>รายละเอียดที่ช่วยให้ใช้งานได้มั่นใจขึ้น</p></div>
+    </header>
+    <div class="help-questions">
+      {
+        faq.map((item, index) => (
+          <details class="help-question" open={index === 0}>
+            <summary>
+              <>
+                <span>{item.q}</span>
+                <svg
+                  class="help-toggle"
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="m5 7.5 5 5 5-5" />
+                </svg>
+              </>
+            </summary>
+            <div class="help-answer">
+              <p>{item.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+</div>

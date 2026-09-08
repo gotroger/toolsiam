@@ -2,7 +2,8 @@
 import Base from '@/layouts/Base.astro';
 import Breadcrumb from '@/components/Breadcrumb.astro';
 import ToolSearch from '@/components/ToolSearch';
-import { getVisibleTools } from '@/tools/registry';
+import { toDiscoveryTool } from '@/components/tool-presentation';
+import { getVisibleTools, getActiveCategories } from '@/tools/registry';
 import { collectionPageJsonLd } from '@/lib/seo';
 import { getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
 
@@ -23,11 +24,12 @@ const jsonLd = [
   }),
 ];
 ---
+
 <Base wide title={`${title} — ทูลสยาม`} description={description} jsonLd={jsonLd}>
   <Breadcrumb items={crumbs} />
   <h1 class="mt-2 text-[1.75rem] font-medium tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
   <p class="mt-2 max-w-xl text-slate-600">ค้นหาหรือกรองตามหมวดหมู่ ทุกเครื่องมือใช้ได้ทันทีไม่ต้องสมัคร</p>
   <div class="mt-6">
-    <ToolSearch client:load />
+    <ToolSearch client:load tools={tools.map(toDiscoveryTool)} categories={getActiveCategories()} />
   </div>
 </Base>

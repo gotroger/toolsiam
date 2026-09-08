@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { DataTable } from './table';
 
-interface Row { period: number; payment: string }
+interface Row {
+  period: number;
+  payment: string;
+}
 const rows: Row[] = [
   { period: 1, payment: '11,355.78' },
   { period: 2, payment: '11,355.78' },
@@ -23,6 +27,12 @@ function Harness() {
 }
 
 describe('DataTable', () => {
+  it('เข้าถึงพื้นที่เลื่อนตารางด้วยปุ่ม Tab ได้', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.tab();
+    expect(screen.getByRole('region', { name: 'ตารางผ่อนชำระรายงวด' })).toHaveFocus();
+  });
   it('มี caption ให้ screen reader รู้ว่าตารางนี้คืออะไร (ซ่อนจากสายตา)', () => {
     render(<Harness />);
     expect(screen.getByRole('table')).toHaveAccessibleName('ตารางผ่อนชำระรายงวด');

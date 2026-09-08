@@ -10,7 +10,13 @@ export default function ThaiIdCheckTool() {
   return (
     <div className="space-y-4">
       <Field label="เลขบัตรประชาชน" htmlFor="id" hint="ใส่ขีดหรือเว้นวรรคได้ ระบบตัดให้อัตโนมัติ">
-        <Input id="id" inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value)} placeholder="1-2345-67890-12-1" autoFocus />
+        <Input
+          id="id"
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="1-2345-67890-12-1"
+        />
       </Field>
 
       {touched && (
@@ -24,8 +30,12 @@ export default function ThaiIdCheckTool() {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => setValue(formatThaiId(randomThaiId()))}>สุ่มเลขทดสอบ</Button>
-        <Button variant="secondary" onClick={() => setValue('')}>ล้าง</Button>
+        <Button variant="secondary" onClick={() => setValue(formatThaiId(randomThaiId()))}>
+          สุ่มเลขทดสอบ
+        </Button>
+        <Button variant="secondary" onClick={() => setValue('')}>
+          ล้าง
+        </Button>
       </div>
 
       <p className="text-xs text-slate-500">

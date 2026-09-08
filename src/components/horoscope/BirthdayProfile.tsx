@@ -1,10 +1,15 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useDateInput } from '@/lib/use-today';
 import {
-  chineseZodiacFromDate, CHINESE_ZODIAC_MAX_YEAR, CHINESE_ZODIAC_MIN_YEAR,
-  dayColorsFromDate, numerologyFromDate, zodiacFromDate,
+  chineseZodiacFromDate,
+  CHINESE_ZODIAC_MAX_YEAR,
+  CHINESE_ZODIAC_MIN_YEAR,
+  dayColorsFromDate,
+  numerologyFromDate,
+  zodiacFromDate,
 } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
-import { ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
+import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
 import { getHoroscopePageUrl } from '@/lib/routes';
 
 /**
@@ -40,7 +45,14 @@ export default function BirthdayProfile() {
   return (
     <div className="space-y-5">
       <Field label="วันเกิดของคุณ" htmlFor="bd-birth" hint="ช่องวันที่ใช้ปฏิทินปี ค.ศ. ให้ลบ 543 จากปี พ.ศ. ก่อน">
-        <Input id="bd-birth" type="date" min="1900-01-01" max="2200-12-31" value={birth} onChange={(e) => setBirth(e.target.value)} aria-describedby="bd-birth-hint" />
+        <DatePicker
+          id="bd-birth"
+          min="1900-01-01"
+          max="2200-12-31"
+          value={birth}
+          onValueChange={setBirth}
+          aria-describedby="bd-birth-hint"
+        />
       </Field>
 
       {error && <ErrorText>{error}</ErrorText>}
@@ -71,7 +83,10 @@ export default function BirthdayProfile() {
               <h3 className="text-sm font-medium text-slate-900">ลักษณะตามราศี</h3>
               <p className="mt-1.5 text-sm text-slate-700">{sign.summary}</p>
               <p className="mt-2 text-xs text-slate-500">
-                ดูรายละเอียดที่ <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('zodiac')}>หน้าราศีจากวันเกิด</a>
+                ดูรายละเอียดที่{' '}
+                <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('zodiac')}>
+                  หน้าราศีจากวันเกิด
+                </a>
               </p>
             </section>
 
@@ -84,7 +99,10 @@ export default function BirthdayProfile() {
                 <li>โชคลาภ: {colors.luck.join(' · ')}</li>
               </ul>
               <p className="mt-2 text-xs text-slate-500">
-                ดูรายละเอียดที่ <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('lucky-color')}>หน้าสีมงคลประจำวัน</a>
+                ดูรายละเอียดที่{' '}
+                <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('lucky-color')}>
+                  หน้าสีมงคลประจำวัน
+                </a>
               </p>
             </section>
 
@@ -92,7 +110,10 @@ export default function BirthdayProfile() {
               <h3 className="text-sm font-medium text-slate-900">เลขศาสตร์วันเกิด</h3>
               <p className="mt-1.5 text-sm text-slate-700">{numbers.meaning}</p>
               <p className="mt-2 text-xs text-slate-500">
-                ดูวิธีคำนวณที่ <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('numerology')}>หน้าเลขศาสตร์วันเกิด</a>
+                ดูวิธีคำนวณที่{' '}
+                <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('numerology')}>
+                  หน้าเลขศาสตร์วันเกิด
+                </a>
               </p>
             </section>
 
@@ -102,7 +123,12 @@ export default function BirthdayProfile() {
                 <p className="mt-1.5 text-sm text-slate-700">{chinese.animal.summary}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   ตรุษจีนของปีเกิดคือ {formatThaiDate(chinese.newYearDate, { style: 'medium' })} ·{' '}
-                  <a className="text-brand-700 underline underline-offset-2" href={getHoroscopePageUrl('chinese-zodiac')}>ดูรายละเอียด</a>
+                  <a
+                    className="text-brand-700 underline underline-offset-2"
+                    href={getHoroscopePageUrl('chinese-zodiac')}
+                  >
+                    ดูรายละเอียด
+                  </a>
                 </p>
               </section>
             )}

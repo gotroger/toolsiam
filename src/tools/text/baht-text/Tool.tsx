@@ -17,7 +17,7 @@ export default function BahtTextTool() {
   return (
     <div className="space-y-4">
       <Field label="จำนวนเงิน (บาท)" htmlFor="amount" hint="ใส่คอมมาหรือทศนิยมได้ เช่น 1,234.50">
-        <Input id="amount" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+        <Input id="amount" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} />
       </Field>
       {error && <ErrorText>{error}</ErrorText>}
       <ResultBox label="คำอ่านภาษาไทย">{result || '—'}</ResultBox>

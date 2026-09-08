@@ -1,7 +1,22 @@
 import { useState } from 'react';
 import {
-  Alert, Button, Checkbox, CopyButton, DataTable, Disclaimer, EmptyState, ErrorText,
-  Field, Input, NumberInput, ResultBox, Select, Stat, TabPanel, Tabs, Textarea,
+  Alert,
+  Button,
+  Checkbox,
+  CopyButton,
+  DataTable,
+  Disclaimer,
+  EmptyState,
+  ErrorText,
+  Field,
+  Input,
+  NumberInput,
+  ResultBox,
+  Select,
+  Stat,
+  TabPanel,
+  Tabs,
+  Textarea,
 } from '@/components/ui';
 
 /**
@@ -28,8 +43,13 @@ export default function DesignSystemDemo() {
       <TabPanel id="normal" idPrefix="ds" active={tab === 'normal'}>
         <div className="grid gap-4 sm:grid-cols-2">
           <NumberInput
-            id="ds-salary" label="เงินเดือน" mode="decimal" value={amount}
-            onValueChange={setAmount} suffix="บาท" hint="กรอกยอดก่อนหักภาษี"
+            id="ds-salary"
+            label="เงินเดือน"
+            mode="decimal"
+            value={amount}
+            onValueChange={setAmount}
+            suffix="บาท"
+            hint="กรอกยอดก่อนหักภาษี"
           />
           <Field label="หมวดหมู่" htmlFor="ds-cat">
             <Select id="ds-cat" defaultValue="finance">
@@ -49,23 +69,38 @@ export default function DesignSystemDemo() {
       <TabPanel id="error" idPrefix="ds" active={tab === 'error'}>
         <div className="grid gap-4 sm:grid-cols-2">
           <NumberInput
-            id="ds-bad" label="เงินเดือน" mode="decimal" value="abc"
-            onValueChange={() => {}} suffix="บาท" error="ต้องเป็นตัวเลขเท่านั้น"
+            id="ds-bad"
+            label="เงินเดือน"
+            mode="decimal"
+            value="abc"
+            onValueChange={() => {}}
+            suffix="บาท"
+            error="ต้องเป็นตัวเลขเท่านั้น"
           />
-          <div className="self-end"><ErrorText>ข้อความผิดพลาดแบบลอย ไม่ผูกกับช่องใด</ErrorText></div>
+          <div className="self-end">
+            <ErrorText>ข้อความผิดพลาดแบบลอย ไม่ผูกกับช่องใด</ErrorText>
+          </div>
         </div>
       </TabPanel>
 
       <div className="space-y-3">
         <Field label="ข้อความหลายบรรทัด" htmlFor="ds-textarea">
-          <Textarea id="ds-textarea" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder='{ "ok": true }' />
+          <Textarea
+            id="ds-textarea"
+            rows={3}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder='{ "ok": true }'
+          />
         </Field>
         <Checkbox label="ส่งประกันสังคม (มาตรา 33)" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
       </div>
 
       <div className="flex flex-wrap items-start gap-3">
-        <Button>ปุ่มหลัก</Button>
-        <Button variant="secondary">ปุ่มรอง</Button>
+        <Button onClick={() => setText('{ "ok": true }')}>ใส่ข้อความตัวอย่าง</Button>
+        <Button variant="secondary" onClick={() => setText('')}>
+          ล้างข้อความ
+        </Button>
         <Button disabled>ปิดใช้งาน</Button>
         <CopyButton text="0812345678" />
         <CopyButton text="" label="ไม่มีอะไรให้คัดลอก" />
@@ -78,8 +113,12 @@ export default function DesignSystemDemo() {
       </div>
 
       <div className="space-y-3">
-        <Alert tone="note" title="กล่องแจ้งเชิงข้อมูล">ตัวเลขนี้เป็นการประมาณ ใช้ตรวจสอบเบื้องต้นเท่านั้น</Alert>
-        <Alert tone="danger" title="กล่องแจ้งเมื่อมีอะไรพัง">ลองโหลดหน้าใหม่อีกครั้ง</Alert>
+        <Alert tone="note" title="กล่องแจ้งเชิงข้อมูล">
+          ตัวเลขนี้เป็นการประมาณ ใช้ตรวจสอบเบื้องต้นเท่านั้น
+        </Alert>
+        <Alert tone="danger" title="กล่องแจ้งเมื่อมีอะไรพัง">
+          ลองโหลดหน้าใหม่อีกครั้ง
+        </Alert>
         <Disclaimer>เนื้อหาเป็นความเชื่อตามตำรา จัดทำเพื่อความบันเทิงเท่านั้น</Disclaimer>
       </div>
 

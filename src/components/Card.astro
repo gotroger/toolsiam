@@ -13,18 +13,20 @@ interface Props {
   /** แท็กที่จะ render — `li` สำหรับการ์ดในรายการ, `div` เมื่ออยู่ใน section อยู่แล้ว */
   as?: 'section' | 'div' | 'li' | 'article';
   /** lg = การ์ดหุ้มเครื่องมือ/เนื้อหาหลัก · md = การ์ดในกริด · sm = ชิปในรายการ */
-  size?: 'lg' | 'md' | 'sm';
+  size?: 'lg' | 'md' | 'sm' | 'workspace';
   class?: string;
   [key: string]: unknown;
 }
 const { as: Tag = 'section', size = 'lg', class: cls, ...rest } = Astro.props;
 
 const SIZES = {
-  lg: 'rounded-xl p-4 sm:p-6',
+  workspace: 'tool-workspace',
+  lg: 'rounded-2xl p-4 sm:p-6',
   md: 'rounded-[10px] p-4',
   sm: 'rounded-lg px-3 py-2 text-sm',
 } as const;
 ---
+
 <Tag class:list={['border border-slate-200 bg-surface', SIZES[size], cls]} {...rest}>
   <slot />
 </Tag>

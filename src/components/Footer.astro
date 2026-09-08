@@ -26,19 +26,14 @@ const toolLinks = [
 const linkClass =
   'rounded text-sm text-slate-600 transition-colors duration-150 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600';
 ---
-<footer class="mt-20 border-t border-slate-200 bg-brand-50/40">
+
+<footer
+  class="mt-20 border-t border-slate-200 bg-[var(--footer-surface,color-mix(in_srgb,var(--color-brand-50)_40%,transparent))]"
+>
   <div class="site-container py-12 lg:py-16">
     <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
       <div class="sm:col-span-2 lg:col-span-1">
-        <img
-          src="/logo.png"
-          alt="ทูลสยาม"
-          width="401"
-          height="96"
-          loading="lazy"
-          decoding="async"
-          class="h-7 w-auto"
-        />
+        <img src="/logo.png" alt="ทูลสยาม" width="401" height="96" loading="lazy" decoding="async" class="h-7 w-auto" />
         <p class="mt-3 max-w-xs text-sm leading-relaxed text-slate-600">
           เครื่องมือออนไลน์ภาษาไทย ใช้ง่าย ใช้ฟรี ทำงานในเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม
         </p>
@@ -47,18 +42,30 @@ const linkClass =
       <div>
         <h2 class="text-sm font-medium text-slate-900">เครื่องมือ</h2>
         <ul class="mt-4 space-y-2.5">
-          {toolLinks.map((l) => (
-            <li><a href={l.href} class={linkClass}>{l.label}</a></li>
-          ))}
+          {
+            toolLinks.map((l) => (
+              <li>
+                <a href={l.href} class={linkClass}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
         </ul>
       </div>
 
       <div>
         <h2 class="text-sm font-medium text-slate-900">หมวดหมู่เครื่องมือ</h2>
         <ul class="mt-4 space-y-2.5">
-          {topCategories.map((c) => (
-            <li><a href={getCategoryUrl(c)} class={linkClass}>{c.name}</a></li>
-          ))}
+          {
+            topCategories.map((c) => (
+              <li>
+                <a href={getCategoryUrl(c)} class={linkClass}>
+                  {c.name}
+                </a>
+              </li>
+            ))
+          }
         </ul>
       </div>
 
@@ -70,7 +77,9 @@ const linkClass =
       </div>
     </div>
 
-    <div class="mt-12 flex flex-col gap-1 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      class="mt-12 flex flex-col gap-1 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between"
+    >
       <p>© {new Date().getFullYear()} ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย</p>
       <p>{visibleToolCount} เครื่องมือ ใช้ฟรี ไม่ต้องสมัคร</p>
     </div>

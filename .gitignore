@@ -13,3 +13,7 @@ dist/
 # ลง public/ ด้วย `npm run covers` และ `npm run brand` แล้ว จึงไม่เก็บต้นฉบับใน git
 # (เก็บสำรองไว้นอก repo — ถ้าไม่มี จะ regenerate ภาพใน public/ ไม่ได้)
 assets/
+
+# Local browser QA artifacts
+output/
+.playwright-cli/

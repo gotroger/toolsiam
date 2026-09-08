@@ -10,7 +10,13 @@ export default function WordCountTool() {
   return (
     <div className="space-y-4">
       <Field label="ข้อความ" htmlFor="text" hint="ประมวลผลในเบราว์เซอร์ ไม่มีการส่งข้อมูลออก">
-        <Textarea id="text" rows={10} value={text} onChange={(e) => setText(e.target.value)} placeholder="พิมพ์หรือวางข้อความที่นี่…" autoFocus />
+        <Textarea
+          id="text"
+          rows={10}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="พิมพ์หรือวางข้อความที่นี่…"
+        />
       </Field>
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <Stat label="คำ" value={formatNumber(r.words)} />

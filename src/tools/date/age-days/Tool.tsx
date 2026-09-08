@@ -1,8 +1,9 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { formatNumber } from '@/lib/format';
 import { useDateInput } from '@/lib/use-today';
 import { calculateAge } from './logic';
-import { ErrorText, Field, Input, Stat } from '@/components/ui';
+import { ErrorText, Field, Stat } from '@/components/ui';
 import { getToolUrl } from '@/lib/routes';
 
 const MIN_DATE = '1900-01-01';
@@ -29,10 +30,24 @@ export default function AgeDaysTool() {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="วันเกิด" htmlFor="birth" hint={`ตรงกับ พ.ศ. ${beYear(birth)}`}>
-          <Input id="birth" type="date" min={MIN_DATE} max={MAX_DATE} value={birth} onChange={(e) => setBirth(e.target.value)} aria-describedby="birth-hint" />
+          <DatePicker
+            id="birth"
+            min={MIN_DATE}
+            max={MAX_DATE}
+            value={birth}
+            onValueChange={setBirth}
+            aria-describedby="birth-hint"
+          />
         </Field>
         <Field label="คำนวณ ณ วันที่" htmlFor="ref" hint={`ตรงกับ พ.ศ. ${beYear(ref)}`}>
-          <Input id="ref" type="date" min={MIN_DATE} max={MAX_DATE} value={ref} onChange={(e) => setRef(e.target.value)} aria-describedby="ref-hint" />
+          <DatePicker
+            id="ref"
+            min={MIN_DATE}
+            max={MAX_DATE}
+            value={ref}
+            onValueChange={setRef}
+            aria-describedby="ref-hint"
+          />
         </Field>
       </div>
 

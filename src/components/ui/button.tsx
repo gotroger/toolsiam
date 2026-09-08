@@ -14,15 +14,17 @@ export function Button({ variant = 'primary', className, ...props }: ButtonProps
     <button
       type="button"
       {...props}
-      className={cx('rounded-[10px] px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50', styles, className)}
+      className={cx(
+        'product-button px-4 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        styles,
+        className,
+      )}
     />
   );
 }
 
 /** ปุ่มคัดลอก — จัดการสถานะ "คัดลอกแล้ว" และกรณีคัดลอกไม่สำเร็จให้เหมือนกันทุกเครื่องมือ */
-export function CopyButton({
-  text, label = 'คัดลอก', disabled,
-}: { text: string; label?: string; disabled?: boolean }) {
+export function CopyButton({ text, label = 'คัดลอก', disabled }: { text: string; label?: string; disabled?: boolean }) {
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -38,7 +40,9 @@ export function CopyButton({
       <Button variant="secondary" onClick={run} disabled={disabled || !text}>
         {copied ? `${label}แล้ว ✓` : label}
       </Button>
-      <span className="sr-only" aria-live="polite">{copied ? 'คัดลอกแล้ว' : ''}</span>
+      <span className="sr-only" aria-live="polite">
+        {copied ? 'คัดลอกแล้ว' : ''}
+      </span>
       {failed && <ErrorText>{COPY_FAILED_MESSAGE}</ErrorText>}
     </div>
   );

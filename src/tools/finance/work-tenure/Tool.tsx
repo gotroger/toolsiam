@@ -1,8 +1,9 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { formatNumber } from '@/lib/format';
 import { useDateInput } from '@/lib/use-today';
 import { calculateTenure, formatTenure } from './logic';
-import { ErrorText, Field, Input, Stat } from '@/components/ui';
+import { ErrorText, Field, Stat } from '@/components/ui';
 import { formatThaiDate } from '@/lib/thai-date';
 
 const MIN_DATE = '1900-01-01';
@@ -16,7 +17,11 @@ export default function WorkTenureTool() {
   let error = '';
   let tenure: ReturnType<typeof calculateTenure> | null = null;
   if (ref !== '') {
-    try { tenure = calculateTenure(start, ref); } catch (e) { error = (e as Error).message; }
+    try {
+      tenure = calculateTenure(start, ref);
+    } catch (e) {
+      error = (e as Error).message;
+    }
   }
 
   const beYear = (iso: string) => (/^\d{4}-/.test(iso) ? Number(iso.slice(0, 4)) + 543 : '—');
@@ -25,14 +30,28 @@ export default function WorkTenureTool() {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="วันเริ่มงาน" htmlFor="start" hint={`ตรงกับ พ.ศ. ${beYear(start)}`}>
-          <Input id="start" type="date" min={MIN_DATE} max={MAX_DATE} value={start} onChange={(e) => setStart(e.target.value)} aria-describedby="start-hint" />
+          <DatePicker
+            id="start"
+            min={MIN_DATE}
+            max={MAX_DATE}
+            value={start}
+            onValueChange={setStart}
+            aria-describedby="start-hint"
+          />
         </Field>
         <Field
           label="คำนวณ ณ วันที่"
           htmlFor="ref"
           hint={`ตรงกับ พ.ศ. ${beYear(ref)} — ถ้าลาออกแล้วให้กรอกวันสุดท้ายของการทำงาน`}
         >
-          <Input id="ref" type="date" min={MIN_DATE} max={MAX_DATE} value={ref} onChange={(e) => setRef(e.target.value)} aria-describedby="ref-hint" />
+          <DatePicker
+            id="ref"
+            min={MIN_DATE}
+            max={MAX_DATE}
+            value={ref}
+            onValueChange={setRef}
+            aria-describedby="ref-hint"
+          />
         </Field>
       </div>
 
@@ -49,7 +68,11 @@ export default function WorkTenureTool() {
             <Stat label="ครบรอบปีถัดไป" value={formatThaiDate(tenure.nextAnniversary, { style: 'medium' })} />
             <Stat
               label="อีกกี่วันถึงครบรอบ"
-              value={tenure.daysToNextAnniversary === 0 ? 'วันนี้ครบรอบพอดี' : `${formatNumber(tenure.daysToNextAnniversary)} วัน`}
+              value={
+                tenure.daysToNextAnniversary === 0
+                  ? 'วันนี้ครบรอบพอดี'
+                  : `${formatNumber(tenure.daysToNextAnniversary)} วัน`
+              }
             />
           </div>
         </>

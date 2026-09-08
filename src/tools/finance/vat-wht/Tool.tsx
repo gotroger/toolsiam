@@ -26,7 +26,7 @@ export default function VatWhtTool() {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="ยอดเงิน (บาท)" htmlFor="amount">
-          <Input id="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus />
+          <Input id="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </Field>
         <Field label="ยอดที่กรอก" htmlFor="mode">
           <Select id="mode" value={mode} onChange={(e) => setMode(e.target.value as 'add' | 'extract')}>
@@ -38,7 +38,9 @@ export default function VatWhtTool() {
           <Select id="wht" value={whtRate} onChange={(e) => setWhtRate(e.target.value)}>
             <option value="0">ไม่หัก</option>
             {WHT_RATES.map((w) => (
-              <option key={w.rate} value={w.rate}>{w.label}</option>
+              <option key={w.rate} value={w.rate}>
+                {w.label}
+              </option>
             ))}
           </Select>
         </Field>

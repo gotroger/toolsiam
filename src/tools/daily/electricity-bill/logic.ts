@@ -1,10 +1,31 @@
 import {
-  calculateBill, ELECTRICITY_SOURCES, ftAt, FT_PERIODS, latestFt, RESIDENTIAL_TARIFFS, UTILITY_LABEL, VAT,
-  type BillResult, type FtPeriod, type ResidentialTariff, type Utility,
+  calculateBill,
+  ELECTRICITY_SOURCES,
+  ftAt,
+  FT_PERIODS,
+  latestFt,
+  residentialTariffsAt,
+  RESIDENTIAL_TARIFFS,
+  UTILITY_LABEL,
+  VAT,
+  type BillResult,
+  type FtPeriod,
+  type ResidentialTariff,
+  type Utility,
 } from '@/lib/rates/electricity';
 
 export type { BillResult, FtPeriod, ResidentialTariff, Utility };
-export { calculateBill, ELECTRICITY_SOURCES, ftAt, FT_PERIODS, latestFt, RESIDENTIAL_TARIFFS, UTILITY_LABEL, VAT };
+export {
+  calculateBill,
+  ELECTRICITY_SOURCES,
+  ftAt,
+  FT_PERIODS,
+  latestFt,
+  residentialTariffsAt,
+  RESIDENTIAL_TARIFFS,
+  UTILITY_LABEL,
+  VAT,
+};
 
 export interface Appliance {
   id: string;
@@ -43,7 +64,7 @@ export function unitsPerMonth(watts: number, hoursPerDay: number, daysPerMonth =
   if (!Number.isFinite(daysPerMonth) || daysPerMonth <= 0 || daysPerMonth > 31) {
     throw new Error('จำนวนวันต่อเดือนต้องอยู่ระหว่าง 1–31');
   }
-  return Math.round(((watts / 1_000) * hoursPerDay * daysPerMonth) * 100) / 100;
+  return Math.round((watts / 1_000) * hoursPerDay * daysPerMonth * 100) / 100;
 }
 
 export interface ApplianceUsage {

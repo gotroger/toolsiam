@@ -1,13 +1,35 @@
 import { useMemo, useState } from 'react';
 import { useTodayInBangkok } from '@/lib/use-today';
 import {
-  calculateBill, COMMON_APPLIANCES, ftAt, latestFt, RESIDENTIAL_TARIFFS, totalUnits, unitsPerMonth,
-  UTILITY_LABEL, VAT, type Utility,
+  calculateBill,
+  COMMON_APPLIANCES,
+  ftAt,
+  residentialTariffsAt,
+  RESIDENTIAL_TARIFFS,
+  totalUnits,
+  unitsPerMonth,
+  UTILITY_LABEL,
+  VAT,
+  type Utility,
 } from './logic';
-import { cellField, DataTable, Disclaimer, ErrorText, Field, NumberInput, ResultBox, Select, Stat, Tabs, TabPanel } from '@/components/ui';
+import {
+  cellField,
+  DataTable,
+  ErrorText,
+  Field,
+  NumberInput,
+  ResultBox,
+  Select,
+  Stat,
+  Tabs,
+  TabPanel,
+} from '@/components/ui';
+import { formatThaiDate } from '@/lib/thai-date';
 import { formatBaht, formatNumber } from '@/lib/format';
 
 const ID = 'bill';
+const BILLING_MONTHS = Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`);
+const monthLabel = (month: string) => formatThaiDate(`${month}-01`, { style: 'medium' }).replace(/^1 /, '');
 
 const num = (s: string) => {
   const n = Number(s.replace(/,/g, ''));
@@ -18,6 +40,7 @@ export default function ElectricityBillTool() {
   const [mode, setMode] = useState('units');
   const [utility, setUtility] = useState<Utility>('mea');
   const [tariffId, setTariffId] = useState('large');
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [units, setUnits] = useState('350');
   const [hours, setHours] = useState<Record<string, string>>(
     Object.fromEntries(COMMON_APPLIANCES.map((a) => [a.id, String(a.hoursPerDay)])),
@@ -29,9 +52,11 @@ export default function ElectricityBillTool() {
   // งวด Ft ขึ้นกับวันที่ จึงต้องอิงวันไทย ไม่ใช่เครื่องผู้ใช้ (§27 D2)
   const today = useTodayInBangkok();
 
-  const ft = today === '' ? null : (ftAt(today) ?? latestFt());
-  const ftIsCurrent = today !== '' && ftAt(today) !== null;
-  const tariffs = RESIDENTIAL_TARIFFS[utility];
+  const billingMonth = selectedMonth ?? today.slice(0, 7);
+  const billingDate = billingMonth ? `${billingMonth}-01` : '';
+  const ft = ftAt(billingDate);
+  const datedTariffs = residentialTariffsAt(utility, billingDate);
+  const tariffs = datedTariffs ?? RESIDENTIAL_TARIFFS[utility];
   const tariff = tariffs.find((t) => t.id === tariffId) ?? tariffs[0];
 
   const applianceUnits = useMemo(() => {
@@ -48,7 +73,7 @@ export default function ElectricityBillTool() {
 
   let error = '';
   let bill: ReturnType<typeof calculateBill> | null = null;
-  if (ft) {
+  if (ft && datedTariffs) {
     try {
       bill = calculateBill(usedUnits, tariff, ft.ratePerUnit, VAT.rate);
     } catch (e) {
@@ -61,15 +86,66 @@ export default function ElectricityBillTool() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="การไฟฟ้าที่ให้บริการ" htmlFor="utility">
           <Select id="utility" value={utility} onChange={(e) => setUtility(e.target.value as Utility)}>
-            {(['mea', 'pea'] as Utility[]).map((u) => <option key={u} value={u}>{UTILITY_LABEL[u]}</option>)}
+            {(['mea', 'pea'] as Utility[]).map((u) => (
+              <option key={u} value={u}>
+                {UTILITY_LABEL[u]}
+              </option>
+            ))}
           </Select>
         </Field>
         <Field label="อัตราค่าไฟที่ใช้" htmlFor="tariff" hint={tariff.eligibility}>
-          <Select id="tariff" value={tariffId} onChange={(e) => setTariffId(e.target.value)} aria-describedby="tariff-hint">
-            {tariffs.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+          <Select
+            id="tariff"
+            value={tariffId}
+            onChange={(e) => setTariffId(e.target.value)}
+            aria-describedby="tariff-hint"
+          >
+            {tariffs.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
+            ))}
           </Select>
         </Field>
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field
+          label="ค่าไฟฟ้าประจำเดือน"
+          htmlFor="billing-month"
+          hint="เลือกเดือนจากช่องประจำเดือนในบิล เพื่อใช้อัตราฐานและค่า Ft ให้ตรงงวด"
+        >
+          <Select
+            id="billing-month"
+            value={billingMonth}
+            onChange={(event) => setSelectedMonth(event.target.value)}
+            aria-describedby="billing-month-hint"
+          >
+            {!billingMonth && <option value="">กำลังเลือกเดือนปัจจุบัน…</option>}
+            {billingMonth && !BILLING_MONTHS.includes(billingMonth) && (
+              <option value={billingMonth}>{monthLabel(billingMonth)} — ยังไม่มีข้อมูลอัตรา</option>
+            )}
+            {BILLING_MONTHS.map((month) => (
+              <option key={month} value={month}>
+                {monthLabel(month)}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        {datedTariffs && ft && (
+          <div className="self-center text-sm leading-relaxed text-slate-600">
+            <p>
+              {billingMonth < '2026-09' ? 'โครงสร้างอัตราก่อนกันยายน 2569' : 'โครงสร้างอัตราใหม่ เริ่มกันยายน 2569'}
+            </p>
+            <p>
+              ค่า Ft {ft.ratePerUnit.toFixed(4)} บาท/หน่วย · VAT {formatNumber(VAT.rate * 100)}%
+            </p>
+          </div>
+        )}
+      </div>
+      {billingMonth && (!ft || !datedTariffs) && (
+        <ErrorText>ยังไม่มีอัตราที่ตรวจสอบแล้วสำหรับเดือนนี้ กรุณาเลือกเดือนที่มีข้อมูลในระบบ</ErrorText>
+      )}
 
       <Tabs
         idPrefix={ID}
@@ -99,15 +175,19 @@ export default function ElectricityBillTool() {
       <TabPanel id="appliance" idPrefix={ID} active={mode === 'appliance'}>
         <div className="space-y-3">
           <p className="text-sm text-slate-600">
-            กรอกจำนวนเครื่องและชั่วโมงใช้งานต่อวัน ระบบคิดที่ 30 วันต่อเดือน
-            กำลังไฟที่แสดงเป็นค่าประมาณ ปรับชั่วโมงให้ตรงกับการใช้จริงเพื่อผลที่ใกล้เคียงขึ้น
+            กรอกจำนวนเครื่องและชั่วโมงใช้งานต่อวัน ระบบคิดที่ 30 วันต่อเดือน กำลังไฟที่แสดงเป็นค่าประมาณ
+            ปรับชั่วโมงให้ตรงกับการใช้จริงเพื่อผลที่ใกล้เคียงขึ้น
           </p>
           <DataTable
             caption="เครื่องใช้ไฟฟ้าและจำนวนหน่วยที่ใช้ต่อเดือน"
             rows={COMMON_APPLIANCES}
             rowKey={(a) => a.id}
             columns={[
-              { key: 'name', header: 'เครื่องใช้ไฟฟ้า', render: (a) => <label htmlFor={`count-${a.id}`}>{a.name}</label> },
+              {
+                key: 'name',
+                header: 'เครื่องใช้ไฟฟ้า',
+                render: (a) => <label htmlFor={`count-${a.id}`}>{a.name}</label>,
+              },
               { key: 'watts', header: 'วัตต์', align: 'right', render: (a) => formatNumber(a.watts) },
               {
                 key: 'count',
@@ -144,9 +224,10 @@ export default function ElectricityBillTool() {
                 render: (a) => {
                   const q = num(counts[a.id]);
                   const h = num(hours[a.id]);
-                  const u = Number.isFinite(q) && Number.isFinite(h) && h >= 0 && h <= 24
-                    ? Math.round(unitsPerMonth(a.watts, h) * q * 100) / 100
-                    : 0;
+                  const u =
+                    Number.isFinite(q) && Number.isFinite(h) && h >= 0 && h <= 24
+                      ? Math.round(unitsPerMonth(a.watts, h) * q * 100) / 100
+                      : 0;
                   return formatNumber(u, 2);
                 },
               },
@@ -162,7 +243,7 @@ export default function ElectricityBillTool() {
 
       {bill && ft && (
         <>
-          <ResultBox label="ค่าไฟโดยประมาณทั้งเดือน">{formatBaht(bill.total)} บาท</ResultBox>
+          <ResultBox label={`ค่าไฟโดยประมาณ · ${monthLabel(billingMonth)}`}>{formatBaht(bill.total)} บาท</ResultBox>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="ค่าพลังงานไฟฟ้า" value={`${formatBaht(bill.energyCharge)} บาท`} />
@@ -171,12 +252,15 @@ export default function ElectricityBillTool() {
             <Stat label={`VAT ${formatNumber(VAT.rate * 100, 0)}%`} value={`${formatBaht(bill.vat)} บาท`} />
           </div>
 
-          {!ftIsCurrent && (
-            <Disclaimer>
-              ยังไม่มีข้อมูลค่า Ft ของงวดปัจจุบันในระบบ กำลังใช้ค่าของงวด {ft.label} ({ft.ratePerUnit} บาท/หน่วย)
-              ค่า Ft ปรับทุก 4 เดือน ให้ตรวจกับประกาศของ กกพ. หรือการไฟฟ้าอีกครั้ง
-            </Disclaimer>
-          )}
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
+            <p>
+              ค่าไฟฟ้าฐาน (ค่าพลังงาน + ค่าบริการ){' '}
+              <strong className="text-slate-900">{formatBaht(bill.energyCharge + bill.serviceCharge)} บาท</strong>
+            </p>
+            <p>
+              รวมก่อน VAT <strong className="text-slate-900">{formatBaht(bill.subtotal)} บาท</strong>
+            </p>
+          </div>
 
           {bill.lines.length > 0 && (
             <div>
@@ -184,7 +268,11 @@ export default function ElectricityBillTool() {
               <DataTable
                 caption="ค่าพลังงานไฟฟ้าแยกตามขั้นบันไดของอัตราที่เลือก"
                 columns={[
-                  { key: 'range', header: 'ช่วงหน่วย', render: (l) => (l.to === Infinity ? `${l.from} ขึ้นไป` : `${l.from}–${l.to}`) },
+                  {
+                    key: 'range',
+                    header: 'ช่วงหน่วย',
+                    render: (l) => (l.to === Infinity ? `${l.from} ขึ้นไป` : `${l.from}–${l.to}`),
+                  },
                   { key: 'units', header: 'หน่วย', align: 'right', render: (l) => formatNumber(l.units, 2) },
                   { key: 'rate', header: 'บาท/หน่วย', align: 'right', render: (l) => l.ratePerUnit.toFixed(4) },
                   { key: 'amount', header: 'เป็นเงิน', align: 'right', render: (l) => formatBaht(l.amount) },
@@ -196,7 +284,8 @@ export default function ElectricityBillTool() {
           )}
 
           <p className="text-sm text-slate-600">
-            เฉลี่ยหน่วยละ {formatBaht(bill.averagePerUnit)} บาท (รวมค่าบริการ ค่า Ft และ VAT แล้ว) จาก {formatNumber(bill.units, 2)} หน่วย
+            เฉลี่ยหน่วยละ {formatBaht(bill.averagePerUnit)} บาท (รวมค่าบริการ ค่า Ft และ VAT แล้ว) จาก{' '}
+            {formatNumber(bill.units, 2)} หน่วย
           </p>
         </>
       )}

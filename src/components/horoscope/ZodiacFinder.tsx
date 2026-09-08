@@ -1,6 +1,7 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useDateInput } from '@/lib/use-today';
 import { zodiacFromDate } from '@/lib/thai-astro';
-import { ErrorText, Field, Input, ResultBox } from '@/components/ui';
+import { ErrorText, Field, ResultBox } from '@/components/ui';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
@@ -12,13 +13,24 @@ export default function ZodiacFinder() {
   let error = '';
   let sign: ReturnType<typeof zodiacFromDate> | null = null;
   if (birth !== '') {
-    try { sign = zodiacFromDate(birth); } catch (e) { error = (e as Error).message; }
+    try {
+      sign = zodiacFromDate(birth);
+    } catch (e) {
+      error = (e as Error).message;
+    }
   }
 
   return (
     <div className="space-y-4">
       <Field label="วันเกิดของคุณ" htmlFor="birth" hint="ช่องวันที่ใช้ปฏิทินปี ค.ศ. ให้ลบ 543 จากปี พ.ศ. ก่อน">
-        <Input id="birth" type="date" min={MIN_DATE} max={MAX_DATE} value={birth} onChange={(e) => setBirth(e.target.value)} aria-describedby="birth-hint" />
+        <DatePicker
+          id="birth"
+          min={MIN_DATE}
+          max={MAX_DATE}
+          value={birth}
+          onValueChange={setBirth}
+          aria-describedby="birth-hint"
+        />
       </Field>
 
       {error && <ErrorText>{error}</ErrorText>}
@@ -31,7 +43,9 @@ export default function ZodiacFinder() {
           <p className="text-sm text-slate-700">{sign.summary}</p>
           <ul className="flex flex-wrap gap-2">
             {sign.traits.map((t) => (
-              <li key={t} className="rounded-lg border border-slate-200 bg-surface px-2.5 py-1 text-xs text-slate-600">{t}</li>
+              <li key={t} className="rounded-lg border border-slate-200 bg-surface px-2.5 py-1 text-xs text-slate-600">
+                {t}
+              </li>
             ))}
           </ul>
         </>

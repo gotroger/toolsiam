@@ -20,6 +20,8 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
+      'output/**',
+      '.playwright-cli/**',
       '.astro/**',
       '.wrangler/**',
       'node_modules/**',

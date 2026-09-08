@@ -1,8 +1,12 @@
 ---
 import type { ToolMeta } from '@/tools/types';
 import ToolCard from './ToolCard.tsx';
-interface Props { tool: ToolMeta }
-const { tool } = Astro.props;
+interface Props {
+  tool: ToolMeta;
+  featured?: boolean;
+}
+const { tool, featured = false } = Astro.props;
 ---
+
 <!-- ไม่ใส่ client directive: render เป็น HTML ล้วน ใช้ markup ชุดเดียวกับหน้าค้นหา -->
-<ToolCard tool={tool} />
+<ToolCard tool={tool} featured={featured} />

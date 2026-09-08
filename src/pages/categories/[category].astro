@@ -1,10 +1,10 @@
 ---
 import Base from '@/layouts/Base.astro';
 import Breadcrumb from '@/components/Breadcrumb.astro';
-import ToolCard from '@/components/ToolCard.astro';
+import ToolSearch from '@/components/ToolSearch';
+import { toDiscoveryTool } from '@/components/tool-presentation';
 import CategoryIcon from '@/components/CategoryIcon.astro';
-import { getBrowsableCategories, getToolsByCategory } from '@/tools/registry';
-import { cardGrid, cardGridItem } from '@/components/grids';
+import { getBrowsableCategories, getToolsByCategory, getVisibleTools, getActiveCategories } from '@/tools/registry';
 import { resolveOgImage } from '@/tools/covers';
 import { collectionPageJsonLd } from '@/lib/seo';
 import { getCategoryUrl, getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
@@ -25,10 +25,23 @@ const crumbs = [
   { name: category.name, path },
 ];
 const jsonLd = [
-  collectionPageJsonLd({ name: category.name, description, path, items: list.map((t) => ({ name: t.name, path: getToolUrl(t.slug) })) }),
+  collectionPageJsonLd({
+    name: category.name,
+    description,
+    path,
+    items: list.map((t) => ({ name: t.name, path: getToolUrl(t.slug) })),
+  }),
 ];
 ---
-<Base wide title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={description} jsonLd={jsonLd} ogImage={og.src} ogImageAlt={og.alt}>
+
+<Base
+  wide
+  title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`}
+  description={description}
+  jsonLd={jsonLd}
+  ogImage={og.src}
+  ogImageAlt={og.alt}
+>
   <Breadcrumb items={crumbs} />
   <div class="mt-2 flex items-start gap-3">
     <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -39,7 +52,12 @@ const jsonLd = [
       <p class="mt-1.5 max-w-2xl text-slate-600">{category.description}</p>
     </div>
   </div>
-  <div class:list={['mt-8', cardGrid]}>
-    {list.map((t) => <div class:list={[cardGridItem]}><ToolCard tool={t} /></div>)}
+  <div class="mt-6">
+    <ToolSearch
+      client:load
+      tools={getVisibleTools().map(toDiscoveryTool)}
+      categories={getActiveCategories()}
+      initialCategory={category.id}
+    />
   </div>
 </Base>

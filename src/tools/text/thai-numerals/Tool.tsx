@@ -27,7 +27,7 @@ export default function ThaiNumeralsTool() {
   return (
     <div className="space-y-4">
       <Field label="ข้อความต้นฉบับ" htmlFor="src">
-        <Textarea id="src" rows={6} value={text} onChange={(e) => setText(e.target.value)} autoFocus />
+        <Textarea id="src" rows={6} value={text} onChange={(e) => setText(e.target.value)} />
       </Field>
 
       <div className="flex flex-wrap gap-2">

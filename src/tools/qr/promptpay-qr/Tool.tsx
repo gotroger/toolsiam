@@ -36,8 +36,8 @@ export default function PromptPayQrTool() {
   }
 
   const current = result?.key === payload ? result : null;
-  const dataUrl = payload ? current?.url ?? '' : '';
-  const error = payloadError || (payload ? current?.error ?? '' : '');
+  const dataUrl = payload ? (current?.url ?? '') : '';
+  const error = payloadError || (payload ? (current?.error ?? '') : '');
 
   useEffect(() => {
     if (!payload) return;
@@ -59,11 +59,21 @@ export default function PromptPayQrTool() {
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       <div className="space-y-4">
-        <Field label="เบอร์โทร / เลขบัตรประชาชน / e-Wallet" htmlFor="target" hint={typeLabel ? `ตรวจพบ: ${typeLabel}` : 'เช่น 0812345678'}>
-          <Input id="target" inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value)} autoFocus />
+        <Field
+          label="เบอร์โทร / เลขบัตรประชาชน / e-Wallet"
+          htmlFor="target"
+          hint={typeLabel ? `ตรวจพบ: ${typeLabel}` : 'เช่น 0812345678'}
+        >
+          <Input id="target" inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value)} />
         </Field>
         <Field label="จำนวนเงิน (บาท) — เว้นว่างให้ผู้โอนกรอกเอง" htmlFor="amount">
-          <Input id="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="เช่น 150.00" />
+          <Input
+            id="amount"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="เช่น 150.00"
+          />
         </Field>
         {error && <ErrorText>{error}</ErrorText>}
       </div>
@@ -78,12 +88,16 @@ export default function PromptPayQrTool() {
               height={320}
               className="rounded-lg border border-slate-200 bg-white"
             />
-            <a href={dataUrl} download={`promptpay-${target.replace(/\D/g, '')}.png`} className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action-hover">
+            <a
+              href={dataUrl}
+              download={`promptpay-${target.replace(/\D/g, '')}.png`}
+              className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action-hover"
+            >
               ดาวน์โหลดรูป QR
             </a>
           </>
         ) : (
-          <div className="flex h-80 w-80 items-center justify-center rounded-lg border border-dashed border-slate-300 text-sm text-slate-400">
+          <div className="flex aspect-square w-full max-w-80 items-center justify-center rounded-lg border border-dashed border-slate-300 text-sm text-slate-600">
             QR จะแสดงที่นี่
           </div>
         )}

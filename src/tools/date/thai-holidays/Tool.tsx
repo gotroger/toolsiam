@@ -1,3 +1,4 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayCalendar } from './logic';
 import { describeDate } from '@/lib/thai-date';
@@ -42,10 +43,10 @@ export default function ThaiHolidaysTool() {
         <h2 className="text-lg font-medium">นับวันทำการระหว่างสองวันที่</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="วันเริ่มต้น" htmlFor="start">
-            <Input id="start" type="date" min="2026-01-01" max="2026-12-31" value={start} onChange={(e) => setStart(e.target.value)} />
+            <DatePicker id="start" min="2026-01-01" max="2026-12-31" value={start} onValueChange={setStart} />
           </Field>
           <Field label="วันสิ้นสุด" htmlFor="end">
-            <Input id="end" type="date" min="2026-01-01" max="2026-12-31" value={end} onChange={(e) => setEnd(e.target.value)} />
+            <DatePicker id="end" min="2026-01-01" max="2026-12-31" value={end} onValueChange={setEnd} />
           </Field>
         </div>
         {spanError && <ErrorText>{spanError}</ErrorText>}
@@ -63,7 +64,7 @@ export default function ThaiHolidaysTool() {
         <h2 className="text-lg font-medium">อีกกี่วันทำการจะครบกำหนด</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="นับจากวันที่" htmlFor="addFrom">
-            <Input id="addFrom" type="date" min="2026-01-01" max="2026-12-31" value={addFrom} onChange={(e) => setAddFrom(e.target.value)} />
+            <DatePicker id="addFrom" min="2026-01-01" max="2026-12-31" value={addFrom} onValueChange={setAddFrom} />
           </Field>
           <Field label="จำนวนวันทำการ" htmlFor="addCount" hint="ใส่เลขติดลบเพื่อนับย้อนหลัง">
             <Input id="addCount" inputMode="numeric" value={addCount} onChange={(e) => setAddCount(e.target.value)} />
@@ -96,7 +97,11 @@ export default function ThaiHolidaysTool() {
           rows={holidays}
           rowKey={(h) => h.date}
           columns={[
-            { key: 'date', header: 'วันที่', render: (h) => <span className="whitespace-nowrap">{describeDate(h.date).shortThai}</span> },
+            {
+              key: 'date',
+              header: 'วันที่',
+              render: (h) => <span className="whitespace-nowrap">{describeDate(h.date).shortThai}</span>,
+            },
             {
               key: 'weekday',
               header: 'วัน',
@@ -104,7 +109,11 @@ export default function ThaiHolidaysTool() {
                 const info = describeDate(h.date);
                 const weekend = info.weekdayIndex === 0 || info.weekdayIndex === 6;
                 // เสาร์-อาทิตย์จางลงเพราะเป็นวันหยุดอยู่แล้ว ไม่ได้ทำให้ได้หยุดเพิ่ม
-                return <span className={weekend ? 'whitespace-nowrap text-slate-400' : 'whitespace-nowrap'}>{info.weekdayName}</span>;
+                return (
+                  <span className={weekend ? 'whitespace-nowrap text-slate-600' : 'whitespace-nowrap'}>
+                    {info.weekdayName}
+                  </span>
+                );
               },
             },
             { key: 'name', header: 'ชื่อวันหยุด', render: (h) => h.name },
@@ -112,10 +121,10 @@ export default function ThaiHolidaysTool() {
           ]}
         />
         <p className="text-xs text-slate-500">
-          วันที่แสดงเป็นสีจางคือวันหยุดที่ตรงกับเสาร์-อาทิตย์อยู่แล้ว ข้อมูลอ้างอิงประกาศธนาคารแห่งประเทศไทยและมติคณะรัฐมนตรี
-          หากมีประกาศวันหยุดพิเศษเพิ่มเติมระหว่างปี ตัวเลขอาจเปลี่ยนแปลงได้ ตารางนี้นับเฉพาะวันหยุดทั่วประเทศ
-          จึงไม่รวมวันศุกร์ที่ 16 ตุลาคม 2569 ซึ่งเป็นวันหยุดพิเศษของสถาบันการเงินเฉพาะพื้นที่กรุงเทพมหานคร
-          ตามประกาศ ธปท. ที่ 26/2569
+          วันที่แสดงเป็นสีจางคือวันหยุดที่ตรงกับเสาร์-อาทิตย์อยู่แล้ว
+          ข้อมูลอ้างอิงประกาศธนาคารแห่งประเทศไทยและมติคณะรัฐมนตรี หากมีประกาศวันหยุดพิเศษเพิ่มเติมระหว่างปี
+          ตัวเลขอาจเปลี่ยนแปลงได้ ตารางนี้นับเฉพาะวันหยุดทั่วประเทศ จึงไม่รวมวันศุกร์ที่ 16 ตุลาคม 2569
+          ซึ่งเป็นวันหยุดพิเศษของสถาบันการเงินเฉพาะพื้นที่กรุงเทพมหานคร ตามประกาศ ธปท. ที่ 26/2569
         </p>
       </section>
     </div>

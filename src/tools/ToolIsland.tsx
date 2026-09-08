@@ -12,7 +12,19 @@ export default function ToolIsland({ slug }: { slug: string }) {
 
   return (
     <ErrorBoundary name={slug}>
-      <Suspense fallback={<p className="text-slate-500">กำลังโหลดเครื่องมือ…</p>}>
+      <Suspense
+        fallback={
+          <div className="tool-loading" role="status">
+            <p className="text-slate-500">กำลังโหลดเครื่องมือ…</p>
+            <div className="tool-loading-bars" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+          </div>
+        }
+      >
         {/* eslint-disable-next-line react-hooks/static-components -- lazy() ถูก memo ด้วย slug จึงเป็นคอมโพเนนต์ตัวเดิมตลอดอายุ island (slug ไม่เปลี่ยนกลางคัน) */}
         <Tool />
       </Suspense>

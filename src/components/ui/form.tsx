@@ -1,5 +1,10 @@
+import { useLayoutEffect, useRef } from 'react';
 import type {
-  InputHTMLAttributes, LabelHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes,
+  InputHTMLAttributes,
+  LabelHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
 } from 'react';
 import { checkboxField, checkboxRow, cx, field } from './styles';
 
@@ -8,7 +13,19 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
 }
 
 export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={cx(field, 'font-mono text-sm', className)} />;
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const resize = () => {
+      element.style.height = 'auto';
+      element.style.height = `${element.scrollHeight + 2}px`;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [props.value]);
+  return <textarea {...props} ref={ref} className={cx(field, 'resize-none font-mono text-sm', className)} />;
 }
 
 export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
@@ -24,10 +41,22 @@ export function ErrorText({ id, children }: { id?: string; children: ReactNode }
   return (
     <p id={id} role="alert" className="mt-1 flex items-start gap-1.5 text-sm text-red-600">
       {/* ไอคอนเส้นชุดเดียวกับที่อื่นของเว็บ — เลิกใช้อิโมจิเพราะแต่ละ OS วาดคนละแบบ */}
-      <svg className="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <svg
+        className="mt-0.5 h-4 w-4 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
         <path d="M12 4.5 21 19.5H3L12 4.5Zm0 5.5v4.2m0 2.6v.2" />
       </svg>
-      <span><span className="font-medium">ข้อผิดพลาด:</span> {children}</span>
+      <span>
+        <span className="font-medium">ข้อผิดพลาด:</span> {children}
+      </span>
     </p>
   );
 }
@@ -39,13 +68,27 @@ export function ErrorText({ id, children }: { id?: string; children: ReactNode }
  * ช่องที่ใช้ `<Input>` ตรง ๆ ต้องส่งเอง ส่วน `<NumberInput>` ผูกให้อัตโนมัติ
  */
 export function Field({
-  label, htmlFor, children, hint, error,
-}: { label: string; htmlFor: string; children: ReactNode; hint?: string; error?: string }) {
+  label,
+  htmlFor,
+  children,
+  hint,
+  error,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+  hint?: string;
+  error?: string;
+}) {
   return (
     <div>
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {hint && <p id={`${htmlFor}-hint`} className="mt-1 text-xs text-slate-600">{hint}</p>}
+      {hint && (
+        <p id={`${htmlFor}-hint`} className="mt-1 text-xs text-slate-600">
+          {hint}
+        </p>
+      )}
       {error && <ErrorText id={`${htmlFor}-error`}>{error}</ErrorText>}
     </div>
   );
@@ -57,7 +100,10 @@ export function describedBy(id: string, opts: { hint?: string; error?: string })
   return ids.length ? ids.join(' ') : undefined;
 }
 
-interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'inputMode' | 'id'> {
+interface NumberInputProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'onChange' | 'value' | 'inputMode' | 'id'
+> {
   id: string;
   label: string;
   value: string;
@@ -77,7 +123,16 @@ interface NumberInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, '
  * และแสดง spinner ที่ไม่มีใครใช้ — `inputMode` ให้แป้นตัวเลขได้โดยไม่มีผลข้างเคียงเหล่านั้น
  */
 export function NumberInput({
-  id, label, value, onValueChange, mode, hint, error, suffix, className, ...props
+  id,
+  label,
+  value,
+  onValueChange,
+  mode,
+  hint,
+  error,
+  suffix,
+  className,
+  ...props
 }: NumberInputProps) {
   return (
     <Field label={label} htmlFor={id} hint={hint} error={error}>
@@ -95,7 +150,10 @@ export function NumberInput({
           className={cx(field, error && 'border-red-400', suffix && 'pr-14', className)}
         />
         {suffix && (
-          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500"
+          >
             {suffix}
           </span>
         )}
@@ -111,7 +169,9 @@ export function NumberInput({
  * (id ที่ตั้งเองแล้วซ้ำกันคือสาเหตุที่พบบ่อยที่สุดของ label ที่กดแล้วไปโดนช่องอื่น)
  */
 export function Checkbox({
-  label, className, ...props
+  label,
+  className,
+  ...props
 }: Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & { label: ReactNode }) {
   return (
     <label className={checkboxRow}>

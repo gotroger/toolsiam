@@ -19,7 +19,13 @@ export default function TextLinesTool() {
   return (
     <div className="space-y-4">
       <Field label="ข้อความต้นฉบับ" htmlFor="src" hint="บรรทัดละ 1 รายการ">
-        <Textarea id="src" rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder="วางรายการที่นี่…" autoFocus />
+        <Textarea
+          id="src"
+          rows={8}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="วางรายการที่นี่…"
+        />
       </Field>
 
       <div className="flex flex-wrap items-end gap-4">
@@ -35,7 +41,11 @@ export default function TextLinesTool() {
         </div>
         <div className="w-48">
           <Field label="เรียงลำดับ" htmlFor="sort">
-            <Select id="sort" value={options.sort} onChange={(e) => setOptions({ ...options, sort: e.target.value as LineOptions['sort'] })}>
+            <Select
+              id="sort"
+              value={options.sort}
+              onChange={(e) => setOptions({ ...options, sort: e.target.value as LineOptions['sort'] })}
+            >
               <option value="none">ไม่เรียง</option>
               <option value="asc">ก-ฮ / A-Z</option>
               <option value="desc">ฮ-ก / Z-A</option>

@@ -1,7 +1,8 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useDateInput } from '@/lib/use-today';
 import { chineseZodiacFromDate, CHINESE_ZODIAC_MAX_YEAR, CHINESE_ZODIAC_MIN_YEAR } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
-import { ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
+import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
 
 /** ค้นปีนักษัตรจากวันเกิด โดยใช้ตรุษจีนเป็นเกณฑ์ตัดปี (ล็อกไว้ในแผน §9.4) */
 export default function ChineseZodiacFinder() {
@@ -10,7 +11,11 @@ export default function ChineseZodiacFinder() {
   let error = '';
   let result: ReturnType<typeof chineseZodiacFromDate> | null = null;
   if (birth !== '') {
-    try { result = chineseZodiacFromDate(birth); } catch (e) { error = (e as Error).message; }
+    try {
+      result = chineseZodiacFromDate(birth);
+    } catch (e) {
+      error = (e as Error).message;
+    }
   }
 
   return (
@@ -20,13 +25,12 @@ export default function ChineseZodiacFinder() {
         htmlFor="cz-birth"
         hint={`รองรับปีเกิด ค.ศ. ${CHINESE_ZODIAC_MIN_YEAR}–${CHINESE_ZODIAC_MAX_YEAR} (พ.ศ. ${CHINESE_ZODIAC_MIN_YEAR + 543}–${CHINESE_ZODIAC_MAX_YEAR + 543})`}
       >
-        <Input
+        <DatePicker
           id="cz-birth"
-          type="date"
           min={`${CHINESE_ZODIAC_MIN_YEAR}-01-01`}
           max={`${CHINESE_ZODIAC_MAX_YEAR}-12-31`}
           value={birth}
-          onChange={(e) => setBirth(e.target.value)}
+          onValueChange={setBirth}
           aria-describedby="cz-birth-hint"
         />
       </Field>
@@ -35,9 +39,7 @@ export default function ChineseZodiacFinder() {
 
       {result && (
         <>
-          <ResultBox label="ปีนักษัตรของคุณ">
-            ปี{result.animal.name}
-          </ResultBox>
+          <ResultBox label="ปีนักษัตรของคุณ">ปี{result.animal.name}</ResultBox>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Stat label="นับเป็นปีนักษัตร ค.ศ." value={String(result.zodiacYear)} />
@@ -54,7 +56,9 @@ export default function ChineseZodiacFinder() {
           <p className="text-sm text-slate-700">{result.animal.summary}</p>
           <ul className="flex flex-wrap gap-2">
             {result.animal.traits.map((t) => (
-              <li key={t} className="rounded-lg border border-slate-200 bg-surface px-2.5 py-1 text-xs text-slate-600">{t}</li>
+              <li key={t} className="rounded-lg border border-slate-200 bg-surface px-2.5 py-1 text-xs text-slate-600">
+                {t}
+              </li>
             ))}
           </ul>
         </>

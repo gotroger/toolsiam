@@ -1,7 +1,8 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useEffect, useState } from 'react';
 import { formatNumber } from '@/lib/format';
 import { daysBetween, shiftAndDescribe, type ShiftUnit } from './logic';
-import { ErrorText, Field, Input, NumberInput, Select, Stat, Tabs, TabPanel } from '@/components/ui';
+import { ErrorText, Field, NumberInput, Select, Stat, Tabs, TabPanel } from '@/components/ui';
 import { todayInBangkok } from '@/lib/today';
 
 const MIN_DATE = '1900-01-01';
@@ -35,7 +36,11 @@ export default function DateAddTool() {
   let spanError = '';
   let span: ReturnType<typeof daysBetween> | null = null;
   if (start !== '' && end !== '') {
-    try { span = daysBetween(start, end); } catch (e) { spanError = (e as Error).message; }
+    try {
+      span = daysBetween(start, end);
+    } catch (e) {
+      spanError = (e as Error).message;
+    }
   }
 
   let shiftError = '';
@@ -67,10 +72,24 @@ export default function DateAddTool() {
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="วันเริ่มต้น" htmlFor="start" hint={`ตรงกับ พ.ศ. ${beYear(start)}`}>
-              <Input id="start" type="date" min={MIN_DATE} max={MAX_DATE} value={start} onChange={(e) => setStart(e.target.value)} aria-describedby="start-hint" />
+              <DatePicker
+                id="start"
+                min={MIN_DATE}
+                max={MAX_DATE}
+                value={start}
+                onValueChange={setStart}
+                aria-describedby="start-hint"
+              />
             </Field>
             <Field label="วันสิ้นสุด" htmlFor="end" hint={`ตรงกับ พ.ศ. ${beYear(end)}`}>
-              <Input id="end" type="date" min={MIN_DATE} max={MAX_DATE} value={end} onChange={(e) => setEnd(e.target.value)} aria-describedby="end-hint" />
+              <DatePicker
+                id="end"
+                min={MIN_DATE}
+                max={MAX_DATE}
+                value={end}
+                onValueChange={setEnd}
+                aria-describedby="end-hint"
+              />
             </Field>
           </div>
 
@@ -80,7 +99,10 @@ export default function DateAddTool() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Stat label="ห่างกัน" value={`${formatNumber(span.days)} วัน`} />
               <Stat label="นับรวมวันเริ่ม-วันสิ้นสุด" value={`${formatNumber(span.inclusiveDays)} วัน`} />
-              <Stat label="แบบปฏิทิน" value={`${span.parts.years} ปี ${span.parts.months} เดือน ${span.parts.days} วัน`} />
+              <Stat
+                label="แบบปฏิทิน"
+                value={`${span.parts.years} ปี ${span.parts.months} เดือน ${span.parts.days} วัน`}
+              />
               <Stat label="สัปดาห์" value={`${span.weeks} สัปดาห์ ${span.remainderDays} วัน`} />
               <Stat label="วันจันทร์–ศุกร์" value={`${formatNumber(span.weekdayCount)} วัน`} />
               <Stat label="เสาร์–อาทิตย์" value={`${formatNumber(span.weekendCount)} วัน`} />
@@ -93,7 +115,14 @@ export default function DateAddTool() {
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="นับจากวันที่" htmlFor="base" hint={`ตรงกับ พ.ศ. ${beYear(base)}`}>
-              <Input id="base" type="date" min={MIN_DATE} max={MAX_DATE} value={base} onChange={(e) => setBase(e.target.value)} aria-describedby="base-hint" />
+              <DatePicker
+                id="base"
+                min={MIN_DATE}
+                max={MAX_DATE}
+                value={base}
+                onValueChange={setBase}
+                aria-describedby="base-hint"
+              />
             </Field>
             <Field label="ทิศทาง" htmlFor="direction">
               <Select id="direction" value={direction} onChange={(e) => setDirection(e.target.value as '1' | '-1')}>

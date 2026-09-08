@@ -19,7 +19,12 @@ interface Props {
   ogImageAlt?: string;
 }
 const {
-  title, description, jsonLd = [], noindex = false, wide = false, canonicalPath,
+  title,
+  description,
+  jsonLd = [],
+  noindex = false,
+  wide = false,
+  canonicalPath,
   ogImage = DEFAULT_OG_IMAGE,
   ogImageAlt = 'ทูลสยาม ToolSiam — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี',
 } = Astro.props;
@@ -53,6 +58,7 @@ const ogImageType = ogImage.endsWith('.png') ? 'image/png' : ogImage.endsWith('.
  */
 const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
 ---
+
 <!doctype html>
 <html lang="th">
   <head>
@@ -67,7 +73,9 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
       try {
         const t = localStorage.getItem('toolsiam-theme');
         if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
-      } catch { /* โหมดส่วนตัวบางเบราว์เซอร์โยนตอนอ่าน localStorage */ }
+      } catch {
+        /* โหมดส่วนตัวบางเบราว์เซอร์โยนตอนอ่าน localStorage */
+      }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
@@ -95,29 +103,45 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
     <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    {/*
+    {
+      /*
       ฟอนต์โฮสต์เองใน public/fonts (ดู @font-face ใน global.css) จึงไม่มี preconnect
       ไปโดเมนภายนอกอีกแล้ว — preload เฉพาะสองหน้าตัวที่ทุกหน้าใช้แน่ ๆ ตั้งแต่เฟรมแรก
       คือเนื้อความไทยกับหัวข้อไทย ที่เหลือปล่อยให้ unicode-range เรียกเองเมื่อจำเป็น
-    */}
+    */
+    }
     <link rel="preload" href="/fonts/sarabun-400-thai.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/prompt-500-thai.woff2" as="font" type="font/woff2" crossorigin />
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj).replace(/</g, '\\u003c')} />)}
   </head>
   <body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 antialiased">
-    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-action focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white">ข้ามไปยังเนื้อหาหลัก</a>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-action focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >ข้ามไปยังเนื้อหาหลัก</a
+    >
     <Header />
-    <main id="main" class="site-container flex-1 py-8 sm:py-10">
-      {wide ? <slot /> : <div class="mx-auto w-full max-w-4xl"><slot /></div>}
+    <main id="main" class="site-container site-content flex-1">
+      {
+        wide ? (
+          <slot />
+        ) : (
+          <div class="site-content-narrow mx-auto w-full">
+            <slot />
+          </div>
+        )
+      }
     </main>
     <Footer />
-    {beaconToken && (
-      <script
-        is:inline
-        defer
-        src="https://static.cloudflareinsights.com/beacon.min.js"
-        data-cf-beacon={JSON.stringify({ token: beaconToken })}
-      />
-    )}
+    {
+      beaconToken && (
+        <script
+          is:inline
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({ token: beaconToken })}
+        />
+      )
+    }
   </body>
 </html>

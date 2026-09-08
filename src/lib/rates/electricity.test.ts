@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBill, FT_PERIODS, ftAt, latestFt, RESIDENTIAL_TARIFFS, VAT } from './electricity';
+import {
+  calculateBill,
+  FT_PERIODS,
+  ftAt,
+  latestFt,
+  RESIDENTIAL_TARIFFS,
+  residentialTariffsAt,
+  VAT,
+} from './electricity';
 
 const meaSmall = RESIDENTIAL_TARIFFS.mea[0];
 const meaLarge = RESIDENTIAL_TARIFFS.mea[1];
@@ -31,7 +39,8 @@ describe('ค่า Ft', () => {
 
   it('วันที่นอกงวดที่บันทึกไว้คืน null ไม่ใช่เดาค่า', () => {
     expect(ftAt('2027-01-15')).toBeNull();
-    expect(ftAt('2026-06-15')).toBeNull();
+    expect(ftAt('2025-12-31')).toBeNull();
+    expect(ftAt('2026-02-30')).toBeNull();
   });
 
   it('latestFt คืนงวดที่ใหม่ที่สุดที่มีข้อมูล', () => {
@@ -84,7 +93,7 @@ describe('คำนวณบิลค่าไฟ', () => {
     expect(r.vat).toBeCloseTo(r.subtotal * 0.07, 2);
   });
 
-  it('ปัดเศษครั้งเดียวตอนท้าย — ผลรวมของบรรทัดไม่บังคับให้เท่ากับค่าพลังงานที่ปัดแล้วเป๊ะ', () => {
+  it('รวมค่าพลังงานเต็มความละเอียดก่อนปัดเป็นสตางค์', () => {
     const r = calculateBill(137, meaSmall, ft, VAT.rate);
     const sumLines = r.lines.reduce((s, l) => s + l.amount, 0);
     expect(Math.abs(sumLines - r.energyCharge)).toBeLessThan(0.02);
@@ -93,5 +102,49 @@ describe('คำนวณบิลค่าไฟ', () => {
   it('ปฏิเสธหน่วยติดลบและ VAT ติดลบ', () => {
     expect(() => calculateBill(-1, meaSmall, ft, VAT.rate)).toThrow();
     expect(() => calculateBill(100, meaSmall, ft, -0.07)).toThrow();
+  });
+});
+
+describe('อัตราตามเดือนบิลและการปัดเศษ', () => {
+  it('เทียบบิล PEA สิงหาคม 2569 จำนวน 871 หน่วยได้ทุกรายการ', () => {
+    const tariff = residentialTariffsAt('pea', '2026-08-01')![1];
+    const bill = calculateBill(871, tariff, ftAt('2026-08-01')!.ratePerUnit, VAT.rate);
+    expect(bill.lines.map((line) => line.amount)).toEqual([487.26, 1055.45, 2082.62]);
+    expect(bill).toMatchObject({
+      energyCharge: 3625.33,
+      serviceCharge: 24.62,
+      ftCharge: 141.36,
+      subtotal: 3791.31,
+      vat: 265.39,
+      total: 4056.7,
+    });
+    expect(bill.energyCharge + bill.serviceCharge).toBeCloseTo(3649.95, 2);
+  });
+
+  it('บิลกันยายนเปลี่ยนเป็นอัตราใหม่โดยไม่เปลี่ยนบิลสิงหาคม', () => {
+    for (const utility of ['pea', 'mea'] as const) {
+      expect(residentialTariffsAt(utility, '2026-08-31')![1].steps[0]).toEqual({ upTo: 150, ratePerUnit: 3.2484 });
+      const tariff = residentialTariffsAt(utility, '2026-09-01')![1];
+      expect(calculateBill(871, tariff, 0.1623, VAT.rate).total).toBe(3905.95);
+    }
+  });
+
+  it('เลือก Ft ตามขอบเขตงวดที่ประกาศ', () => {
+    expect(ftAt('2026-04-30')!.ratePerUnit).toBe(0.0972);
+    expect(ftAt('2026-05-01')!.ratePerUnit).toBe(0.1623);
+    expect(ftAt('2026-08-31')!.ratePerUnit).toBe(0.1623);
+  });
+
+  it('ไม่ใช้อัตราปัจจุบันทับวันที่ไม่มีข้อมูลหรือวันที่ไม่ถูกต้อง', () => {
+    for (const date of ['2025-12-31', '2027-01-01', '2026-02-30', 'invalid']) {
+      expect(residentialTariffsAt('pea', date)).toBeNull();
+    }
+  });
+
+  it.each([0, 15.5, 137, 150, 200.25, 400, 871, 1234.56])('ยอดรวมตรงกับรายการที่แสดงสำหรับ %s หน่วย', (units) => {
+    const bill = calculateBill(units, meaSmall, 0.1623, VAT.rate);
+    expect(bill.subtotal).toBe(Number((bill.energyCharge + bill.serviceCharge + bill.ftCharge).toFixed(2)));
+    expect(bill.vat).toBe(Number((bill.subtotal * VAT.rate).toFixed(2)));
+    expect(bill.total).toBe(Number((bill.subtotal + bill.vat).toFixed(2)));
   });
 });

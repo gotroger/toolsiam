@@ -1,4 +1,7 @@
 ---
+import ToolHelp from './ToolHelp.astro';
+import ToolIcon from './ToolIcon';
+import { toolPresentation } from './tool-presentation';
 import type { ToolMeta } from '@/tools/types';
 import { getCategory, getRelatedTools } from '@/tools/registry';
 import ToolCard from './ToolCard.astro';
@@ -9,7 +12,9 @@ import Section from './Section.astro';
 import { TrustPanel } from './ui';
 import { cardGridTwo, cardGridItem } from './grids';
 import { getCategoryUrl, getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
-interface Props { tool: ToolMeta }
+interface Props {
+  tool: ToolMeta;
+}
 const { tool } = Astro.props;
 // เครื่องมือที่ปลดระวางมี category เป็น null — ไม่มีชิปหมวดและไม่มี related (§18.3)
 const cat = tool.category ? getCategory(tool.category) : null;
@@ -22,21 +27,26 @@ const crumbs = [
   { name: tool.name, path: getToolUrl(tool.slug) },
 ];
 ---
-<Breadcrumb items={crumbs} />
-<h1 class="mt-2 text-2xl font-medium tracking-tight text-slate-900 sm:text-[1.75rem]">{tool.name}</h1>
-<p class="mt-2 max-w-3xl text-slate-600">{tool.description}</p>
-{cat && (
-  <a
-    href={getCategoryUrl(cat)}
-    class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-2.5 py-1 text-xs text-slate-600 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
-  >
-    {cat.name}
-  </a>
-)}
 
-<Card class="mt-6 shadow-[0_1px_2px_0_rgb(16_24_40/0.04)]">
-  <slot />
+<Breadcrumb items={crumbs} />
+<header class="tool-page-heading" data-category={tool.category}>
+  <span class="tool-icon"><ToolIcon category={tool.category} slug={tool.slug} /></span>
+  <div>
+    <h1>{tool.name}</h1><p>{toolPresentation(tool).description}</p>
+    {
+      cat && (
+        <a class="tool-page-category" href={getCategoryUrl(cat)}>
+          {cat.name} <span aria-hidden="true">↗</span>
+        </a>
+      )
+    }
+  </div>
+</header>
+<Card size="workspace" aria-label={tool.name}>
+  <div class="workspace-bar"><span>พื้นที่ทำงาน</span><span>ใช้ฟรี · ไม่ต้องสมัคร</span></div>
+  <div class="workspace-content"><slot /></div>
 </Card>
+<div class="mt-6 text-sm leading-relaxed text-slate-600"><p>{tool.description}</p></div>
 
 <!--
   แผงความน่าเชื่อถือ (§17.2) — render อัตโนมัติจาก meta ไม่ต้องให้แต่ละเครื่องมือประกอบเอง
@@ -44,41 +54,33 @@ const crumbs = [
 -->
 <TrustPanel rates={tool.rates} assumptions={tool.assumptions} disclaimer={tool.disclaimer} />
 
-{tool.examples && (
-  <Section title={tool.examples.heading} lead={tool.examples.note} class="mt-10">
-    <div class="mt-4">
-      <DataTable
-        caption={tool.examples.heading}
-        minWidth="30rem"
-        columns={tool.examples.columns.map((c, i) => ({ header: c, align: i === 0 ? 'left' : 'right' }))}
-        rows={tool.examples.rows}
-      />
-    </div>
-  </Section>
-)}
+{
+  tool.examples && (
+    <Section title={tool.examples.heading} lead={tool.examples.note} class="mt-10">
+      <div class="mt-4">
+        <DataTable
+          caption={tool.examples.heading}
+          minWidth="30rem"
+          columns={tool.examples.columns.map((c, i) => ({ header: c, align: i === 0 ? 'left' : 'right' }))}
+          rows={tool.examples.rows}
+        />
+      </div>
+    </Section>
+  )
+}
 
-<div class="mt-10 grid gap-8 md:grid-cols-2">
-  <Section title="วิธีใช้งาน">
-    <ol class="mt-3 list-decimal space-y-1 pl-5 text-slate-700">
-      {tool.howTo.map((step) => <li>{step}</li>)}
-    </ol>
-  </Section>
-  <Section title="คำถามที่พบบ่อย">
-    <dl class="mt-3 space-y-3">
-      {tool.faq.map((f) => (
-        <div>
-          <dt class="font-medium">{f.q}</dt>
-          <dd class="text-slate-600">{f.a}</dd>
-        </div>
-      ))}
-    </dl>
-  </Section>
-</div>
+<ToolHelp howTo={tool.howTo} faq={tool.faq} />
 
-{related.length > 0 && (
-  <Section title="เครื่องมือที่เกี่ยวข้อง" class="mt-10">
-    <div class:list={['mt-5', cardGridTwo]}>
-      {related.map((t) => <div class:list={[cardGridItem]}><ToolCard tool={t} /></div>)}
-    </div>
-  </Section>
-)}
+{
+  related.length > 0 && (
+    <Section title="เครื่องมือที่เกี่ยวข้อง" class="mt-10">
+      <div class:list={['mt-5', cardGridTwo]}>
+        {related.map((t) => (
+          <div class:list={[cardGridItem]}>
+            <ToolCard tool={t} />
+          </div>
+        ))}
+      </div>
+    </Section>
+  )
+}

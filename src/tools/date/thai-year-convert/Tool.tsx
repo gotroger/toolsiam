@@ -1,3 +1,4 @@
+import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { useDateInput } from '@/lib/use-today';
 import { describeDate, formatThaiDate, toBuddhistYear, toChristianYear } from '@/lib/thai-date';
@@ -88,14 +89,7 @@ export default function ThaiYearConvertTool() {
       {yearError && <ErrorText>{yearError}</ErrorText>}
 
       <Field label="เลือกวันที่เพื่อดูรายละเอียด" htmlFor="date">
-        <Input
-          id="date"
-          type="date"
-          min={MIN_DATE}
-          max={MAX_DATE}
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        <DatePicker id="date" min={MIN_DATE} max={MAX_DATE} value={date} onValueChange={setDate} />
       </Field>
 
       {error && <ErrorText>{error}</ErrorText>}

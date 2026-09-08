@@ -1,110 +1,108 @@
 ---
 import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
+import ToolSearch from '@/components/ToolSearch';
+import CategoryPill from '@/components/CategoryPill';
+import ToolIcon from '@/components/ToolIcon';
+import SectionHeader from '@/components/SectionHeader.astro';
 import LotteryBanner from '@/components/lottery/LotteryBanner.astro';
-import CategoryIcon from '@/components/CategoryIcon.astro';
-import { getActiveCategories, getBrowsableCategories, getFeaturedTools, getToolsByCategory, getVisibleTools } from '@/tools/registry';
-import { cardGrid, cardGridItem } from '@/components/grids';
-import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
+import { toDiscoveryTool } from '@/components/tool-presentation';
+import { getActiveCategories, getFeaturedTools, getVisibleTools } from '@/tools/registry';
+import { getCategoryUrl, getToolsUrl, getToolUrl, getDreamUrl, getLotteryCheckUrl } from '@/lib/routes';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 
-// หมวด planned ไม่ขึ้นหน้าแรก (§8.4) — ที่เหลือจึงมีเครื่องมือจริงทุกใบ
-const categoryCounts = getBrowsableCategories().map((c) => ({ ...c, count: getToolsByCategory(c.id).length }));
-// vertical แยกออกมาเป็นอีกส่วนโดยตั้งใจ (Brand risk §9.5) — หมวดดวงและทำนายฝัน
-// ต้องไม่ขึ้นปนแถวเดียวกับเครื่องคำนวณภาษี และไม่มีตัวนับ "N เครื่องมือ" เพราะไม่ใช่เครื่องมือ
-//
-// หวย (`lottery`) ถูกกันออกจากแถวนี้เพราะเลื่อนขึ้นไปเป็นแบนเนอร์เดี่ยวใต้ hero แล้ว —
-// ต่างจากดวงและทำนายฝันตรงที่มีผลรางวัลจริงให้ตอบได้ทันทีบนหน้าแรก ไม่ใช่แค่ทางเข้าไปอ่านต่อ
-// (ยังเป็น vertical ตามปกติใน categories.ts — ตัดเฉพาะการแสดงผลบนหน้าแรกเท่านั้น)
-const verticals = getActiveCategories().filter((c) => c.landingPath && c.id !== 'lottery');
-const featured = getFeaturedTools(8);
-const visibleToolCount = getVisibleTools().length;
-const jsonLd = [organizationJsonLd(), websiteJsonLd()];
+const categories = getActiveCategories();
+const featured = getFeaturedTools(7);
+const tools = getVisibleTools().map(toDiscoveryTool);
+const quickTools = [
+  { name: 'คำนวณภาษี', href: getToolUrl('thai-income-tax') },
+  { name: 'เงินเดือนสุทธิ', href: getToolUrl('net-salary') },
+  { name: 'ตรวจหวย', href: getLotteryCheckUrl() },
+  { name: 'ผ่อนรถ', href: getToolUrl('car-loan') },
+  { name: 'ทำนายฝัน', href: getDreamUrl() },
+];
+const verticals = categories.filter((c) => c.landingPath && c.id !== 'lottery');
 ---
-<Base wide jsonLd={jsonLd} title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง">
-  <section class="py-6 text-center sm:py-10">
-    <h1 class="mx-auto max-w-3xl text-balance text-[1.875rem] font-medium leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.75rem]">
-      เครื่องมือออนไลน์ภาษาไทย ใช้ง่าย ใช้ฟรี
-    </h1>
-    <p class="mx-auto mt-4 max-w-xl text-[0.9375rem] leading-relaxed text-slate-600 sm:text-base">
-      คำนวณภาษี ค่างวด บาทถ้วน สร้าง QR PromptPay จัดการข้อความและไฟล์ ทั้งหมดทำงานในเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม
+
+<Base
+  wide
+  title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี"
+  description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง"
+  jsonLd={[organizationJsonLd(), websiteJsonLd()]}
+>
+  <section class="discovery-hero" aria-labelledby="home-title">
+    <div class="hero-orbit hero-orbit-left" aria-hidden="true"><ToolIcon category="qr" /><span>฿</span></div>
+    <div class="hero-orbit hero-orbit-right" aria-hidden="true">
+      <ToolIcon category="date" /><ToolIcon category="loan" slug="home-loan" />
+    </div>
+    <p class="hero-eyebrow"><span aria-hidden="true"></span> {tools.length} เครื่องมือ · ภาษาไทย · ใช้ฟรี</p>
+    <h1 id="home-title">เรื่องประจำวัน<br class="sm:hidden" /> <span>จัดการได้ในไม่กี่คลิก</span></h1>
+    <p class="hero-description">
+      เครื่องมือออนไลน์สำหรับทุกเรื่องในชีวิตประจำวัน<br class="sm:hidden" /> คำนวณ แปลงค่า เช็กข้อมูล จบในที่เดียว
     </p>
-    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-      <a
-        href={getToolsUrl()}
-        class="inline-flex items-center rounded-[10px] bg-action px-5 py-2.5 text-[0.9375rem] font-medium text-white transition-colors duration-150 hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
-      >
-        ดูเครื่องมือทั้งหมด ({visibleToolCount})
-      </a>
-      <a
-        href={`${getHomeUrl()}#categories`}
-        class="inline-flex items-center rounded-[10px] border border-slate-200 bg-surface px-5 py-2.5 text-[0.9375rem] font-medium text-slate-700 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
-      >
-        เลือกตามหมวดหมู่
-      </a>
+    <ToolSearch client:load mode="command" tools={tools} categories={categories} />
+    <div class="quick-tools">
+      <span>ลองใช้</span>{
+        quickTools.map((tool) => (
+          <a href={tool.href}>
+            {tool.name}
+            <span aria-hidden="true">↗</span>
+          </a>
+        ))
+      }
     </div>
   </section>
 
+  <nav id="categories" class="discovery-categories" aria-label="หมวดหมู่เครื่องมือ">
+    <div class="category-pills">
+      <CategoryPill href={getToolsUrl()} />{
+        categories.map((category) => <CategoryPill category={category.id} href={getCategoryUrl(category)} />)
+      }
+    </div>
+  </nav>
+
+  <section id="featured" class="discovery-section">
+    <SectionHeader
+      title="เครื่องมือแนะนำ"
+      description="เลือกเครื่องมือ แล้วเริ่มใช้งานได้เลย"
+      href={getToolsUrl()}
+      linkLabel={`ดูทั้งหมด ${tools.length} เครื่องมือ`}
+    />
+    <div class="bento-grid">{featured.map((tool, index) => <ToolCard tool={tool} featured={index === 0} />)}</div>
+  </section>
+
+  <div class="utility-strip">
+    <div>
+      <ToolIcon category="qr" /><span
+        ><strong>รับเงินสะดวกขึ้น</strong><small>สร้าง QR PromptPay พร้อมยอดเงิน</small></span
+      >
+    </div><a href={getToolUrl('promptpay-qr')}>สร้าง QR รับเงิน <span aria-hidden="true">↗</span></a>
+  </div>
   <LotteryBanner />
 
-  <section id="categories" class="mt-10 scroll-mt-24 sm:mt-14">
-    <h2 class="text-[1.375rem] font-medium tracking-tight text-slate-900 sm:text-2xl">หมวดหมู่</h2>
-    <p class="mt-1.5 text-sm text-slate-500">เลือกหมวดที่ตรงกับงานของคุณ</p>
-    <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-      {categoryCounts.map((c) => (
-        <a
-          href={getCategoryUrl(c)}
-          class="group rounded-xl border border-slate-200 bg-surface p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-brand-500/50 hover:shadow-[0_6px_18px_-8px_rgb(5_150_105/0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-        >
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700 transition-colors duration-200 group-hover:bg-brand-100">
-            <CategoryIcon category={c.id} class="h-5 w-5" />
-          </div>
-          <div class="mt-3 font-heading font-medium text-slate-900 group-hover:text-brand-700">{c.name}</div>
-          <div class="mt-0.5 text-xs text-slate-500">{c.count} เครื่องมือ</div>
-        </a>
-      ))}
-    </div>
-  </section>
-
-  {verticals.length > 0 && (
-    <section id="verticals" class="mt-12 scroll-mt-24 sm:mt-16">
-      <h2 class="text-[1.375rem] font-medium tracking-tight text-slate-900 sm:text-2xl">ดูดวงและความเชื่อ</h2>
-      <p class="mt-1.5 text-sm text-slate-500">เนื้อหาตามความเชื่อ อ่านเพลิน ๆ แยกจากเครื่องมือคำนวณ</p>
-      <div class="mt-5 grid gap-4 sm:grid-cols-2">
-        {verticals.map((c) => (
-          <a
-            href={getCategoryUrl(c)}
-            class="group flex items-start gap-4 rounded-xl border border-slate-200 p-4 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-            style={`background-image: linear-gradient(135deg, ${c.gradient[0]}, ${c.gradient[1]})`}
-          >
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface/70 text-slate-700">
-              <CategoryIcon category={c.id} class="h-5 w-5" />
-            </span>
-            <span>
-              <span class="block font-heading font-medium text-slate-900">{c.name}</span>
-              <span class="mt-0.5 block text-sm text-slate-600">{c.description}</span>
-            </span>
+  <section class="discovery-section" id="verticals">
+    <SectionHeader title="ดวงและความฝัน" description="สำรวจความหมายตามความเชื่อ เพื่อความบันเทิง" />
+    <div class="vertical-grid">
+      {
+        verticals.map((category) => (
+          <a class="vertical-tile" data-category={category.id} href={getCategoryUrl(category)}>
+            <>
+              <span class="tool-icon">
+                <ToolIcon category={category.id} />
+              </span>
+              <span>
+                <>
+                  <h3>{category.name}</h3>
+                  <p>{category.description}</p>
+                </>
+              </span>
+              <span class="tile-arrow" aria-hidden="true">
+                ↗
+              </span>
+            </>
           </a>
-        ))}
-      </div>
-    </section>
-  )}
-
-  <section id="featured" class="mt-12 scroll-mt-24 sm:mt-16">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 class="text-[1.375rem] font-medium tracking-tight text-slate-900 sm:text-2xl">เครื่องมือแนะนำ</h2>
-        <p class="mt-1.5 text-sm text-slate-500">เครื่องมือที่เราแนะนำให้เริ่มใช้</p>
-      </div>
-      <a
-        href={getToolsUrl()}
-        class="rounded-lg text-sm font-medium text-brand-700 transition-colors duration-150 hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
-      >
-        ดูทั้งหมด
-      </a>
-    </div>
-    <div class:list={['mt-5', cardGrid]}>
-      {featured.map((t) => <div class:list={[cardGridItem]}><ToolCard tool={t} /></div>)}
+        ))
+      }
     </div>
   </section>
 </Base>
