@@ -1,0 +1,31 @@
+---
+import type { LotteryDraw } from '@/data/lottery/schema';
+import { formatThaiDate } from '@/lib/thai-date';
+
+/**
+ * แถบบอกที่มาของข้อมูลงวด — ต้องมีทุกหน้าที่แสดงผลรางวัล (§28.1 ข้อ 6)
+ * งวดที่ยังไม่มีคนตรวจซ้ำด้วยสายตาต้องมีป้ายบอกให้ผู้ใช้เห็นชัด (§28.3)
+ */
+interface Props { draw: LotteryDraw }
+const { draw } = Astro.props;
+---
+<div class="flex flex-wrap items-center gap-2 text-sm">
+  <span class="font-medium text-slate-900">งวดวันที่ {formatThaiDate(draw.drawDate, { style: 'medium' })}</span>
+  {draw.status === 'verified' ? (
+    <span class="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800">
+      ตรวจกับประกาศแล้ว
+    </span>
+  ) : (
+    <span class="rounded-lg border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-900">
+      รอการตรวจสอบซ้ำ
+    </span>
+  )}
+  <a
+    href={draw.sourceUrl}
+    rel="nofollow noopener"
+    target="_blank"
+    class="text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+  >
+    ประกาศของสำนักงานสลากกินแบ่งรัฐบาล
+  </a>
+</div>
