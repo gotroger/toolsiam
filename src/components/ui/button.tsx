@@ -9,7 +9,7 @@ export function Button({ variant = 'primary', className, ...props }: ButtonProps
   const styles =
     variant === 'primary'
       ? 'bg-brand-600 text-white hover:bg-brand-700'
-      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50';
+      : 'border border-slate-300 bg-surface text-slate-700 hover:bg-slate-50';
   return (
     <button
       type="button"

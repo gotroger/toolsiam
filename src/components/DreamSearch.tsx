@@ -22,7 +22,7 @@ export default function DreamSearch() {
       renderItem={(e) => (
         <a
           href={getDreamEntryUrl(e.slug)}
-          className="block rounded-[10px] border border-slate-200 bg-white p-3 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+          className="block rounded-[10px] border border-slate-200 bg-surface p-3 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
         >
           <span className="font-medium text-slate-900">{e.title}</span>
           <span className="ml-2 text-xs text-slate-500">{groupLabel[e.group]}</span>

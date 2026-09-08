@@ -70,7 +70,7 @@ export default function BirthdayProfile() {
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
-            <section className="rounded-[10px] border border-slate-200 bg-white p-4">
+            <section className="rounded-[10px] border border-slate-200 bg-surface p-4">
               <h3 className="text-sm font-medium text-slate-900">ลักษณะตามราศี</h3>
               <p className="mt-1.5 text-sm text-slate-700">{sign.summary}</p>
               <p className="mt-2 text-xs text-slate-500">
@@ -78,7 +78,7 @@ export default function BirthdayProfile() {
               </p>
             </section>
 
-            <section className="rounded-[10px] border border-slate-200 bg-white p-4">
+            <section className="rounded-[10px] border border-slate-200 bg-surface p-4">
               <h3 className="text-sm font-medium text-slate-900">สีมงคลประจำวันเกิด</h3>
               <ul className="mt-1.5 space-y-0.5 text-sm text-slate-700">
                 <li>การงาน: {colors.work.join(' · ')}</li>
@@ -91,7 +91,7 @@ export default function BirthdayProfile() {
               </p>
             </section>
 
-            <section className="rounded-[10px] border border-slate-200 bg-white p-4">
+            <section className="rounded-[10px] border border-slate-200 bg-surface p-4">
               <h3 className="text-sm font-medium text-slate-900">เลขศาสตร์วันเกิด</h3>
               <p className="mt-1.5 text-sm text-slate-700">{numbers.meaning}</p>
               <p className="mt-2 text-xs text-slate-500">
@@ -100,7 +100,7 @@ export default function BirthdayProfile() {
             </section>
 
             {chinese && (
-              <section className="rounded-[10px] border border-slate-200 bg-white p-4">
+              <section className="rounded-[10px] border border-slate-200 bg-surface p-4">
                 <h3 className="text-sm font-medium text-slate-900">ปีนักษัตร</h3>
                 <p className="mt-1.5 text-sm text-slate-700">{chinese.animal.summary}</p>
                 <p className="mt-2 text-xs text-slate-500">

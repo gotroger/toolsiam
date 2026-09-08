@@ -2,7 +2,7 @@
 /**
  * การ์ดพื้นขาว — ผิวเดียวของทั้งเว็บ
  *
- * ก่อนมีไฟล์นี้ คลาสชุด `rounded-xl border border-slate-200 bg-white p-4 sm:p-6`
+ * ก่อนมีไฟล์นี้ คลาสชุด `rounded-xl border border-slate-200 bg-surface p-4 sm:p-6`
  * ถูกพิมพ์ซ้ำใน 18 จุดทั่วหน้า .astro (ฝั่ง React มี primitive ใน ui.tsx อยู่แล้ว
  * แต่ฝั่ง Astro ไม่มีอะไรเลย) แก้สไตล์การ์ดทีหนึ่งจึงต้องไล่แก้ทุกไฟล์
  *
@@ -25,6 +25,6 @@ const SIZES = {
   sm: 'rounded-lg px-3 py-2 text-sm',
 } as const;
 ---
-<Tag class:list={['border border-slate-200 bg-white', SIZES[size], cls]} {...rest}>
+<Tag class:list={['border border-slate-200 bg-surface', SIZES[size], cls]} {...rest}>
   <slot />
 </Tag>

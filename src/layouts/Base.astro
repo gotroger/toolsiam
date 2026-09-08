@@ -57,6 +57,18 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
 <html lang="th">
   <head>
     <meta charset="utf-8" />
+    <!--
+      ตั้งธีมก่อนเบราว์เซอร์วาดครั้งแรก — is:inline + อยู่บนสุดของ <head> โดยตั้งใจ
+      ถ้าปล่อยให้สคริปต์นี้โหลดทีหลัง ผู้ใช้ที่เลือกโหมดมืดไว้จะเห็นหน้าขาววาบก่อนหนึ่งเฟรม
+
+      ไม่ตั้งอะไรเลยเมื่อผู้ใช้ยังไม่เคยเลือก — ปล่อยให้ prefers-color-scheme ทำงานตามระบบ
+    -->
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('toolsiam-theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch { /* โหมดส่วนตัวบางเบราว์เซอร์โยนตอนอ่าน localStorage */ }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -83,10 +95,13 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
     <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    {/* Prompt = หัวข้อ · Sarabun = เนื้อความ — ขอในลิงก์เดียวเพื่อไม่เพิ่มจำนวน request */}
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    {/*
+      ฟอนต์โฮสต์เองใน public/fonts (ดู @font-face ใน global.css) จึงไม่มี preconnect
+      ไปโดเมนภายนอกอีกแล้ว — preload เฉพาะสองหน้าตัวที่ทุกหน้าใช้แน่ ๆ ตั้งแต่เฟรมแรก
+      คือเนื้อความไทยกับหัวข้อไทย ที่เหลือปล่อยให้ unicode-range เรียกเองเมื่อจำเป็น
+    */}
+    <link rel="preload" href="/fonts/sarabun-400-thai.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/prompt-500-thai.woff2" as="font" type="font/woff2" crossorigin />
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj).replace(/</g, '\\u003c')} />)}
   </head>
   <body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 antialiased">

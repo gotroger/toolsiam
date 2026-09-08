@@ -1,5 +1,99 @@
 @import "tailwindcss";
 
+/**
+ * ฟอนต์โฮสต์เอง ไม่ดึงจาก Google Fonts
+ *
+ * เหตุผลหลักคือคำสัญญาบนหน้าเว็บว่า "ข้อมูลของคุณไม่ถูกส่งออกไปไหน" — การดึงฟอนต์จาก
+ * โดเมนภายนอกส่ง IP และ user agent ของผู้ใช้ทุกคนออกไปทุกครั้งที่เปิดหน้า
+ * ผลพลอยได้คือตัดการเชื่อมต่อไปอีกสองโดเมน (fonts.googleapis.com + fonts.gstatic.com)
+ * ออกจากเส้นทางวิกฤตของการวาดหน้าแรก
+ *
+ * เก็บเฉพาะ subset thai กับ latin (ตัด vietnamese และ latin-ext ทิ้ง) รวม 10 ไฟล์ ~100 KB
+ * และ `unicode-range` ทำให้เบราว์เซอร์โหลดเฉพาะไฟล์ที่หน้านั้นใช้อักษรจริง
+ *
+ * ไฟล์อยู่ใน public/fonts/ อัปเดตด้วย `npm run fonts`
+ */
+@font-face {
+  font-family: 'Prompt';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/prompt-500-thai.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Prompt';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/prompt-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/sarabun-400-thai.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/sarabun-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/sarabun-500-thai.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/sarabun-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/sarabun-600-thai.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/sarabun-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/sarabun-700-thai.woff2') format('woff2');
+  unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+}
+@font-face {
+  font-family: 'Sarabun';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/sarabun-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
   --font-sans: "Sarabun", ui-sans-serif, system-ui, -apple-system, sans-serif;
   /* หัวข้อใช้ Prompt — ทรงเรขาคณิตกว่า Sarabun ทำให้ลำดับชั้นหัวข้อ/เนื้อความอ่านออกทันที */
@@ -27,6 +121,17 @@
   --color-brand-700: #047857;
   --color-brand-800: #065f46;
   --color-brand-900: #064e3b;
+
+  /**
+   * พื้นผิวของการ์ด/ช่องกรอก — แยกออกจาก `white` เพราะสองอย่างนี้ต้องไปคนละทางในโหมดมืด
+   *
+   * `bg-white` กับ `text-white` ใน Tailwind ใช้ตัวแปรเดียวกัน (--color-white)
+   * ถ้าเปลี่ยน --color-white ให้เป็นสีเข้ม ตัวอักษรบนปุ่มเขียวจะกลายเป็นสีเข้มไปด้วย
+   * จึงต้องมี token แยกสำหรับ "พื้นผิว" โดยเฉพาะ (ใช้ bg-surface ทั้งเว็บ 36 จุด)
+   *
+   * ข้อยกเว้นที่ยังใช้ bg-white จริง ๆ คือพื้นหลังรูป QR — ต้องขาวเสมอไม่งั้นสแกนไม่ติด
+   */
+  --color-surface: #ffffff;
 
   /* เงาระดับเบา ใช้เฉพาะตอน interaction */
   --shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04);
@@ -86,6 +191,42 @@
   }
 
   /**
+   * หัวเรื่องของ vertical (/horoscope, /dream) — ไล่สีประจำหมวด
+   *
+   * โหมดมืดผสมสีเดิมลงบนพื้นผิวเข้มแทนที่จะทิ้งสีไปเลย แต่ละ vertical จึงยังแยกออกจากกัน
+   * ด้วยเฉดของตัวเอง โดยที่ตัวอักษรบนพื้นยังอ่านออก — พาสเทลเดิมบนโหมดมืดทำให้
+   * ตัวอักษรสีอ่อนหายไปกับพื้น
+   */
+  .vertical-hero {
+    background-image: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  }
+
+  /**
+   * กฎโหมดมืดของ hero ต้องอยู่ใน @layer components ด้วยกัน
+   * ลำดับเลเยอร์ของ Tailwind คือ theme → base → components → utilities
+   * ถ้าไปเขียนไว้ใน @layer theme จะแพ้กฎ .vertical-hero ข้างบนเสมอ ไม่ว่า selector จะเจาะจงแค่ไหน
+   */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .vertical-hero {
+      background-color: var(--color-slate-100);
+      background-image: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--hero-from) 16%, var(--color-surface)),
+        color-mix(in oklab, var(--hero-to) 16%, var(--color-surface))
+      );
+    }
+  }
+
+  [data-theme='dark'] .vertical-hero {
+    background-color: var(--color-slate-100);
+    background-image: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--hero-from) 16%, var(--color-surface)),
+      color-mix(in oklab, var(--hero-to) 16%, var(--color-surface))
+    );
+  }
+
+  /**
    * กริดการ์ดเครื่องมือ — เขียนเป็น CSS ตรง ๆ เพื่อคุมลำดับ media query ได้แน่นอน
    * 1 → 2 (≥640) → 3 (≥1024) → 4 (≥1180) คอลัมน์
    */
@@ -114,5 +255,124 @@
 
   @media (min-width: 1180px) {
     .card-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+}
+
+/**
+ * โหมดมืด
+ *
+ * วิธีที่เลือก: เขียนทับ "ค่าของสี" ที่ Tailwind ประกาศไว้ ไม่ใช่ไล่เติม `dark:` ทีละคลาส
+ * เพราะ utility ของ Tailwind v4 อ้างสีผ่าน var(--color-*) ทั้งหมด การกลับหัวไล่ระดับ
+ * ที่ต้นทางจึงครอบคลุมทั้งเว็บในที่เดียว — เทียบกับการเติม `dark:` ราว 420 จุด
+ * ซึ่งมีโอกาสตกหล่นสูงและต้องเติมใหม่ทุกครั้งที่เขียนหน้าใหม่
+ *
+ * ไล่ระดับ slate ถูกสลับหัวท้าย (50↔900, 100↔800, 200↔700, 300↔600, 400↔500)
+ * ความสัมพันธ์ "อ่อน/เข้ม" ระหว่างคลาสจึงคงเดิม โค้ดที่เขียนไว้แล้วไม่ต้องแก้
+ *
+ * ทำงานสองทาง: ตามค่าระบบเป็นค่าเริ่มต้น และ [data-theme] เมื่อผู้ใช้เลือกเอง
+ */
+@layer theme {
+  :root {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      color-scheme: dark;
+
+      /* พื้นผิวการ์ดสว่างกว่าพื้นหน้าเล็กน้อย เพื่อให้การ์ดยังลอยขึ้นมาเหมือนโหมดสว่าง */
+      --color-surface: #182234;
+
+      --color-slate-50: #0f172a;
+      --color-slate-100: #1e293b;
+      --color-slate-200: #334155;
+      --color-slate-300: #475569;
+      --color-slate-400: #64748b;
+      --color-slate-500: #94a3b8;
+      --color-slate-600: #cbd5e1;
+      --color-slate-700: #e2e8f0;
+      --color-slate-800: #f1f5f9;
+      --color-slate-900: #f8fafc;
+
+      /**
+       * เขียวแบรนด์: กลับหัวเฉพาะปลายที่ใช้เป็น "พื้น" กับที่ใช้เป็น "ตัวอักษร"
+       *
+       * 50–200 เป็นพื้นอ่อนในโหมดสว่าง (ResultBox, ชิป) จึงกลายเป็นเขียวเข้ม
+       * 700–900 ถูกใช้เป็นสีตัวอักษรบนพื้นอ่อน จึงต้องสว่างขึ้นเพื่ออ่านออกบนพื้นเข้ม
+       * ส่วน 600 คงค่าเดิมโดยตั้งใจ — เป็นพื้นปุ่มหลักที่คู่กับ text-white ซึ่งเปลี่ยนตามธีมไม่ได้
+       * ทำให้สว่างขึ้นเมื่อไหร่ ตัวอักษรขาวบนปุ่มจะยิ่งอ่านยากกว่าโหมดสว่าง
+       */
+      --color-brand-50: #052e23;
+      --color-brand-100: #06402f;
+      --color-brand-200: #075e42;
+      --color-brand-700: #6ee7b7;
+      --color-brand-800: #a7f3d0;
+      --color-brand-900: #d1fae5;
+
+      /* กล่องเตือน (Alert tone="note") */
+      --color-amber-50: #3a2a06;
+      --color-amber-200: #6b4f10;
+      --color-amber-700: #fcd34d;
+      --color-amber-900: #fde68a;
+
+      /* ข้อผิดพลาด */
+      --color-red-50: #3f1418;
+      --color-red-200: #7f1d1d;
+      --color-red-400: #f87171;
+      --color-red-600: #fca5a5;
+      --color-red-700: #fecaca;
+      --color-red-900: #fee2e2;
+
+      /* พื้นไล่สีหลังภาพปกการ์ดเครื่องมือ */
+      --color-emerald-50: #052e23;
+      --color-emerald-100: #06402f;
+      --color-emerald-200: #075e42;
+      --color-emerald-700: #6ee7b7;
+      --color-emerald-800: #a7f3d0;
+      --color-emerald-900: #d1fae5;
+    }
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --color-surface: #182234;
+
+    --color-slate-50: #0f172a;
+    --color-slate-100: #1e293b;
+    --color-slate-200: #334155;
+    --color-slate-300: #475569;
+    --color-slate-400: #64748b;
+    --color-slate-500: #94a3b8;
+    --color-slate-600: #cbd5e1;
+    --color-slate-700: #e2e8f0;
+    --color-slate-800: #f1f5f9;
+    --color-slate-900: #f8fafc;
+
+    /* ดูเหตุผลของ ramp นี้ในบล็อก prefers-color-scheme ด้านบน */
+    --color-brand-50: #052e23;
+    --color-brand-100: #06402f;
+    --color-brand-200: #075e42;
+    --color-brand-700: #6ee7b7;
+    --color-brand-800: #a7f3d0;
+    --color-brand-900: #d1fae5;
+
+    --color-amber-50: #3a2a06;
+    --color-amber-200: #6b4f10;
+    --color-amber-700: #fcd34d;
+    --color-amber-900: #fde68a;
+
+    --color-red-50: #3f1418;
+    --color-red-200: #7f1d1d;
+    --color-red-400: #f87171;
+    --color-red-600: #fca5a5;
+    --color-red-700: #fecaca;
+    --color-red-900: #fee2e2;
+
+    --color-emerald-50: #052e23;
+    --color-emerald-100: #06402f;
+    --color-emerald-200: #075e42;
+    --color-emerald-700: #6ee7b7;
+    --color-emerald-800: #a7f3d0;
+    --color-emerald-900: #d1fae5;
   }
 }

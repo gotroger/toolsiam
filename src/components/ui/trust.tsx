@@ -28,7 +28,7 @@ export function TrustPanel({
       {rates.length > 0 && (
         <div className="mt-3 space-y-3">
           {rates.map((r) => (
-            <div key={`${r.sourceUrl}-${r.effectiveFrom}`} className="rounded-[10px] border border-slate-200 bg-white p-3">
+            <div key={`${r.sourceUrl}-${r.effectiveFrom}`} className="rounded-[10px] border border-slate-200 bg-surface p-3">
               <p className="text-slate-800">{r.summary}</p>
               <dl className="mt-2 grid gap-x-4 gap-y-1 text-xs text-slate-600 sm:grid-cols-2">
                 <div className="flex gap-1"><dt className="text-slate-500">มีผลตั้งแต่</dt><dd>{r.effectiveFrom}</dd></div>

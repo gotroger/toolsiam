@@ -131,7 +131,14 @@ export default function QrGeneratorTool() {
       <div className="flex flex-col items-center gap-3">
         {dataUrl ? (
           <>
-            <img src={dataUrl} alt="QR Code" width={320} height={320} className="rounded-lg border border-slate-200 bg-white" />
+            {/* พื้นขาวจริงเสมอ ไม่ใช่ bg-surface ที่ตามธีม — QR บนพื้นเข้มสแกนไม่ติด */}
+            <img
+              src={dataUrl}
+              alt="QR Code"
+              width={320}
+              height={320}
+              className="rounded-lg border border-slate-200 bg-white"
+            />
             <div className="flex flex-wrap justify-center gap-2">
               <a href={dataUrl} download={`toolsiam-qr-${kind}.png`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
                 ดาวน์โหลด PNG

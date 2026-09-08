@@ -1,5 +1,5 @@
 export const field =
-  'w-full rounded-[10px] border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 ' +
+  'w-full rounded-[10px] border border-slate-300 bg-surface px-3 py-2 text-base text-slate-900 ' +
   'transition-colors duration-150 placeholder:text-slate-400 hover:border-slate-400 ' +
   'focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/30 disabled:bg-slate-100';
 

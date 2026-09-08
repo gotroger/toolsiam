@@ -62,7 +62,14 @@ export default function PromptPayQrTool() {
       <div className="flex flex-col items-center gap-3">
         {dataUrl ? (
           <>
-            <img src={dataUrl} alt="QR PromptPay" width={320} height={320} className="rounded-lg border border-slate-200 bg-white" />
+            {/* พื้นขาวจริงเสมอ ไม่ใช่ bg-surface ที่ตามธีม — QR บนพื้นเข้มสแกนไม่ติด */}
+            <img
+              src={dataUrl}
+              alt="QR PromptPay"
+              width={320}
+              height={320}
+              className="rounded-lg border border-slate-200 bg-white"
+            />
             <a href={dataUrl} download={`promptpay-${target.replace(/\D/g, '')}.png`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
               ดาวน์โหลดรูป QR
             </a>

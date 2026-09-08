@@ -57,7 +57,7 @@ export default function ChineseZodiacFinder() {
           <p className="text-sm text-slate-700">{result.animal.summary}</p>
           <ul className="flex flex-wrap gap-2">
             {result.animal.traits.map((t) => (
-              <li key={t} className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600">{t}</li>
+              <li key={t} className="rounded-lg border border-slate-200 bg-surface px-2.5 py-1 text-xs text-slate-600">{t}</li>
             ))}
           </ul>
         </>

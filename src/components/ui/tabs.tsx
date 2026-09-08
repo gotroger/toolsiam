@@ -48,7 +48,7 @@ export function Tabs({
             }}
             className={cx(
               'flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-1',
-              selected ? 'bg-white text-brand-700 shadow-[0_1px_2px_0_rgb(16_24_40/0.06)]' : 'text-slate-600 hover:text-slate-900',
+              selected ? 'bg-surface text-brand-700 shadow-[0_1px_2px_0_rgb(16_24_40/0.06)]' : 'text-slate-600 hover:text-slate-900',
             )}
           >
             {t.label}

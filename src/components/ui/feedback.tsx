@@ -14,7 +14,7 @@ export function ResultBox({ label, children }: { label: string; children: ReactN
 
 export function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-[10px] border border-slate-200 bg-white p-3">
+    <div className="rounded-[10px] border border-slate-200 bg-surface p-3">
       <div className="text-xs text-slate-500">{label}</div>
       <div className="mt-1 text-lg font-semibold">{value}</div>
     </div>
@@ -65,7 +65,7 @@ export function EmptyState({
   title, description, action,
 }: { title: string; description?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+    <div className="rounded-xl border border-dashed border-slate-300 bg-surface px-6 py-14 text-center">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
         <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
           <path d="M10.8 4a6.8 6.8 0 1 1 0 13.6 6.8 6.8 0 0 1 0-13.6Zm4.9 11.7L20 20" />

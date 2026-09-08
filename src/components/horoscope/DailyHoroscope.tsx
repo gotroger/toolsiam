@@ -46,7 +46,7 @@ export default function DailyHoroscope({ initialSign }: { initialSign?: string }
       ) : (
         <div className="grid gap-3 sm:grid-cols-2" aria-live="polite">
           {DAILY_CATEGORIES.map((c) => (
-            <article key={c.id} className="rounded-[10px] border border-slate-200 bg-white p-4">
+            <article key={c.id} className="rounded-[10px] border border-slate-200 bg-surface p-4">
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900">
                 {c.label}
               </h3>

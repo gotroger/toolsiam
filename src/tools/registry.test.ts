@@ -217,12 +217,18 @@ describe('public/ ไม่มีไฟล์ขยะ', () => {
     '_redirects', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
     'favicon-192.png', 'apple-touch-icon.png', 'logo.png',
   ]);
-  const ALLOWED_DIRS = new Set(['covers', 'og']);
+  const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts']);
 
   it('ไฟล์ระดับบนสุดอยู่ใน allowlist ทั้งหมด', () => {
     for (const entry of readdirSync('public', { withFileTypes: true })) {
       if (entry.isDirectory()) expect(ALLOWED_DIRS.has(entry.name), entry.name).toBe(true);
       else expect(ALLOWED_ROOT.has(entry.name), entry.name).toBe(true);
+    }
+  });
+
+  it('fonts/ มีแต่ woff2 ที่ตั้งชื่อตามรูปแบบของ scripts/fetch-fonts.mjs', () => {
+    for (const f of readdirSync(join('public', 'fonts'))) {
+      expect(f, `public/fonts/${f}`).toMatch(/^(prompt|sarabun)-\d{3}-(thai|latin)\.woff2$/);
     }
   });
 
