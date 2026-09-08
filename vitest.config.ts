@@ -3,8 +3,11 @@ import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   test: {
-    include: ['src/**/*.test.ts'],
+    // .test.ts = ตรรกะล้วน รันบน node · .test.tsx = คอมโพเนนต์ ประกาศ jsdom
+    // ไว้ที่หัวไฟล์ด้วย `// @vitest-environment jsdom` เป็นรายไฟล์
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     environment: 'node',
+    setupFiles: ['./vitest.setup.ts'],
     globals: true,
   },
   resolve: {

@@ -19,7 +19,8 @@
     ".astro/types.d.ts",
     "src/**/*",
     "workers/**/*",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "vitest.setup.ts"
   ],
   "exclude": [
     "dist",
