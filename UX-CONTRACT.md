@@ -61,3 +61,7 @@ Use a native modal dialog for top-layer placement, background inertness and focu
 Tax forms share calculateTax and distinguish tax years 2025/2026, qualified deduction categories, and ordinary/double donations. Native Select and shared Field/Input/NumberInput remain the owners. Raw invalid numeric text must remain visible and suppress calculated results. Year conversion preserves invalid signs/text and reports its supported range.
 
 Calendar differences count complete clamped calendar months from the original date and then remaining days; age uses the rollover variant to preserve its existing March 1 birthday convention for February 29 in non-leap years. Severance counts both employment endpoints and selects calendar-year bands; its 30-day monthly wage base may be enhanced to 26 only for additional employer benefits. Holiday calendars distinguish national and Bangkok scope. All calculations remain local.
+
+### Readiness before calculator input
+
+ToolIsland renders the existing loading state on the server and during initial hydration; calculator inputs appear only after React is ready and the lazy tool module resolves. This prevents visible values from changing before calculation handlers attach. ToolShell headings, instructions, FAQs and sources remain static HTML; no-JavaScript visitors see an explicit instruction.

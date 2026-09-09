@@ -14,8 +14,16 @@ const { tool } = Astro.props;
 const url = absoluteUrl(getToolUrl(tool.slug));
 const og = resolveOgImage(tool);
 ---
-<Base title={`${tool.name} — ทูลสยาม`} description={tool.description} jsonLd={toolJsonLd(tool, url)} ogImage={og.src} ogImageAlt={og.alt}>
+
+<Base
+  title={`${tool.name} — ทูลสยาม`}
+  description={tool.description}
+  jsonLd={toolJsonLd(tool, url)}
+  ogImage={og.src}
+  ogImageAlt={og.alt}
+>
   <ToolShell tool={tool}>
     <ToolIsland client:load slug={tool.slug} />
+    <noscript>กรุณาเปิด JavaScript ในเบราว์เซอร์เพื่อใช้เครื่องคำนวณ</noscript>
   </ToolShell>
 </Base>

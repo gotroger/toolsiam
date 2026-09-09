@@ -57,3 +57,9 @@
 ## แหล่งอ้างอิงที่ใช้แก้เงื่อนไข
 
 [กรมสรรพากร: ประกันสังคม ข้อ 2 และ 4](https://www.rd.go.th/60061.html), [Thai ESG กฎกระทรวงฉบับที่ 395](https://www.rd.go.th/fileadmin/user_upload/kormor/newlaw/mr395.pdf), [RMF และค่าลดหย่อนรายประเภท](https://www.rd.go.th/fileadmin/download/tax_deductions_update30072567.pdf), [ลำดับเงินบริจาค ข้อ 4.2](https://www.rd.go.th/63908.html), [สิทธิตามกฎหมายแรงงาน](https://www.mol.go.th/employee/สิทธิตามกฎหมายแรงงาน), [วันหยุดสถาบันการเงินเฉพาะกรุงเทพฯ](https://www.bot.or.th/content/dam/bot/documents/th/news-and-media/news/2026/news-20260609.pdf) และ [มติวันหยุดราชการกรุงเทพฯ](https://www.thaigov.go.th/en/news/164228)
+
+## A17 — ฟอร์มระหว่างโหลด JavaScript
+
+หลังเผยแพร่รอบแรกพบว่าช่องกรอก SSR รับค่าได้ก่อน React พร้อม จึงมีกรณีตัวเลขในช่องเปลี่ยนแต่ผลคำนวณยังเป็นค่าเริ่มต้น; แก้ ToolIsland ให้แสดงสถานะโหลดจน event handlers พร้อม และเพิ่มข้อความสำหรับเบราว์เซอร์ที่ปิด JavaScript
+
+เพิ่มการทดสอบ HTML ฝั่ง server ต้องไม่มีช่องกรอก และเมื่อโมดูลโหลดช้า การกรอกครั้งแรกต้องอัปเดตผลลัพธ์ทันที; ชุดทดสอบรวมผ่าน 730 กรณีใน 71 ไฟล์
