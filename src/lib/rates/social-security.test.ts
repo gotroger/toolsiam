@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
-  SECTION_33_RATES, SECTION_40_OPTIONS, section33Contribution, section39Contribution,
-  SOCIAL_SECURITY_SOURCE, wageCapAt,
+  SECTION_33_RATES,
+  SECTION_40_OPTIONS,
+  section33Contribution,
+  section39Contribution,
+  SOCIAL_SECURITY_SOURCE,
+  wageCapAt,
 } from './social-security';
 
 describe('เพดานค่าจ้าง ม.33', () => {
@@ -30,10 +34,10 @@ describe('เงินสมทบ ม.33', () => {
     expect(r.total).toBe(1750);
   });
 
-  it('เงินเดือนต่ำกว่าฐานขั้นต่ำถูกยกขึ้นเป็น 1,650 → ส่ง 82.50 บาท', () => {
+  it('เงินเดือนต่ำกว่าฐานขั้นต่ำถูกยกขึ้นเป็น 1,650 → ส่ง 83 บาท', () => {
     const r = section33Contribution(1_000, asOf);
     expect(r.base).toBe(1_650);
-    expect(r.employee).toBe(82.5);
+    expect(r.employee).toBe(83);
   });
 
   it('เงินเดือนกลางช่วงคิดจากค่าจ้างจริง', () => {
@@ -71,5 +75,15 @@ describe('แหล่งอ้างอิง', () => {
     expect(SOCIAL_SECURITY_SOURCE.sourceUrl).toMatch(/^https:\/\/www\.sso\.go\.th\//);
     expect(SOCIAL_SECURITY_SOURCE.lastVerifiedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(SOCIAL_SECURITY_SOURCE.effectiveFrom).toBe('2026-01-01');
+  });
+});
+
+describe('ปัดเงินนำส่งมาตรา 46', () => {
+  it('ต่ำกว่า 50 สตางค์ปัดทิ้ง ตั้งแต่ 50 สตางค์ปัดขึ้นทั้งลูกจ้างและนายจ้าง', () => {
+    expect(section33Contribution(10009.8, '2026-09-09').employee).toBe(500);
+    const r = section33Contribution(10010, '2026-09-09');
+    expect(r.employee).toBe(501);
+    expect(r.employer).toBe(501);
+    expect(r.total).toBe(1002);
   });
 });

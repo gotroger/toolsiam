@@ -23,10 +23,10 @@ describe('ประกันสังคมใน net-salary', () => {
     expect(r.ssoYearly).toBe(10_500);
   });
 
-  it('ยอดที่ลดหย่อนภาษีได้ถูกหนีบที่เพดานของสรรพากร ซึ่งต่ำกว่าเงินสมทบจริง', () => {
+  it('ปี 2569 ลดหย่อนเงินสมทบตามจ่ายจริง', () => {
     const r = calculateNetSalary(base);
-    expect(r.ssoDeductible).toBe(9_000);
-    expect(r.ssoDeductible).toBeLessThan(r.ssoYearly);
+    expect(r.ssoDeductible).toBe(10_500);
+    expect(r.ssoDeductible).toBe(r.ssoYearly);
   });
 
   it('ใช้เพดานเดิมเมื่อคำนวณย้อนหลังก่อนวันมีผล', () => {
@@ -50,9 +50,9 @@ describe('เงินเดือนสุทธิ', () => {
     const r = calculateNetSalary(base);
     expect(r.annualIncome).toBe(360_000);
     expect(r.expense).toBe(100_000);
-    expect(r.netIncome).toBe(191_000); // 360,000 − 100,000 − (60,000 + 9,000)
-    expect(r.annualTax).toBe(2_050);
-    expect(r.netMonthly).toBe(28_954.17);
+    expect(r.netIncome).toBe(189_500); // 360,000 − 100,000 − (60,000 + 10,500)
+    expect(r.annualTax).toBe(1_975);
+    expect(r.netMonthly).toBe(28_960.42);
   });
 
   it('โบนัสและรายได้เสริมเพิ่มเงินได้ทั้งปี แต่ไม่เพิ่มเงินเดือนรายเดือน', () => {
@@ -65,7 +65,11 @@ describe('เงินเดือนสุทธิ', () => {
   it('ค่าลดหย่อนที่เพิ่มเข้ามาใน Phase 2 ลดภาษีได้จริง', () => {
     const plain = calculateNetSalary({ ...base, monthlySalary: 60_000 });
     const withDeductions = calculateNetSalary({
-      ...base, monthlySalary: 60_000, lifeInsurance: 100_000, retirementFunds: 100_000, homeLoanInterest: 50_000,
+      ...base,
+      monthlySalary: 60_000,
+      lifeInsurance: 100_000,
+      retirementFunds: 100_000,
+      homeLoanInterest: 50_000,
     });
     expect(withDeductions.allowances).toBeGreaterThan(plain.allowances);
     expect(withDeductions.annualTax).toBeLessThan(plain.annualTax);
@@ -85,10 +89,18 @@ describe('เงินเดือนสุทธิ', () => {
     expect(() => calculateNetSalary({ ...base, monthlySalary: -1 })).toThrow();
   });
 
-  it('ค่า NaN ในช่องที่ไม่บังคับ ให้ผลเหมือนใส่ 0', () => {
-    const zero = calculateNetSalary(base);
-    for (const key of ['bonus', 'otherIncome', 'children', 'parents', 'lifeInsurance', 'retirementFunds', 'homeLoanInterest', 'otherDeductions'] as const) {
-      expect(calculateNetSalary({ ...base, [key]: NaN })).toEqual(zero);
+  it('ค่า NaN ในช่องที่ไม่บังคับต้องแจ้งข้อผิดพลาด', () => {
+    for (const key of [
+      'bonus',
+      'otherIncome',
+      'children',
+      'parents',
+      'lifeInsurance',
+      'retirementFunds',
+      'homeLoanInterest',
+      'otherDeductions',
+    ] as const) {
+      expect(() => calculateNetSalary({ ...base, [key]: NaN })).toThrow();
     }
   });
 });

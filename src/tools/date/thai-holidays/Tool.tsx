@@ -1,23 +1,24 @@
 import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
-import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayCalendar } from './logic';
+import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayRegion, type HolidayCalendar } from './logic';
 import { describeDate } from '@/lib/thai-date';
 import { CopyButton, DataTable, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
 import { toCsv } from '@/lib/clipboard';
 
 export default function ThaiHolidaysTool() {
+  const [region, setRegion] = useState<HolidayRegion>('national');
   const [cal, setCal] = useState<HolidayCalendar>('bank');
   const [start, setStart] = useState('2026-01-01');
   const [end, setEnd] = useState('2026-03-31');
   const [addFrom, setAddFrom] = useState('2026-01-05');
   const [addCount, setAddCount] = useState('30');
 
-  const holidays = listHolidays(cal);
+  const holidays = listHolidays(cal, region);
 
   let spanError = '';
   let span: ReturnType<typeof businessDaysBetween> | null = null;
   try {
-    span = businessDaysBetween(start, end, cal);
+    span = businessDaysBetween(start, end, cal, region);
   } catch (e) {
     spanError = (e as Error).message;
   }
@@ -25,7 +26,7 @@ export default function ThaiHolidaysTool() {
   let addError = '';
   let dueDate = '';
   try {
-    dueDate = addBusinessDays(addFrom, Math.trunc(Number(addCount) || 0), cal);
+    dueDate = addBusinessDays(addFrom, Number(addCount), cal, region);
   } catch (e) {
     addError = (e as Error).message;
   }
@@ -39,6 +40,16 @@ export default function ThaiHolidaysTool() {
         </Select>
       </Field>
 
+      <Field
+        label="พื้นที่"
+        htmlFor="region"
+        hint="กรุงเทพฯ หยุดพิเศษ 16 ต.ค. 2569; WFH วันที่ 12, 14, 15 ต.ค. ยังนับเป็นวันทำการ; ไม่รวมวันหยุดเฉพาะจังหวัดอื่น"
+      >
+        <Select id="region" value={region} onChange={(e) => setRegion(e.target.value as HolidayRegion)}>
+          <option value="national">วันหยุดทั่วประเทศ</option>
+          <option value="bangkok">กรุงเทพมหานคร</option>
+        </Select>
+      </Field>
       <section className="space-y-3">
         <h2 className="text-lg font-medium">นับวันทำการระหว่างสองวันที่</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -123,8 +134,8 @@ export default function ThaiHolidaysTool() {
         <p className="text-xs text-slate-500">
           วันที่แสดงเป็นสีจางคือวันหยุดที่ตรงกับเสาร์-อาทิตย์อยู่แล้ว
           ข้อมูลอ้างอิงประกาศธนาคารแห่งประเทศไทยและมติคณะรัฐมนตรี หากมีประกาศวันหยุดพิเศษเพิ่มเติมระหว่างปี
-          ตัวเลขอาจเปลี่ยนแปลงได้ ตารางนี้นับเฉพาะวันหยุดทั่วประเทศ จึงไม่รวมวันศุกร์ที่ 16 ตุลาคม 2569
-          ซึ่งเป็นวันหยุดพิเศษของสถาบันการเงินเฉพาะพื้นที่กรุงเทพมหานคร ตามประกาศ ธปท. ที่ 26/2569
+          ตัวเลขอาจเปลี่ยนแปลงได้ เลือกกรุงเทพมหานครเพื่อรวมวันหยุดพิเศษ 16 ตุลาคม 2569 ตามมติ ครม. 19 พฤษภาคม 2569
+          และประกาศ ธปท. ที่ 26/2569
         </p>
       </section>
     </div>

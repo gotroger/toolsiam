@@ -22,6 +22,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 /** กำไรต่อชิ้นและกำไรทั้งล็อตในครั้งเดียว */
 export function batchProfit({ cost, price, quantity }: BatchInput): BatchResult {
   if (!Number.isFinite(quantity) || quantity <= 0) throw new Error('จำนวนชิ้นต้องมากกว่า 0');
+  if (!Number.isInteger(quantity)) throw new Error('จำนวนชิ้นต้องเป็นจำนวนเต็ม');
   const per = marginFromPrice(cost, price);
   return {
     ...per,

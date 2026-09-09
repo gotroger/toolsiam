@@ -6,6 +6,7 @@ export { HOLIDAYS_2569 };
 
 /** ปฏิทินที่รองรับ: ธนาคาร (ตามประกาศ ธปท.) หรือ ราชการ (ตามมติ ครม.) */
 export type HolidayCalendar = 'bank' | 'government';
+export type HolidayRegion = 'national' | 'bangkok';
 
 export const COVERED_YEAR = { be: 2569, ce: 2026 } as const;
 
@@ -25,26 +26,43 @@ function assertCovered(iso: string): void {
   }
 }
 
-export function listHolidays(cal: HolidayCalendar): Holiday[] {
-  return HOLIDAYS_2569.filter((h) => (cal === 'bank' ? h.bank : h.government));
+export function listHolidays(cal: HolidayCalendar, region: HolidayRegion = 'national'): Holiday[] {
+  const holidays = HOLIDAYS_2569.filter((h) => (cal === 'bank' ? h.bank : h.government));
+  if (region === 'bangkok')
+    holidays.push({
+      date: '2026-10-16',
+      name: 'วันหยุดพิเศษเฉพาะกรุงเทพมหานคร (ประชุม IMF–World Bank)',
+      government: true,
+      bank: true,
+      type: 'พิเศษ',
+    });
+  return holidays.sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export function findHoliday(iso: string, cal: HolidayCalendar): Holiday | undefined {
+export function findHoliday(
+  iso: string,
+  cal: HolidayCalendar,
+  region: HolidayRegion = 'national',
+): Holiday | undefined {
   assertCovered(iso);
-  return listHolidays(cal).find((h) => h.date === iso);
+  return listHolidays(cal, region).find((h) => h.date === iso);
 }
 
-export function isBusinessDay(iso: string, cal: HolidayCalendar): boolean {
+export function isBusinessDay(iso: string, cal: HolidayCalendar, region: HolidayRegion = 'national'): boolean {
   assertCovered(iso);
-  return !isWeekend(iso) && findHoliday(iso, cal) === undefined;
+  return !isWeekend(iso) && findHoliday(iso, cal, region) === undefined;
 }
 
 /** นับรวมทั้งวันเริ่มต้นและวันสิ้นสุด */
-export function businessDaysBetween(startIso: string, endIso: string, cal: HolidayCalendar): BusinessDaySpan {
+export function businessDaysBetween(
+  startIso: string,
+  endIso: string,
+  cal: HolidayCalendar,
+  region: HolidayRegion = 'national',
+): BusinessDaySpan {
   assertCovered(startIso);
   assertCovered(endIso);
-  const [fromIso, toIso] =
-    parseIsoDate(startIso) <= parseIsoDate(endIso) ? [startIso, endIso] : [endIso, startIso];
+  const [fromIso, toIso] = parseIsoDate(startIso) <= parseIsoDate(endIso) ? [startIso, endIso] : [endIso, startIso];
 
   const totalDays = daysBetweenDates(fromIso, toIso) + 1;
   let businessDays = 0;
@@ -57,7 +75,7 @@ export function businessDaysBetween(startIso: string, endIso: string, cal: Holid
       weekendDays += 1;
       continue;
     }
-    const holiday = findHoliday(iso, cal);
+    const holiday = findHoliday(iso, cal, region);
     if (holiday) holidays.push(holiday);
     else businessDays += 1;
   }
@@ -66,7 +84,12 @@ export function businessDaysBetween(startIso: string, endIso: string, cal: Holid
 }
 
 /** เดินไปข้างหน้า (หรือถอยหลังถ้าติดลบ) ตามจำนวนวันทำการ */
-export function addBusinessDays(iso: string, count: number, cal: HolidayCalendar): string {
+export function addBusinessDays(
+  iso: string,
+  count: number,
+  cal: HolidayCalendar,
+  region: HolidayRegion = 'national',
+): string {
   assertCovered(iso);
   if (!Number.isInteger(count)) throw new Error('จำนวนวันทำการต้องเป็นจำนวนเต็ม');
   const step = count >= 0 ? 1 : -1;
@@ -76,7 +99,7 @@ export function addBusinessDays(iso: string, count: number, cal: HolidayCalendar
   while (remaining > 0) {
     current = addDays(current, step);
     assertCovered(current);
-    if (isBusinessDay(current, cal)) remaining -= 1;
+    if (isBusinessDay(current, cal, region)) remaining -= 1;
   }
   return current;
 }

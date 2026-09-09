@@ -53,7 +53,7 @@ export default function SeverancePayTool() {
         <Field label="วันสุดท้ายของการทำงาน" htmlFor="end">
           <DatePicker id="end" min={MIN_DATE} max={MAX_DATE} value={end} onValueChange={setEnd} />
         </Field>
-        <Field label="ตัวหารค่าจ้างรายวัน" htmlFor="divisor" hint="กฎหมายไม่ได้กำหนดไว้ ให้ดูจากระเบียบของนายจ้าง">
+        <Field label="ตัวหารค่าจ้างรายวัน" htmlFor="divisor" hint="รายเดือนใช้ 30; 26 สำหรับสิทธิที่นายจ้างให้เพิ่ม">
           <Select
             id="divisor"
             value={String(divisor)}

@@ -156,6 +156,8 @@ export function effectiveRateFromPayment(principal: number, payment: number, mon
   assertPositive(months, 'จำนวนงวด');
 
   const total = payment * months;
+  if (!Number.isInteger(months)) throw new Error('จำนวนงวดต้องเป็นจำนวนเต็ม');
+  if (total < principal - 0.005 * months) throw new Error('ค่างวดรวมต่ำกว่าเงินต้น ไม่รองรับอัตราดอกเบี้ยติดลบ');
   if (total <= principal) return 0;
 
   // f(r) = ค่างวดที่อัตรา r − ค่างวดเป้าหมาย · เพิ่มขึ้นตาม r เสมอ จึงมีคำตอบเดียว
@@ -204,7 +206,12 @@ export interface RevolvingResult {
  * `maxMonths` กันลูปไม่รู้จบเมื่อค่างวดเฉียดดอกเบี้ยพอดี แต่กรณีที่จ่ายน้อยกว่าดอกเบี้ยตรง ๆ
  * ต้องแจ้งผู้ใช้ให้ชัดว่า "หนี้ไม่มีวันหมด" ไม่ใช่คืนตัวเลขที่ดูเหมือนคำตอบ
  */
-export function payoffSchedule(balance: number, annualRate: number, monthlyPayment: number, maxMonths = 600): RevolvingResult {
+export function payoffSchedule(
+  balance: number,
+  annualRate: number,
+  monthlyPayment: number,
+  maxMonths = 600,
+): RevolvingResult {
   assertPositive(balance, 'ยอดหนี้');
   assertPositive(monthlyPayment, 'ยอดที่จ่ายต่อเดือน');
   assertRate(annualRate);

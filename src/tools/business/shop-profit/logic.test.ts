@@ -23,6 +23,6 @@ describe('กำไรร้านค้าออนไลน์', () => {
   });
 
   it('ขายขาดทุนไม่บอกจุดคุ้มค่าโฆษณา', () => {
-    expect(shopProfit({ ...base, cost: 500 }).breakEvenUnits).toBeNull();
+    expect(shopProfit({ ...base, cost: 500 })).not.toHaveProperty('breakEvenUnits');
   });
 });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { calculateOt, COMMON_WORK_DAYS, OT_KINDS, OT_LABEL, type OtKind } from './logic';
-import { DataTable, ErrorText, Field, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
+import { Checkbox, DataTable, ErrorText, Field, NumberInput, ResultBox, Select, Stat } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
 
 const num = (s: string) => {
@@ -9,6 +9,7 @@ const num = (s: string) => {
 };
 
 export default function OtCalculatorTool() {
+  const [paidHoliday, setPaidHoliday] = useState(true);
   const [salary, setSalary] = useState('18000');
   const [workDays, setWorkDays] = useState('30');
   const [hoursPerDay, setHoursPerDay] = useState('8');
@@ -20,7 +21,7 @@ export default function OtCalculatorTool() {
   let result: ReturnType<typeof calculateOt> | null = null;
   try {
     result = calculateOt(
-      { monthlySalary: num(salary), workDaysPerMonth: num(workDays), hoursPerDay: num(hoursPerDay) },
+      { paidHoliday, monthlySalary: num(salary), workDaysPerMonth: num(workDays), hoursPerDay: num(hoursPerDay) },
       OT_KINDS.map((kind) => ({ kind, hours: num(hours[kind]) })),
     );
   } catch (e) {
@@ -30,19 +31,45 @@ export default function OtCalculatorTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <NumberInput id="salary" label="เงินเดือน" mode="decimal" value={salary} onValueChange={setSalary} suffix="บาท" />
+        <NumberInput
+          id="salary"
+          label="เงินเดือน"
+          mode="decimal"
+          value={salary}
+          onValueChange={setSalary}
+          suffix="บาท"
+        />
         <Field
           label="ฐานวันทำงานต่อเดือน"
           htmlFor="work-days"
-          hint="ที่ทำงานแต่ละแห่งใช้ฐานไม่เท่ากัน ให้ดูจากระเบียบของบริษัท"
+          hint="มาตรา 68 ใช้ฐาน 30 วัน; ฐานต่ำกว่านี้เป็นสิทธิเพิ่มเติมที่นายจ้างให้"
         >
-          <Select id="work-days" value={workDays} onChange={(e) => setWorkDays(e.target.value)} aria-describedby="work-days-hint">
-            {COMMON_WORK_DAYS.map((d) => <option key={d} value={String(d)}>{`${d} วัน`}</option>)}
+          <Select
+            id="work-days"
+            value={workDays}
+            onChange={(e) => setWorkDays(e.target.value)}
+            aria-describedby="work-days-hint"
+          >
+            {COMMON_WORK_DAYS.map((d) => (
+              <option key={d} value={String(d)}>{`${d} วัน`}</option>
+            ))}
           </Select>
         </Field>
-        <NumberInput id="hours-per-day" label="ชั่วโมงทำงานปกติต่อวัน" mode="decimal" value={hoursPerDay} onValueChange={setHoursPerDay} suffix="ชม." />
+        <NumberInput
+          id="hours-per-day"
+          label="ชั่วโมงทำงานปกติต่อวัน"
+          mode="decimal"
+          value={hoursPerDay}
+          onValueChange={setHoursPerDay}
+          suffix="ชม."
+        />
       </div>
 
+      <Checkbox
+        label="ได้รับค่าจ้างวันหยุดอยู่แล้ว (ลูกจ้างรายเดือน): ทำงานวันหยุดจ่ายเพิ่ม 1 เท่า; หากไม่มีสิทธิได้รับค่าจ้างวันหยุด จ่าย 2 เท่า"
+        checked={paidHoliday}
+        onChange={(e) => setPaidHoliday(e.target.checked)}
+      />
       <div>
         <h2 className="mb-2 text-base font-medium text-slate-900">จำนวนชั่วโมงล่วงเวลา</h2>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -50,7 +77,7 @@ export default function OtCalculatorTool() {
             <NumberInput
               key={kind}
               id={`hours-${kind}`}
-              label={OT_LABEL[kind]}
+              label={kind === 'holidayWork' ? `ทำงานวันหยุด (เพิ่ม ${paidHoliday ? 1 : 2} เท่า)` : OT_LABEL[kind]}
               mode="decimal"
               value={hours[kind]}
               onValueChange={(v) => setHour(kind, v)}
@@ -76,7 +103,7 @@ export default function OtCalculatorTool() {
           <DataTable
             caption="รายละเอียดค่าล่วงเวลาแยกตามประเภท"
             columns={[
-              { key: 'kind', header: 'ประเภท', render: (r) => OT_LABEL[r.kind] },
+              { key: 'kind', header: 'ประเภท', render: (r) => `${OT_LABEL[r.kind]} · ${r.multiplier} เท่า` },
               { key: 'hours', header: 'ชั่วโมง', align: 'right', render: (r) => String(r.hours) },
               { key: 'rate', header: 'บาท/ชม.', align: 'right', render: (r) => formatBaht(r.ratePerHour) },
               { key: 'amount', header: 'เป็นเงิน', align: 'right', render: (r) => formatBaht(r.amount) },

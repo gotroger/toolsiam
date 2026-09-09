@@ -22,17 +22,13 @@ import type { RateSource } from '@/tools/types';
  */
 
 export interface SeveranceBand {
-  /** อายุงานขั้นต่ำของขั้นนี้ นับเป็นวัน — ใช้ >= */
-  minDays: number;
-  /** อายุงานที่พ้นขั้นนี้ นับเป็นวัน — ใช้ < (Infinity = ขั้นสุดท้าย) */
-  maxDays: number;
+  /** อายุงานปีเต็มตามปฏิทิน; ขั้นแรกยังต้องครบ 120 วัน */
+  minYears: number;
+  maxYears: number;
   /** ค่าชดเชยเป็น "จำนวนวันของค่าจ้างอัตราสุดท้าย" */
   payDays: number;
   label: string;
 }
-
-/** ปีละ 365 วันสำหรับแปลงขอบเขตของกฎหมายเป็นวัน — กฎหมายพูดเป็น "ปี" ไม่ใช่จำนวนวัน */
-const YEAR = 365;
 
 /**
  * ขั้นค่าชดเชย เรียงจากน้อยไปมาก
@@ -41,12 +37,12 @@ const YEAR = 365;
  * เคสที่พลาดกันบ่อย: อายุงาน 1 ปีพอดีได้ 90 วัน (ไม่ใช่ 30) และ 20 ปีพอดีได้ 400 วัน
  */
 export const SEVERANCE_BANDS: SeveranceBand[] = [
-  { minDays: 120, maxDays: 1 * YEAR, payDays: 30, label: 'ครบ 120 วัน แต่ไม่ครบ 1 ปี' },
-  { minDays: 1 * YEAR, maxDays: 3 * YEAR, payDays: 90, label: 'ครบ 1 ปี แต่ไม่ครบ 3 ปี' },
-  { minDays: 3 * YEAR, maxDays: 6 * YEAR, payDays: 180, label: 'ครบ 3 ปี แต่ไม่ครบ 6 ปี' },
-  { minDays: 6 * YEAR, maxDays: 10 * YEAR, payDays: 240, label: 'ครบ 6 ปี แต่ไม่ครบ 10 ปี' },
-  { minDays: 10 * YEAR, maxDays: 20 * YEAR, payDays: 300, label: 'ครบ 10 ปี แต่ไม่ครบ 20 ปี' },
-  { minDays: 20 * YEAR, maxDays: Infinity, payDays: 400, label: 'ครบ 20 ปีขึ้นไป' },
+  { minYears: 0, maxYears: 1, payDays: 30, label: 'ครบ 120 วัน แต่ไม่ครบ 1 ปี' },
+  { minYears: 1, maxYears: 3, payDays: 90, label: 'ครบ 1 ปี แต่ไม่ครบ 3 ปี' },
+  { minYears: 3, maxYears: 6, payDays: 180, label: 'ครบ 3 ปี แต่ไม่ครบ 6 ปี' },
+  { minYears: 6, maxYears: 10, payDays: 240, label: 'ครบ 6 ปี แต่ไม่ครบ 10 ปี' },
+  { minYears: 10, maxYears: 20, payDays: 300, label: 'ครบ 10 ปี แต่ไม่ครบ 20 ปี' },
+  { minYears: 20, maxYears: Infinity, payDays: 400, label: 'ครบ 20 ปีขึ้นไป' },
 ];
 
 /** ทำงานไม่ถึงเท่านี้ = ไม่มีสิทธิรับค่าชดเชย */
@@ -65,9 +61,11 @@ export const NO_SEVERANCE_REASONS = [
 ];
 
 /** ขั้นค่าชดเชยของอายุงานที่กำหนด — null = ยังไม่ถึงเกณฑ์ 120 วัน */
-export function severanceBandFor(tenureDays: number): SeveranceBand | null {
+export function severanceBandFor(tenureDays: number, completedYears: number): SeveranceBand | null {
   if (!Number.isFinite(tenureDays) || tenureDays < 0) throw new Error('อายุงานต้องเป็นตัวเลขไม่ติดลบ');
-  return SEVERANCE_BANDS.find((t) => tenureDays >= t.minDays && tenureDays < t.maxDays) ?? null;
+  if (!Number.isInteger(completedYears) || completedYears < 0) throw new Error('ปีเต็มต้องเป็นจำนวนเต็มไม่ติดลบ');
+  if (tenureDays < MIN_TENURE_DAYS) return null;
+  return SEVERANCE_BANDS.find((t) => completedYears >= t.minYears && completedYears < t.maxYears) ?? null;
 }
 
 export const SEVERANCE_SOURCE: RateSource = {

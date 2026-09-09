@@ -21,8 +21,13 @@ export default function ShopProfitTool() {
   let result: ReturnType<typeof shopProfit> | null = null;
   try {
     result = shopProfit({
-      price: num(price), cost: num(cost), discount: num(discount), shipping: num(shipping),
-      feePercent: num(fee), adCost: num(ad), quantity: num(quantity),
+      price: num(price),
+      cost: num(cost),
+      discount: num(discount),
+      shipping: num(shipping),
+      feePercent: num(fee),
+      adCost: num(ad),
+      quantity: num(quantity),
     });
   } catch (e) {
     error = (e as Error).message;
@@ -31,9 +36,30 @@ export default function ShopProfitTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <NumberInput id="price" label="ราคาขายต่อชิ้น" mode="decimal" value={price} onValueChange={setPrice} suffix="บาท" />
-        <NumberInput id="cost" label="ต้นทุนสินค้าต่อชิ้น" mode="decimal" value={cost} onValueChange={setCost} suffix="บาท" />
-        <NumberInput id="discount" label="ส่วนลดที่ให้ลูกค้า" mode="decimal" value={discount} onValueChange={setDiscount} suffix="บาท/ชิ้น" />
+        <NumberInput
+          id="price"
+          label="ราคาขายต่อชิ้น"
+          mode="decimal"
+          value={price}
+          onValueChange={setPrice}
+          suffix="บาท"
+        />
+        <NumberInput
+          id="cost"
+          label="ต้นทุนสินค้าต่อชิ้น"
+          mode="decimal"
+          value={cost}
+          onValueChange={setCost}
+          suffix="บาท"
+        />
+        <NumberInput
+          id="discount"
+          label="ส่วนลดที่ให้ลูกค้า"
+          mode="decimal"
+          value={discount}
+          onValueChange={setDiscount}
+          suffix="บาท/ชิ้น"
+        />
         <NumberInput
           id="shipping"
           label="ค่าส่งที่ร้านออกเอง"
@@ -52,7 +78,11 @@ export default function ShopProfitTool() {
               if (preset) setFee(String(preset.feePercent));
             }}
           >
-            {CHANNEL_PRESETS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            {CHANNEL_PRESETS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
             <option value="custom">กำหนดเอง</option>
           </Select>
         </Field>
@@ -65,8 +95,22 @@ export default function ShopProfitTool() {
           suffix="%"
           hint="คิดจากยอดที่ลูกค้าจ่ายหลังหักส่วนลดร้าน"
         />
-        <NumberInput id="ad" label="ค่าโฆษณาเฉลี่ยต่อชิ้น" mode="decimal" value={ad} onValueChange={setAd} suffix="บาท" />
-        <NumberInput id="quantity" label="จำนวนที่ขาย" mode="numeric" value={quantity} onValueChange={setQuantity} suffix="ชิ้น" />
+        <NumberInput
+          id="ad"
+          label="ค่าโฆษณาเฉลี่ยต่อชิ้น"
+          mode="decimal"
+          value={ad}
+          onValueChange={setAd}
+          suffix="บาท"
+        />
+        <NumberInput
+          id="quantity"
+          label="จำนวนที่ขาย"
+          mode="numeric"
+          value={quantity}
+          onValueChange={setQuantity}
+          suffix="ชิ้น"
+        />
       </div>
 
       {error && <ErrorText>{error}</ErrorText>}
@@ -74,7 +118,10 @@ export default function ShopProfitTool() {
       {result && (
         <>
           <ResultBox label="กำไรต่อชิ้น">
-            {formatBaht(result.profitPerUnit)} บาท ({formatNumber(result.marginPercent, 2)}% ของยอดที่ลูกค้าจ่าย)
+            {formatBaht(result.profitPerUnit)} บาท{' '}
+            {result.marginPercent === null
+              ? '(มาร์จิ้นคำนวณไม่ได้เมื่อยอดขายเป็น 0)'
+              : `(${formatNumber(result.marginPercent, 2)}% ของยอดที่ลูกค้าจ่าย)`}
           </ResultBox>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -105,18 +152,13 @@ export default function ShopProfitTool() {
             />
           </div>
 
-          {result.profitPerUnit <= 0 ? (
-            <Disclaimer>
-              ราคาและต้นทุนชุดนี้ทำให้ขาดทุน {formatBaht(Math.abs(result.profitPerUnit))} บาทต่อชิ้น
-              ยิ่งขายยิ่งเสีย — ต้องขึ้นราคา ลดส่วนลด หรือลดค่าโฆษณาต่อชิ้นก่อน
-            </Disclaimer>
-          ) : (
-            result.breakEvenUnits !== null && (
-              <p className="text-sm text-slate-600">
-                ค่าโฆษณาที่ลงไปคุ้มเมื่อขายได้ {formatNumber(result.breakEvenUnits)} ชิ้นขึ้นไป
-              </p>
-            )
+          {result.profitPerUnit < 0 && (
+            <Disclaimer>ราคาและต้นทุนชุดนี้ขาดทุน {formatBaht(Math.abs(result.profitPerUnit))} บาทต่อชิ้น</Disclaimer>
           )}
+          {result.profitPerUnit === 0 && <Disclaimer>ราคานี้เท่าทุนหลังหักค่าใช้จ่ายต่อชิ้นที่กรอก</Disclaimer>}
+          <p className="text-sm text-slate-600">
+            กำไรนี้หักค่าโฆษณาเฉลี่ยต่อชิ้นแล้ว; ยังไม่รวมค่าใช้จ่ายคงที่ เช่น ค่าเช่าร้านและเงินเดือนพนักงาน
+          </p>
         </>
       )}
     </div>

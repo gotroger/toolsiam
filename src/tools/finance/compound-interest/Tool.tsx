@@ -5,7 +5,7 @@ import { DataTable, ErrorText, Field, Input, Select, Stat } from '@/components/u
 
 const num = (s: string) => {
   const n = Number(s.replace(/,/g, ''));
-  return Number.isFinite(n) ? n : 0;
+  return n;
 };
 
 export default function CompoundInterestTool() {
@@ -62,7 +62,7 @@ export default function CompoundInterestTool() {
         <Field label="ดอกเบี้ยต่อปี (%)" htmlFor="rate">
           <Input id="rate" inputMode="decimal" value={ratePercent} onChange={(e) => setRatePercent(e.target.value)} />
         </Field>
-        <Field label="ระยะเวลา (ปี)" htmlFor="years">
+        <Field label="ระยะเวลา (ปี)" htmlFor="years" hint="คำนวณเป็นเดือนเต็มโดยปัดจำนวนปี × 12; อย่างน้อย 1 เดือน">
           <Input id="years" inputMode="decimal" value={years} onChange={(e) => setYears(e.target.value)} />
         </Field>
         <Field label="ทบต้นต่อปี" htmlFor="compounds">

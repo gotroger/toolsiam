@@ -22,7 +22,7 @@ export default function ZodiacFinder() {
 
   return (
     <div className="space-y-4">
-      <Field label="วันเกิดของคุณ" htmlFor="birth" hint="ช่องวันที่ใช้ปฏิทินปี ค.ศ. ให้ลบ 543 จากปี พ.ศ. ก่อน">
+      <Field label="วันเกิดของคุณ" htmlFor="birth" hint="เลือกวัน เดือน และปี พ.ศ. ได้โดยตรงในปฏิทิน">
         <DatePicker
           id="birth"
           min={MIN_DATE}

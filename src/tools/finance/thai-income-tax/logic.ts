@@ -6,7 +6,14 @@ export { TAX_BRACKETS, TAX_LIMITS };
 export type { TaxBracket };
 
 export interface TaxInput {
-  /** เงินได้ 40(1)/(2) รวมทั้งปี */
+  /** ปีภาษี ค.ศ.; รองรับ 2568–2569 */
+  taxYear?: number;
+  rmf?: number;
+  providentFund?: number;
+  pensionInsurance?: number;
+  /** ยอดบริจาคจริงที่เข้าเงื่อนไขสิทธิ 2 เท่า */
+  doubleDonations?: number;
+  /** เงินเดือน 40(1) รวมทั้งปี */
   annualIncome: number;
   hasSpouseNoIncome: boolean;
   /** บุตรที่ลดหย่อนได้ 30,000 */
@@ -17,8 +24,9 @@ export interface TaxInput {
   socialSecurity: number;
   lifeInsurance: number;
   healthInsurance: number;
+  /** สิทธิกองทุนเกษียณอื่นที่ตรวจเพดานรายประเภทแล้ว ไม่รวม RMF/PVD/ประกันบำนาญที่แยกกรอก */
   retirementFunds: number;
-  /** Thai ESG / ESGX (สูงสุด 300,000 แยกจากกองทุนเกษียณ) */
+  /** Thai ESG เท่านั้น; ESGX และสิทธิย้าย LTF ใช้ยอดสิทธิที่ตรวจแล้วใน otherDeductions */
   thaiEsg: number;
   homeLoanInterest: number;
   donations: number;
@@ -70,24 +78,48 @@ export function calculateTax(input: TaxInput): TaxResult {
   if (!Number.isFinite(income) || income < 0) throw new Error('เงินได้ต้องเป็นตัวเลขไม่ติดลบ');
   const L = TAX_LIMITS;
 
-  const expense = Math.min(income * L.expenseRate, L.expenseCap);
+  const taxYear = input.taxYear ?? 2025;
+  if (![2025, 2026].includes(taxYear)) throw new Error('รองรับปีภาษี 2568 และ 2569');
+  for (const [key, value] of Object.entries(input)) {
+    if (typeof value === 'boolean' || value === undefined) continue;
+    if (!Number.isFinite(value) || value < 0) throw new Error('รายได้และค่าลดหย่อนทุกช่องต้องเป็นตัวเลขไม่ติดลบ');
+    if (['children', 'childrenBorn2018Plus', 'parents'].includes(key) && !Number.isInteger(value))
+      throw new Error('จำนวนบุตรและบิดามารดาต้องเป็นจำนวนเต็ม');
+  }
+  if (input.parents > (input.hasSpouseNoIncome ? 4 : 2))
+    throw new Error('บิดามารดาสูงสุด 2 คน หรือ 4 คนเมื่อคู่สมรสไม่มีเงินได้');
+  const providentFund = clamp(input.providentFund ?? 0, Math.min(income * 0.15, L.retirementCap));
+  const retirement = Math.min(
+    clamp(input.rmf ?? 0, income * 0.3) +
+      providentFund +
+      clamp(input.pensionInsurance ?? 0, Math.min(income * 0.15, L.pensionInsuranceCap)) +
+      input.retirementFunds,
+    L.retirementCap,
+  );
+  // PVD ส่วนเกิน 10,000 เป็นเงินได้ยกเว้นก่อนหักค่าใช้จ่าย (คำแนะนำ ภ.ง.ด.91)
+  const expenseBase = Math.max(0, income - Math.max(0, providentFund - 10_000));
+  const expense = Math.min(expenseBase * L.expenseRate, L.expenseCap);
 
-  const insurance = Math.min(clamp(input.lifeInsurance, L.lifeInsuranceCap) + clamp(input.healthInsurance, L.healthInsuranceCap), L.lifeInsuranceCap);
+  const insurance = Math.min(
+    clamp(input.lifeInsurance, L.lifeInsuranceCap) + clamp(input.healthInsurance, L.healthInsuranceCap),
+    L.lifeInsuranceCap,
+  );
   const allowances =
     L.personal +
     (input.hasSpouseNoIncome ? L.spouse : 0) +
     Math.max(0, input.children) * L.child +
     Math.max(0, input.childrenBorn2018Plus) * L.childBorn2018Plus +
     Math.min(Math.max(0, input.parents), L.parentMax) * L.parent +
-    clamp(input.socialSecurity, L.socialSecurityCap) +
+    clamp(input.socialSecurity, taxYear === 2026 ? 10_500 : L.socialSecurityCap) +
     insurance +
-    clamp(input.retirementFunds, L.retirementCap) +
-    clamp(input.thaiEsg, L.thaiEsgCap) +
+    retirement +
+    clamp(input.thaiEsg, Math.min(income * 0.3, L.thaiEsgCap)) +
     clamp(input.homeLoanInterest, L.homeLoanCap) +
     Math.max(0, input.otherDeductions);
 
   const beforeDonation = Math.max(0, income - expense - allowances);
-  const donationUsed = Math.min(Math.max(0, input.donations), beforeDonation * L.donationRate);
+  const doubleUsed = Math.min((input.doubleDonations ?? 0) * 2, beforeDonation * L.donationRate);
+  const donationUsed = doubleUsed + Math.min(input.donations, (beforeDonation - doubleUsed) * L.donationRate);
   const netIncome = round2(beforeDonation - donationUsed);
 
   const { tax, lines } = progressiveTax(netIncome);

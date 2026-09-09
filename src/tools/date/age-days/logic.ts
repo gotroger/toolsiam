@@ -25,7 +25,7 @@ export function calculateAge(birthIso: string, refIso: string): AgeResult {
   const ref = parseIsoDate(refIso);
   if (birth > ref) throw new Error('วันเกิดต้องไม่อยู่หลังวันที่อ้างอิง');
 
-  const parts = dateDiffParts(birthIso, refIso);
+  const parts = dateDiffParts(birthIso, refIso, 'rollover');
   const totalDays = daysBetweenDates(birthIso, refIso);
 
   const refYear = Number(refIso.slice(0, 4));

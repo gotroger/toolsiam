@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useTodayInBangkok } from '@/lib/use-today';
 import {
-  SECTION_40_OPTIONS, section33Yearly, section39Contribution, section40Total, SECTION_39, SECTION_LABEL,
+  SECTION_40_OPTIONS,
+  section33Yearly,
+  section39Contribution,
+  section40Total,
+  SECTION_39,
+  SECTION_LABEL,
   type SsoSection,
 } from './logic';
 import { DataTable, ErrorText, Field, NumberInput, ResultBox, Select, Stat, Tabs, TabPanel } from '@/components/ui';
@@ -55,7 +60,14 @@ export default function SocialSecurityTool() {
       <TabPanel id="33" idPrefix={ID} active={section === '33'}>
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2">
-            <NumberInput id="salary" label="ค่าจ้างต่อเดือน" mode="decimal" value={salary} onValueChange={setSalary} suffix="บาท" />
+            <NumberInput
+              id="salary"
+              label="ค่าจ้างต่อเดือน"
+              mode="decimal"
+              value={salary}
+              onValueChange={setSalary}
+              suffix="บาท"
+            />
           </div>
 
           {error && <ErrorText>{error}</ErrorText>}
@@ -70,8 +82,9 @@ export default function SocialSecurityTool() {
                 <Stat label="ผู้ประกันตนส่งทั้งปี" value={`${formatBaht(s33.employeeYearly)} บาท`} />
               </div>
               <p className="text-sm text-slate-600">
-                ฐานค่าจ้างที่ใช้คำนวณอยู่ระหว่าง {formatBaht(s33.cap.minBase)} – {formatBaht(s33.cap.maxBase)} บาทต่อเดือน
-                (เพดานนี้มีผลตั้งแต่ {s33.cap.effectiveFrom}) ค่าจ้างส่วนที่เกินเพดานไม่ถูกนำมาคิดเงินสมทบ
+                ฐานค่าจ้างที่ใช้คำนวณอยู่ระหว่าง {formatBaht(s33.cap.minBase)} – {formatBaht(s33.cap.maxBase)}{' '}
+                บาทต่อเดือน (เพดานนี้มีผลตั้งแต่ {s33.cap.effectiveFrom}) ค่าจ้างส่วนที่เกินเพดานไม่ถูกนำมาคิดเงินสมทบ
+                เงินนำส่งลูกจ้างและนายจ้างปัดเป็นบาท: เศษตั้งแต่ 50 สตางค์ปัดขึ้น ต่ำกว่านั้นปัดทิ้ง
               </p>
             </>
           )}

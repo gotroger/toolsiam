@@ -14,8 +14,8 @@ describe('margin กับ markup', () => {
   });
 
   it('ราคาขายหรือต้นทุนเป็น 0 ไม่หารด้วยศูนย์', () => {
-    expect(marginFromPrice(50, 0).marginPercent).toBe(0);
-    expect(marginFromPrice(0, 50).markupPercent).toBe(0);
+    expect(marginFromPrice(50, 0).marginPercent).toBeNull();
+    expect(marginFromPrice(0, 50).markupPercent).toBeNull();
   });
 
   it('ปฏิเสธค่าติดลบ', () => {
@@ -55,16 +55,18 @@ describe('กำไรร้านค้าออนไลน์', () => {
   it('หักครบทุกก้อนตามลำดับที่มาร์เก็ตเพลสคิด', () => {
     const r = shopProfit(base);
     expect(r.netPrice).toBe(450);
-    expect(r.feeAmount).toBe(45);        // 10% ของ 450
-    expect(r.profitPerUnit).toBe(135);   // 450 − 200 − 40 − 45 − 30
+    expect(r.feeAmount).toBe(45); // 10% ของ 450
+    expect(r.profitPerUnit).toBe(135); // 450 − 200 − 40 − 45 − 30
     expect(r.totalProfit).toBe(1350);
     expect(r.totalRevenue).toBe(4500);
     expect(r.marginPercent).toBe(30);
   });
 
-  it('บอกจุดคุ้มค่าโฆษณา และคืน null เมื่อขายแล้วขาดทุน', () => {
-    expect(shopProfit(base).breakEvenUnits).toBe(1);
-    expect(shopProfit({ ...base, cost: 900, price: 900, discount: 0 }).breakEvenUnits).toBeNull();
+  it('ค่าโฆษณาเป็นต้นทุนต่อชิ้น ไม่ใช้สร้างจุดคุ้มทุนคงที่', () => {
+    const one = shopProfit({ ...base, quantity: 1 });
+    const two = shopProfit({ ...base, quantity: 2 });
+    expect(two.totalProfit).toBe(one.totalProfit * 2);
+    expect(one).not.toHaveProperty('breakEvenUnits');
   });
 
   it('ปฏิเสธส่วนลดที่มากกว่าราคาขาย และจำนวนชิ้นที่ไม่เป็นบวก', () => {

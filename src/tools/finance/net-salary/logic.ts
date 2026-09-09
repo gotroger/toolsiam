@@ -1,6 +1,6 @@
 import { calculateTax } from '@/tools/finance/thai-income-tax/logic';
 import { section33Contribution } from '@/lib/rates/social-security';
-import { TAX_LIMITS } from '@/lib/rates/income-tax';
+import { parseIsoDate } from '@/lib/date';
 
 /**
  * เงินเดือนสุทธิ — ประกอบจากสองเครื่องมือที่เป็นเจ้าของกฎจริง
@@ -20,6 +20,10 @@ export interface NetSalaryInput {
   hasSpouseNoIncome: boolean;
   children: number;
   parents: number;
+  healthInsurance?: number;
+  rmf?: number;
+  providentFund?: number;
+  pensionInsurance?: number;
   lifeInsurance: number;
   retirementFunds: number;
   homeLoanInterest: number;
@@ -48,30 +52,38 @@ export interface NetSalaryResult {
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
-const nonNegative = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
+const nonNegative = (n: number) => {
+  if (!Number.isFinite(n) || n < 0) throw new Error('รายได้และค่าลดหย่อนต้องเป็นตัวเลขไม่ติดลบ');
+  return n;
+};
 
 export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
   if (!Number.isFinite(input.monthlySalary) || input.monthlySalary < 0) {
     throw new Error('เงินเดือนต้องเป็นตัวเลขไม่ติดลบ');
   }
+  parseIsoDate(input.asOf);
+  const taxYear = Number(input.asOf.slice(0, 4));
   const bonus = nonNegative(input.bonus);
   const otherIncome = nonNegative(input.otherIncome);
   const annualIncome = round2(input.monthlySalary * 12 + bonus + otherIncome);
 
   const sso = input.hasSocialSecurity ? section33Contribution(input.monthlySalary, input.asOf).employee : 0;
   const ssoYearly = round2(sso * 12);
-  // เพดานลดหย่อนของสรรพากรต่ำกว่าเงินสมทบจริงหลังเพดานค่าจ้างขึ้นเป็น 17,500
-  const ssoDeductible = Math.min(ssoYearly, TAX_LIMITS.socialSecurityCap);
+  const ssoDeductible = ssoYearly; // ม.47(1)(ฌ): ตามจ่ายจริงภายในกฎหมายประกันสังคม
 
   const tax = calculateTax({
     annualIncome,
+    taxYear,
+    rmf: input.rmf,
+    providentFund: input.providentFund,
+    pensionInsurance: input.pensionInsurance,
     hasSpouseNoIncome: input.hasSpouseNoIncome,
     children: nonNegative(input.children),
     childrenBorn2018Plus: 0,
     parents: nonNegative(input.parents),
     socialSecurity: ssoDeductible,
     lifeInsurance: nonNegative(input.lifeInsurance),
-    healthInsurance: 0,
+    healthInsurance: input.healthInsurance ?? 0,
     retirementFunds: nonNegative(input.retirementFunds),
     thaiEsg: 0,
     homeLoanInterest: nonNegative(input.homeLoanInterest),

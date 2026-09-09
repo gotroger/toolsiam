@@ -60,18 +60,38 @@ export default function SellingPriceTool() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="กำไรต่อชิ้น" value={`${formatBaht(result.profit)} บาท`} />
-            <Stat label="มาร์จิ้นที่ได้จริง" value={`${formatNumber(result.marginPercent, 2)}%`} />
-            <Stat label="มาร์กอัปที่ได้จริง" value={`${formatNumber(result.markupPercent, 2)}%`} />
+            <Stat
+              label="มาร์จิ้นที่ได้จริง"
+              value={
+                result.marginPercent === null
+                  ? 'คำนวณไม่ได้ (ราคาขายเป็น 0)'
+                  : `${formatNumber(result.marginPercent, 2)}%`
+              }
+            />
+            <Stat
+              label="มาร์กอัปที่ได้จริง"
+              value={
+                result.markupPercent === null
+                  ? 'คำนวณไม่ได้ (ต้นทุนเป็น 0)'
+                  : `${formatNumber(result.markupPercent, 2)}%`
+              }
+            />
             <Stat label="ราคารวม VAT" value={`${formatBaht(result.priceWithVat)} บาท`} />
           </div>
 
           <p className="text-sm text-slate-600">
             อยากตรวจย้อนกลับว่าราคาที่ตั้งไว้ให้กำไรเท่าไหร่ ใช้{' '}
-            <a href={getToolUrl('profit-margin')} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+            <a
+              href={getToolUrl('profit-margin')}
+              className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+            >
               เครื่องมือคำนวณกำไรและมาร์จิ้น
             </a>{' '}
             หรือดูรายละเอียด VAT ที่{' '}
-            <a href={getToolUrl('vat-wht')} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+            <a
+              href={getToolUrl('vat-wht')}
+              className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+            >
               เครื่องมือคำนวณ VAT
             </a>
           </p>

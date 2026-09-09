@@ -46,9 +46,8 @@ async function main() {
       continue;
     }
     try {
-      // ข้อมูลที่ผ่านสคริปต์นี้มีคนสั่งรัน คน review diff และ commit จึงเป็น verified ได้
-      // ต่างจาก Worker ที่ดึงเองตอน cron ซึ่งไม่มีคนอยู่ในลูป และต้องเป็น validated เท่านั้น (L1)
-      const draw = await fetchDraw(drawDate, { status: 'verified', enteredAt });
+      // ผ่านการตรวจรูปแบบเท่านั้น; ผู้ตรวจต้องยืนยันกับประกาศก่อนเปลี่ยนเป็น verified
+      const draw = await fetchDraw(drawDate, { status: 'validated', enteredAt });
       writeFileSync(file, `${JSON.stringify(draw, null, 2)}\n`);
       console.log(`✓ ${drawDate}  รางวัลที่ 1 = ${draw.prizes.first[0]}`);
       written++;

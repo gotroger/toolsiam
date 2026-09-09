@@ -11,9 +11,9 @@ export interface MarginResult {
   /** ราคาขาย − ต้นทุน */
   profit: number;
   /** กำไรคิดเป็น % ของราคาขาย */
-  marginPercent: number;
+  marginPercent: number | null;
   /** กำไรคิดเป็น % ของต้นทุน */
-  markupPercent: number;
+  markupPercent: number | null;
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -30,8 +30,8 @@ export function marginFromPrice(cost: number, price: number): MarginResult {
   const profit = price - cost;
   return {
     profit: round2(profit),
-    marginPercent: price === 0 ? 0 : round2((profit / price) * 100),
-    markupPercent: cost === 0 ? 0 : round2((profit / cost) * 100),
+    marginPercent: price === 0 ? null : round2((profit / price) * 100),
+    markupPercent: cost === 0 ? null : round2((profit / cost) * 100),
   };
 }
 
@@ -40,7 +40,7 @@ export function priceFromMargin(cost: number, marginPercent: number): number {
   assertMoney(cost, 'ต้นทุน');
   if (!Number.isFinite(marginPercent)) throw new Error('มาร์จิ้นต้องเป็นตัวเลข');
   if (marginPercent >= 100) throw new Error('มาร์จิ้นต้องน้อยกว่า 100% เพราะกำไรคิดจากราคาขาย');
-  if (marginPercent <= -100) throw new Error('มาร์จิ้นติดลบเกิน −100% ทำให้ราคาขายติดลบ');
+
   return round2(cost / (1 - marginPercent / 100));
 }
 
@@ -86,9 +86,7 @@ export interface ShopProfitResult {
   totalProfit: number;
   totalRevenue: number;
   totalCost: number;
-  marginPercent: number;
-  /** ขายกี่ชิ้นจึงคุ้มค่าโฆษณา+ค่าใช้จ่ายคงที่ — null เมื่อกำไรต่อชิ้นไม่เป็นบวก */
-  breakEvenUnits: number | null;
+  marginPercent: number | null;
 }
 
 /**
@@ -103,6 +101,7 @@ export function shopProfit(input: ShopProfitInput): ShopProfitResult {
   assertMoney(input.adCost, 'ค่าโฆษณา');
   if (!Number.isFinite(input.feePercent) || input.feePercent < 0) throw new Error('ค่าธรรมเนียมต้องเป็นตัวเลขไม่ติดลบ');
   if (!Number.isFinite(input.quantity) || input.quantity <= 0) throw new Error('จำนวนชิ้นต้องมากกว่า 0');
+  if (!Number.isInteger(input.quantity)) throw new Error('จำนวนชิ้นต้องเป็นจำนวนเต็ม');
   if (input.discount > input.price) throw new Error('ส่วนลดต้องไม่มากกว่าราคาขาย');
 
   const netPrice = input.price - input.discount;
@@ -117,7 +116,6 @@ export function shopProfit(input: ShopProfitInput): ShopProfitResult {
     totalProfit: round2(profitPerUnit * input.quantity),
     totalRevenue: round2(netPrice * input.quantity),
     totalCost: round2(perUnitCost * input.quantity),
-    marginPercent: netPrice === 0 ? 0 : round2((profitPerUnit / netPrice) * 100),
-    breakEvenUnits: profitPerUnit > 0 ? Math.ceil(input.adCost / profitPerUnit) : null,
+    marginPercent: netPrice === 0 ? null : round2((profitPerUnit / netPrice) * 100),
   };
 }

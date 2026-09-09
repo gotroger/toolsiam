@@ -44,7 +44,7 @@ export default function BirthdayProfile() {
 
   return (
     <div className="space-y-5">
-      <Field label="วันเกิดของคุณ" htmlFor="bd-birth" hint="ช่องวันที่ใช้ปฏิทินปี ค.ศ. ให้ลบ 543 จากปี พ.ศ. ก่อน">
+      <Field label="วันเกิดของคุณ" htmlFor="bd-birth" hint="เลือกวัน เดือน และปี พ.ศ. ได้โดยตรงในปฏิทิน">
         <DatePicker
           id="bd-birth"
           min="1900-01-01"

@@ -12,8 +12,8 @@ export interface SellingPriceResult {
   /** ราคาขายก่อน VAT */
   price: number;
   profit: number;
-  marginPercent: number;
-  markupPercent: number;
+  marginPercent: number | null;
+  markupPercent: number | null;
   /** ราคาที่ต้องติดป้ายเมื่อรวม VAT แล้ว */
   priceWithVat: number;
   vatAmount: number;
@@ -31,9 +31,11 @@ export function sellingPrice(cost: number, basis: PriceBasis, value: number, vat
   if (!Number.isFinite(vatPercent) || vatPercent < 0) throw new Error('อัตรา VAT ต้องเป็นตัวเลขไม่ติดลบ');
 
   const price =
-    basis === 'margin' ? priceFromMargin(cost, value)
-    : basis === 'markup' ? priceFromMarkup(cost, value)
-    : priceFromProfit(cost, value);
+    basis === 'margin'
+      ? priceFromMargin(cost, value)
+      : basis === 'markup'
+        ? priceFromMarkup(cost, value)
+        : priceFromProfit(cost, value);
 
   const measured = marginFromPrice(cost, price);
   const vatAmount = round2((price * vatPercent) / 100);

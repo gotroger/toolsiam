@@ -3,13 +3,33 @@ import { daysBetweenDates, isLeapYear, parseIsoDate, weekdayIndex } from '@/lib/
 export const BE_OFFSET = 543;
 
 export const THAI_MONTHS = [
-  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+  'มกราคม',
+  'กุมภาพันธ์',
+  'มีนาคม',
+  'เมษายน',
+  'พฤษภาคม',
+  'มิถุนายน',
+  'กรกฎาคม',
+  'สิงหาคม',
+  'กันยายน',
+  'ตุลาคม',
+  'พฤศจิกายน',
+  'ธันวาคม',
 ] as const;
 
 export const THAI_MONTHS_SHORT = [
-  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+  'ม.ค.',
+  'ก.พ.',
+  'มี.ค.',
+  'เม.ย.',
+  'พ.ค.',
+  'มิ.ย.',
+  'ก.ค.',
+  'ส.ค.',
+  'ก.ย.',
+  'ต.ค.',
+  'พ.ย.',
+  'ธ.ค.',
 ] as const;
 
 export const THAI_WEEKDAYS = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'] as const;
@@ -41,12 +61,14 @@ function assertYear(year: number, label: string): void {
 
 export function toBuddhistYear(ce: number): number {
   assertYear(ce, 'ปี ค.ศ.');
+  if (ce > 9999) throw new Error('รองรับปี ค.ศ. 1–9999');
   return ce + BE_OFFSET;
 }
 
 export function toChristianYear(be: number): number {
   assertYear(be, 'ปี พ.ศ.');
   const ce = be - BE_OFFSET;
+  if (ce > 9999) throw new Error('รองรับปี พ.ศ. 544–10542');
   if (ce < 1) throw new Error('ปี พ.ศ. ต้องมากกว่า 543');
   return ce;
 }

@@ -107,7 +107,7 @@ export interface Section33Result {
 /**
  * เงินสมทบ ม.33 ต่อเดือน
  *
- * ตัวเลข 82.50 และ 875 ที่พบตามเว็บเป็นค่าที่คำนวณจาก rate × ฐาน — จึงคำนวณสดทุกครั้ง
+ * เงินสมทบรายคนปัดเป็นบาทตามมาตรา 46: ตั้งแต่ 50 สตางค์ปัดขึ้น ต่ำกว่านั้นปัดทิ้ง
  * ไม่ hardcode ไว้ เพราะเมื่อเพดานเปลี่ยน ตัวเลขสองตัวนั้นต้องเปลี่ยนตามเอง
  */
 export function section33Contribution(monthlyWage: number, asOf: string): Section33Result {
@@ -116,8 +116,8 @@ export function section33Contribution(monthlyWage: number, asOf: string): Sectio
   const base = Math.min(Math.max(monthlyWage, cap.minBase), cap.maxBase);
   const round2 = (n: number) => Math.round(n * 100) / 100;
 
-  const employee = round2(base * SECTION_33_RATES.employee);
-  const employer = round2(base * SECTION_33_RATES.employer);
+  const employee = Math.round(base * SECTION_33_RATES.employee);
+  const employer = Math.round(base * SECTION_33_RATES.employer);
   return {
     base,
     employee,
@@ -136,8 +136,10 @@ export function section39Contribution(): number {
 export const SOCIAL_SECURITY_SOURCE: RateSource = {
   effectiveFrom: '2026-01-01',
   lastVerifiedAt: '2026-09-08',
-  sourceName: 'กฎกระทรวงฯ ตามมาตรา 33 พ.ศ. 2568 (ราชกิจจานุเบกษา เล่ม 142 ตอนที่ 81 ก หน้า 5 · 12 ธ.ค. 2568) ประกอบหน้าสำนักงานประกันสังคม',
-  sourceUrl: 'https://www.sso.go.th/wpr/main/service/%E0%B8%81%E0%B8%AD%E0%B8%87%E0%B8%97%E0%B8%B8%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%81%E0%B8%B1%E0%B8%99%E0%B8%AA%E0%B8%B1%E0%B8%87%E0%B8%84%E0%B8%A1_detail_detail_1_125_690/605_605',
+  sourceName:
+    'กฎกระทรวงฯ ตามมาตรา 33 พ.ศ. 2568 (ราชกิจจานุเบกษา เล่ม 142 ตอนที่ 81 ก หน้า 5 · 12 ธ.ค. 2568) ประกอบหน้าสำนักงานประกันสังคม',
+  sourceUrl:
+    'https://www.sso.go.th/wpr/main/service/%E0%B8%81%E0%B8%AD%E0%B8%87%E0%B8%97%E0%B8%B8%E0%B8%99%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%81%E0%B8%B1%E0%B8%99%E0%B8%AA%E0%B8%B1%E0%B8%87%E0%B8%84%E0%B8%A1_detail_detail_1_125_690/605_605',
   summary:
     'ม.33 ผู้ประกันตนและนายจ้างส่งฝ่ายละ 5% ของค่าจ้าง ฐาน 1,650–17,500 บาท/เดือน (เพดาน 17,500 มีผล 1 ม.ค. 2569) · ม.39 ส่ง 9% ของฐาน 4,800 บาท = 432 บาท/เดือน · ม.40 ทางเลือก 70 / 100 / 300 บาท/เดือน',
 };

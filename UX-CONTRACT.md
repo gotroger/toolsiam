@@ -55,3 +55,9 @@ Article-cover ToolCard → shared compact ToolCard, migrated across home/catalog
 The user requested replacing every native date popup. DatePicker is the only date-selection owner across six tools and five horoscope pages. Display Thai months and Buddhist years with an explicit Gregorian year reference in the panel; emit YYYY-MM-DD Gregorian values and preserve every caller’s existing min/max constraints. Today is computed in Asia/Bangkok when opened.
 
 Use a native modal dialog for top-layer placement, background inertness and focus containment. Match theme tokens; constrain placement within the viewport and use a bounded scroll area on short screens. Focus the selected day (or today clamped to the allowed range), restore the trigger on selection/cancel, and close on Escape/backdrop/close. Arrow keys move days/weeks, Home/End move to week edges, PageUp/PageDown move months, Shift+PageUp/PageDown move years; only one day participates in Tab order. Month/year controls navigate without changing the committed date. Clear emits an empty string. No calendar grids/options render until opened.
+
+## Correctness audit — September 9
+
+Tax forms share calculateTax and distinguish tax years 2025/2026, qualified deduction categories, and ordinary/double donations. Native Select and shared Field/Input/NumberInput remain the owners. Raw invalid numeric text must remain visible and suppress calculated results. Year conversion preserves invalid signs/text and reports its supported range.
+
+Calendar differences count complete clamped calendar months from the original date and then remaining days; age uses the rollover variant to preserve its existing March 1 birthday convention for February 29 in non-leap years. Severance counts both employment endpoints and selects calendar-year bands; its 30-day monthly wage base may be enhanced to 26 only for additional employer benefits. Holiday calendars distinguish national and Bangkok scope. All calculations remain local.

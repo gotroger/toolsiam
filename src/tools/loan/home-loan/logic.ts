@@ -58,17 +58,24 @@ export function homeLoan(input: HomeLoanInput): HomeLoanResult {
 
   const principal = input.price - input.downPayment;
   const months = Math.round(input.years * 12);
+  if (months < 1) throw new Error('ระยะเวลาผ่อนต้องอย่างน้อย 1 เดือน');
+  for (const rate of [input.promoRate, input.afterRate])
+    if (!Number.isFinite(rate) || rate < 0) throw new Error('ดอกเบี้ยต้องเป็นตัวเลขไม่ติดลบ');
+  if (!Number.isInteger(input.promoMonths) || input.promoMonths < 0)
+    throw new Error('ระยะโปรโมชันต้องเป็นจำนวนเต็มไม่ติดลบ');
   const promoMonths = Math.max(0, Math.min(Math.round(input.promoMonths), months));
 
   const stages: RateStage[] =
-    promoMonths === 0 || input.promoRate === input.afterRate
-      ? [{ months: Infinity, annualRate: input.afterRate }]
-      : [
-          { months: promoMonths, annualRate: input.promoRate },
-          { months: Infinity, annualRate: input.afterRate },
-        ];
+    promoMonths === months
+      ? [{ months: Infinity, annualRate: input.promoRate }]
+      : promoMonths === 0 || input.promoRate === input.afterRate
+        ? [{ months: Infinity, annualRate: input.afterRate }]
+        : [
+            { months: promoMonths, annualRate: input.promoRate },
+            { months: Infinity, annualRate: input.afterRate },
+          ];
 
-  const minimumPayment = monthlyPayment(principal, Math.max(input.promoRate, input.afterRate), months);
+  const minimumPayment = monthlyPayment(principal, Math.max(...stages.map((stage) => stage.annualRate)), months);
   const payment = round2(minimumPayment + extra);
 
   const schedule = amortize(principal, stages, months, payment);

@@ -14,13 +14,11 @@ interface YearState {
   lastEdited: 'ce' | 'be';
 }
 
-const digitsOnly = (v: string) => v.replace(/\D/g, '').slice(0, 4);
-
 /** พิมพ์ในช่อง ค.ศ. → เติมช่อง พ.ศ. ให้ (ถ้าแปลงไม่ได้ ปล่อยว่างไว้ ไม่แก้ข้อความที่พิมพ์) */
 function fromCe(raw: string): YearState {
   let be = '';
   try {
-    be = String(toBuddhistYear(Number(raw)));
+    be = String(toBuddhistYear(/^\d+$/.test(raw) ? Number(raw) : Number.NaN));
   } catch {
     be = '';
   }
@@ -31,7 +29,7 @@ function fromCe(raw: string): YearState {
 function fromBe(raw: string): YearState {
   let ce = '';
   try {
-    ce = String(toChristianYear(Number(raw)));
+    ce = String(toChristianYear(/^\d+$/.test(raw) ? Number(raw) : Number.NaN));
   } catch {
     ce = '';
   }
@@ -48,9 +46,9 @@ export default function ThaiYearConvertTool() {
   // แจ้งเตือนเฉพาะตอนที่ช่องที่พิมพ์มีค่าแล้วแต่แปลงไม่ได้
   let yearError = '';
   if (year.lastEdited === 'be' && year.be !== '' && year.ce === '') {
-    yearError = 'ปี พ.ศ. ต้องมากกว่า 543';
+    yearError = 'ปี พ.ศ. ต้องเป็นจำนวนเต็ม 544–10542';
   } else if (year.lastEdited === 'ce' && year.ce !== '' && year.be === '') {
-    yearError = 'ปี ค.ศ. ต้องมากกว่า 0';
+    yearError = 'ปี ค.ศ. ต้องเป็นจำนวนเต็ม 1–9999';
   }
 
   let info: ReturnType<typeof describeDate> | null = null;
@@ -72,7 +70,7 @@ export default function ThaiYearConvertTool() {
             inputMode="numeric"
             autoComplete="off"
             value={year.ce}
-            onChange={(e) => setYear(fromCe(digitsOnly(e.target.value)))}
+            onChange={(e) => setYear(fromCe(e.target.value))}
           />
         </Field>
         <Field label="ปี พ.ศ." htmlFor="be">
@@ -81,7 +79,7 @@ export default function ThaiYearConvertTool() {
             inputMode="numeric"
             autoComplete="off"
             value={year.be}
-            onChange={(e) => setYear(fromBe(digitsOnly(e.target.value)))}
+            onChange={(e) => setYear(fromBe(e.target.value))}
           />
         </Field>
       </div>

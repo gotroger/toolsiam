@@ -88,28 +88,19 @@ export function orderDates(aIso: string, bIso: string): [string, string] {
   return parseIsoDate(aIso) <= parseIsoDate(bIso) ? [aIso, bIso] : [bIso, aIso];
 }
 
-/** ผลต่างแบบปฏิทิน ยืมวันจากเดือนก่อนหน้าวันสิ้นสุดเมื่อวันไม่พอ */
-export function dateDiffParts(aIso: string, bIso: string): DiffParts {
+/** นับเดือนเต็มจากวันตั้งต้น โดยหนีบวันสิ้นเดือน แล้วนับวันที่เหลือ */
+export function dateDiffParts(aIso: string, bIso: string, monthEnd: 'clamp' | 'rollover' = 'clamp'): DiffParts {
   const [startIso, endIso] = orderDates(aIso, bIso);
   const start = new Date(parseIsoDate(startIso));
   const end = new Date(parseIsoDate(endIso));
-
-  let years = end.getUTCFullYear() - start.getUTCFullYear();
-  let months = end.getUTCMonth() - start.getUTCMonth();
-  let days = end.getUTCDate() - start.getUTCDate();
-
-  if (days < 0) {
-    months -= 1;
-    // จำนวนวันของเดือนก่อนหน้าเดือนของวันสิ้นสุด
-    const prevMonth = end.getUTCMonth() === 0 ? 12 : end.getUTCMonth();
-    const prevYear = end.getUTCMonth() === 0 ? end.getUTCFullYear() - 1 : end.getUTCFullYear();
-    days += daysInMonth(prevYear, prevMonth);
-  }
-  if (months < 0) {
-    years -= 1;
-    months += 12;
-  }
-  return { years, months, days };
+  let months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + end.getUTCMonth() - start.getUTCMonth();
+  const anniversary = (n: number) => {
+    const clamped = shiftDate(startIso, n, 'month');
+    return monthEnd === 'clamp' ? clamped : addDays(clamped, start.getUTCDate() - Number(clamped.slice(8, 10)));
+  };
+  if (anniversary(months) > endIso) months -= 1;
+  const anchor = anniversary(months);
+  return { years: Math.floor(months / 12), months: months % 12, days: daysBetweenDates(anchor, endIso) };
 }
 
 /** ช่วงระหว่างสองวันที่ มองได้หลายมุมพร้อมกัน */

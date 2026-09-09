@@ -18,7 +18,7 @@ describe('ค่าชดเชยเลิกจ้าง', () => {
   });
 
   it('ครบ 120 วันพอดีได้ 30 วัน', () => {
-    const r = calculateSeverance({ ...base, startDate: '2025-09-04', endDate: '2026-01-02' });
+    const r = calculateSeverance({ ...base, startDate: '2025-09-04', endDate: '2026-01-01' });
     expect(r.tenureDays).toBe(120);
     expect(r.payDays).toBe(30);
   });
