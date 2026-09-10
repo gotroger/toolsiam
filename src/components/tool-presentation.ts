@@ -2,6 +2,8 @@ import type { CategoryId, ToolMeta } from '@/tools/types';
 
 /** Discovery copy only. Full names, descriptions and SEO remain in the registry. */
 export const categoryLabels: Record<CategoryId, string> = {
+  documents: 'เอกสาร / PDF',
+  images: 'รูปภาพ',
   finance: 'การเงิน',
   loan: 'บ้านและรถ',
   business: 'ค้าขาย',
@@ -14,6 +16,18 @@ export const categoryLabels: Record<CategoryId, string> = {
   horoscope: 'ดูดวง',
 };
 const summaries: Record<string, [string, string]> = {
+  'pdf-merge': ['รวมไฟล์ PDF', 'รวมหลายไฟล์เป็น PDF เดียว จัดลำดับได้'],
+  'pdf-extract': ['แยกและเลือกหน้า PDF', 'เลือกเฉพาะหน้าที่ต้องการเป็นไฟล์ใหม่'],
+  'pdf-remove-pages': ['ลบหน้า PDF', 'ลบหน้าที่ไม่ต้องการ เก็บไฟล์ต้นฉบับไว้'],
+  'pdf-rotate': ['หมุนหน้า PDF', 'แก้เอกสารกลับหัวหรือแนวนอน'],
+  'images-to-pdf': ['แปลงรูปภาพเป็น PDF', 'รวมรูปเป็น PDF ขนาด A4 หน้าละภาพ'],
+  'excel-to-csv': ['แปลง Excel เป็น CSV', 'ดึงชีตที่เลือกออกเป็น CSV ภาษาไทย'],
+  'csv-to-excel': ['แปลง CSV เป็น Excel', 'เปิด CSV ภาษาไทยใน Excel ไม่ต้องแก้'],
+  'word-to-text': ['แปลง Word เป็นข้อความ', 'ดึงข้อความจาก DOCX เป็นไฟล์ TXT'],
+  'image-compress': ['ลดขนาดไฟล์รูปภาพ', 'ลดขนาดไฟล์ เทียบก่อนหลังได้ทันที'],
+  'image-resize': ['ปรับขนาดรูปภาพ', 'ย่อขยายความกว้าง โดยรักษาสัดส่วน'],
+  'image-convert': ['แปลงไฟล์รูป JPG PNG WebP', 'สลับชนิดไฟล์ JPG PNG และ WebP'],
+  'image-rotate': ['หมุนและกลับด้านรูปภาพ', 'หมุน 90 180 270 องศา และกลับด้าน'],
   'thai-income-tax': ['คำนวณภาษีเงินได้', 'รวมรายได้ เช็กค่าลดหย่อน รู้ยอดภาษีที่ต้องจ่าย'],
   'net-salary': ['เงินเดือนสุทธิ', 'รู้เงินรับจริง หลังหักภาษีและประกันสังคม'],
   'electricity-bill': ['คำนวณค่าไฟ', 'ประมาณค่าไฟ MEA และ PEA จากหน่วยที่ใช้'],
