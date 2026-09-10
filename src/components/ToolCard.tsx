@@ -28,6 +28,12 @@ export default function ToolCard({ tool, featured = false }: { tool: TileTool; f
         <h3>{copy.name}</h3>
         <p>{copy.description}</p>
       </div>
+      {/* ลายน้ำไอคอนของเครื่องมือ ทำให้การ์ดแต่ละใบมีลวดลายต่างกันโดยไม่ต้องมีไฟล์ภาพ */}
+      {!featured && (
+        <span className="tile-watermark" aria-hidden="true">
+          <ToolIcon category={tool.category} slug={tool.slug} />
+        </span>
+      )}
       {featured && (
         <>
           <span className="tile-launch">

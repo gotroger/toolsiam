@@ -9,6 +9,8 @@
     --ease-product: cubic-bezier(0.2, 0.7, 0.2, 1);
     --product-shadow: 0 3px 8px -5px rgb(15 50 38 / 0.12), 0 14px 32px -24px rgb(15 50 38 / 0.16);
     --product-shadow-raised: 0 14px 28px -16px rgb(5 120 87 / 0.25);
+    /* สีประจำหมวดเริ่มต้น — ตั้งที่รากเพื่อให้ var(--tile-accent) ใช้ได้ทุกที่โดยไม่ต้องเขียน fallback ซ้ำ */
+    --tile-accent: var(--color-accent-mint);
     --color-accent-mint: #10b981;
     --color-accent-blue: #5286d9;
     --color-accent-orange: #d58a40;
@@ -442,6 +444,7 @@
   [data-category] {
     --tile-accent: var(--color-accent-mint);
   }
+  [data-category='documents'],
   [data-category='loan'] {
     --tile-accent: var(--color-accent-blue);
   }
@@ -459,6 +462,7 @@
   [data-category='horoscope'] {
     --tile-accent: var(--color-accent-rose);
   }
+  [data-category='images'],
   [data-category='qr'] {
     --tile-accent: var(--color-accent-teal);
   }
@@ -467,14 +471,21 @@
   }
   .tool-tile {
     position: relative;
+    /* ลายน้ำวางที่ z-index ติดลบ จึงต้องมี stacking context ของตัวเองไม่ให้ทะลุไปหลังการ์ด */
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     min-width: 0;
     height: 100%;
     min-height: 198px;
     padding: 22px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-slate-200);
+    /* ไล่สีจาง ๆ จากสีประจำหมวด — เปิดหน้ามาเห็นเป็นกลุ่มสีทันทีว่าหมวดไหนอยู่ตรงไหน */
+    background: linear-gradient(
+      158deg,
+      color-mix(in srgb, var(--tile-accent) 14%, var(--color-surface)),
+      var(--color-surface) 62%
+    );
+    border: 1px solid color-mix(in srgb, var(--tile-accent) 24%, var(--color-slate-200));
     border-radius: var(--radius-tile);
     box-shadow: var(--product-shadow);
     transition:
@@ -497,18 +508,49 @@
     color: var(--color-slate-800);
     background: linear-gradient(
       145deg,
-      color-mix(in srgb, var(--tile-accent, var(--color-accent-mint)) 8%, var(--color-surface)),
-      color-mix(in srgb, var(--tile-accent, var(--color-accent-mint)) 22%, var(--color-surface))
+      color-mix(in srgb, var(--tile-accent) 8%, var(--color-surface)),
+      color-mix(in srgb, var(--tile-accent) 22%, var(--color-surface))
     );
-    border: 1px solid color-mix(in srgb, var(--tile-accent, var(--color-accent-mint)) 20%, var(--color-slate-200));
+    border: 1px solid color-mix(in srgb, var(--tile-accent) 20%, var(--color-slate-200));
     box-shadow:
       inset 0 2px 0 rgb(255 255 255 / 0.2),
-      0 4px 0 -2px color-mix(in srgb, var(--tile-accent, var(--color-accent-mint)) 25%, var(--color-surface));
+      0 4px 0 -2px color-mix(in srgb, var(--tile-accent) 25%, var(--color-surface));
     transition: transform var(--motion-normal) var(--ease-product);
   }
+  /* ลายน้ำ: ไอคอนเดิมของเครื่องมือ ขยายใหญ่แล้วปล่อยล้นมุมขวาล่าง */
+  .tool-tile:not(.tool-tile-featured) {
+    overflow: hidden;
+  }
+  .tile-watermark {
+    position: absolute;
+    z-index: -1;
+    right: -16px;
+    bottom: -18px;
+    width: 104px;
+    height: 104px;
+    color: var(--tile-accent);
+    opacity: 0.09;
+    pointer-events: none;
+    transition:
+      transform var(--motion-normal) var(--ease-product),
+      opacity var(--motion-normal);
+  }
+  .tile-watermark svg {
+    width: 100%;
+    height: 100%;
+    stroke-width: 1;
+  }
   .tile-category {
-    color: var(--color-slate-500);
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
     font-size: 12px;
+    line-height: 1.6;
+    /* ผสมกับ slate-900 ให้ผ่าน contrast AA ทุกสีหมวด และกลับหัวเองในโหมดมืด */
+    color: color-mix(in srgb, var(--tile-accent) 55%, var(--color-slate-900));
+    background: color-mix(in srgb, var(--tile-accent) 13%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--tile-accent) 26%, transparent);
   }
   .tile-arrow {
     display: grid;
@@ -748,6 +790,70 @@
       border-color var(--motion-fast),
       box-shadow var(--motion-fast);
   }
+  /*
+   * รางเลื่อนค่า — เขียนที่นี่เพราะ ::-webkit-slider-thumb และ ::-moz-range-thumb
+   * เป็น pseudo-element ของเบราว์เซอร์ คลาส utility เข้าไม่ถึง
+   * สัดส่วนที่ระบายมาจาก --slider-fill ที่ component คำนวณให้
+   */
+  .product-slider {
+    appearance: none;
+    width: 100%;
+    /* ความสูงเผื่อให้นิ้วกดโดนตามเกณฑ์ทัชทาร์เก็ต ตัวรางจริงหนา 6px */
+    height: 44px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .product-slider:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .product-slider:focus-visible {
+    outline: none;
+  }
+  .product-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--color-brand-600) var(--slider-fill, 0%),
+      var(--color-slate-200) var(--slider-fill, 0%)
+    );
+  }
+  .product-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    /* ดันหัวจับให้กึ่งกลางราง: (6px - 20px) / 2 */
+    margin-top: -7px;
+    border-radius: 999px;
+    border: 2px solid var(--color-brand-600);
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  }
+  .product-slider:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-600) 35%, transparent);
+  }
+  .product-slider::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-slate-200);
+  }
+  .product-slider::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-brand-600);
+  }
+  .product-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 2px solid var(--color-brand-600);
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  }
+  .product-slider:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand-600) 35%, transparent);
+  }
   .product-button {
     min-height: 44px;
     border-radius: var(--radius-control);
@@ -794,6 +900,21 @@
     background: var(--color-slate-100);
   }
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .product-slider::-webkit-slider-thumb {
+      transition: transform var(--motion-fast);
+    }
+    .product-slider::-moz-range-thumb {
+      transition: transform var(--motion-fast);
+    }
+    .product-slider:not(:disabled):hover::-webkit-slider-thumb {
+      transform: scale(1.15);
+    }
+    .product-slider:not(:disabled):hover::-moz-range-thumb {
+      transform: scale(1.15);
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .tool-tile:hover {
       transform: translateY(-3px);
       border-color: color-mix(in srgb, var(--tile-accent) 55%, var(--color-slate-200));
@@ -801,6 +922,10 @@
     }
     .tool-tile:hover .tool-icon {
       transform: translateY(-2px) rotate(-3deg);
+    }
+    .tool-tile:hover .tile-watermark {
+      transform: translate(-4px, -6px) rotate(-8deg);
+      opacity: 0.14;
     }
     .tool-tile:hover .tile-arrow,
     .vertical-tile:hover .tile-arrow {
@@ -951,7 +1076,7 @@
       display: none;
     }
     .tool-tile-featured .tile-category {
-      display: inline;
+      display: inline-flex;
     }
     .vertical-grid {
       grid-template-columns: 1fr;
@@ -1002,6 +1127,12 @@
       padding: 16px 14px;
       min-height: 202px;
       border-radius: 16px;
+    }
+    .tile-watermark {
+      right: -13px;
+      bottom: -14px;
+      width: 82px;
+      height: 82px;
     }
     .tool-tile h3 {
       font-size: 16px;
