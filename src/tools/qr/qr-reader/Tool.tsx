@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { classifyQrText, type QrParsed } from './logic';
-import { CopyButton, ErrorText } from '@/components/ui';
+import { CopyButton, ErrorText, FileDrop } from '@/components/ui';
 
 /** ขนาดไฟล์สูงสุดที่ยอมให้ถอดรหัส (กันเบราว์เซอร์มือถือค้าง) */
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -82,30 +82,21 @@ export default function QrReaderTool() {
 
   return (
     <div className="space-y-6">
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          void handleFile(e.dataTransfer.files[0]);
-        }}
-        onClick={() => inputRef.current?.click()}
-        className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 hover:border-brand-600"
-      >
-        <svg className="h-7 w-7 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-          <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Zm0 10 4.5-4.5 5 5m2-2 2.5-2.5L20 16M15 8.5v.2" />
-        </svg>
-        <span>ลากรูปที่มี QR มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</span>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => void handleFile(e.target.files?.[0])}
-        />
-      </div>
+      <FileDrop
+        ref={inputRef}
+        id="qr-image"
+        label="รูปที่มี QR"
+        accept="image/*"
+        disabled={busy}
+        invalid={!!error}
+        errorId="qr-image-error"
+        prompt="ลากรูปที่มี QR มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์"
+        hint={`ไฟล์รูปภาพ · ไม่เกิน ${MAX_FILE_BYTES / 1024 / 1024} MB`}
+        onFiles={(files) => void handleFile(files[0])}
+      />
 
       {busy && <p className="text-sm text-slate-500">กำลังอ่าน QR…</p>}
-      {error && <ErrorText>{error}</ErrorText>}
+      {error && <ErrorText id="qr-image-error">{error}</ErrorText>}
 
       {preview && (
         <img src={preview} alt="รูปที่อัปโหลด" className="mx-auto max-h-64 rounded-lg border border-slate-200" />

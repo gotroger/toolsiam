@@ -3,6 +3,9 @@ export const field =
   'transition-colors duration-150 placeholder:text-slate-500 hover:border-slate-400 ' +
   'focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/30 disabled:bg-slate-100';
 
+/** ตัวอักษรของ label — แยกจากระยะห่างเพื่อให้ผู้ใช้กำหนด margin เองได้โดยไม่มีคลาสชนกัน */
+export const labelText = 'block text-sm font-medium text-slate-700';
+
 /**
  * ช่องติ๊ก — คุมขนาด สี และวงโฟกัสจากที่เดียว
  *

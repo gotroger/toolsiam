@@ -1,14 +1,15 @@
 import { useLayoutEffect, useRef } from 'react';
 import type {
+  ComponentPropsWithRef,
   InputHTMLAttributes,
   LabelHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from 'react';
-import { checkboxField, checkboxRow, cx, field } from './styles';
+import { checkboxField, checkboxRow, cx, field, labelText } from './styles';
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: ComponentPropsWithRef<'input'>) {
   return <input {...props} className={cx(field, className)} />;
 }
 
@@ -28,12 +29,43 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
   return <textarea {...props} ref={ref} className={cx(field, 'resize-none font-mono text-sm', className)} />;
 }
 
-export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} className={cx(field, className)} />;
+/**
+ * ช่องเลือกแบบ dropdown — ยังเป็น `<select>` เนทีฟ popup จึงเป็นของ OS
+ * มือถือได้ตัวเลือกแบบเนทีฟ และคีย์บอร์ดทำงานเหมือนช่องเลือกทุกที่ในเครื่อง
+ *
+ * ปิดลูกศรของระบบด้วย `appearance-none` แล้ววาด chevron เองทับไว้ เลือกวิธีนี้แทน
+ * `background-image` เพราะ SVG ที่ฝังใน CSS ต้องระบุสีตายตัว ตามธีมมืด/สว่างไม่ได้
+ *
+ * `wrapperClassName` มีไว้ให้ช่องที่ไม่ต้องการเต็มความกว้าง เพราะ chevron วางตำแหน่ง
+ * เทียบกับตัวห่อ ถ้าตัวห่อกว้างกว่า select ลูกศรจะลอยหลุดไปจากช่อง
+ */
+export function Select({
+  className,
+  wrapperClassName,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & { wrapperClassName?: string }) {
+  return (
+    <div className={cx('relative', wrapperClassName ?? 'w-full')}>
+      <select {...props} className={cx(field, 'appearance-none pr-10', className)} />
+      <svg
+        className="pointer-events-none absolute inset-y-0 right-3 my-auto h-4 w-4 text-slate-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </div>
+  );
 }
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label {...props} className={cx('mb-1 block text-sm font-medium text-slate-700', className)} />;
+  return <label {...props} className={cx('mb-1', labelText, className)} />;
 }
 
 /** ข้อความผิดพลาด — ไม่สื่อด้วยสีอย่างเดียว มีคำว่า "ข้อผิดพลาด" กำกับเสมอ (A6) */

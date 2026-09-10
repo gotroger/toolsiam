@@ -1,7 +1,17 @@
 /** หมวดที่มีหน้า /categories/<id> + vertical ที่มี landingPath ของตัวเอง (§8) */
 export type CategoryId =
-  | 'finance' | 'loan' | 'business' | 'land' | 'date' | 'daily' | 'qr'
-  | 'lottery' | 'dream' | 'horoscope';
+  | 'finance'
+  | 'loan'
+  | 'business'
+  | 'land'
+  | 'date'
+  | 'daily'
+  | 'qr'
+  | 'lottery'
+  | 'dream'
+  | 'horoscope'
+  | 'documents'
+  | 'images';
 
 /** อัตรา/กฎหมายที่เครื่องมืออ้างอิง → Trust panel (§17) */
 export interface RateSource {

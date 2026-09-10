@@ -28,6 +28,7 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    worker: { format: 'es' },
     // workerd runner ถือ hash ของ optimize รอบแรกไว้ พอ vite ค้นพบ dep เพิ่มแล้ว
     // re-optimize รอบสอง ไฟล์ hash เก่าถูกลบ → dev server ตายตอน cold start
     // ประกาศ dep ที่ถูกค้นพบทีหลังไว้ล่วงหน้า ให้ optimize จบในรอบเดียว

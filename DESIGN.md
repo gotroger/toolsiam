@@ -103,3 +103,15 @@ ToolHelp owns a numbered instruction rail and native details/summary FAQ rows. A
 LotteryBanner uses one surface with four prize groups separated by hairlines, two columns on mobile, and an action footer. Preserve prize labels, leading zeros, draw date, verification status, official source and LiveDrawNotice freshness behavior.
 
 The shared DatePicker uses a 360px bounded panel, 20px corners, neutral theme surfaces, green selection, an outlined today marker and a six-row grid to keep month navigation stable. The trigger displays Thai month and Buddhist year; users can jump directly by month/year, choose today, or clear. Placement uses the dialog top layer so workspace clipping cannot cut off the calendar.
+
+## Document and image tools — September 9
+
+Documents use the existing blue category accent; images use teal. Both reuse ToolCard, ToolIcon and ToolShell without a new layout. The file workspace's signature is its ordered filename queue with explicit move buttons, followed by a persistent downloadable result and original/output byte counts. FileTool owns this pattern for all twelve tools; Input/Field/Select/NumberInput/Button remain canonical. Native file and select pickers stay OS-owned. Empty, busy, cancel, inline error and downloadable success states share one implementation. See docs/file-tools-roadmap.md for limits and conversion semantics.
+
+## Choice and range controls — September 10
+
+SegmentedControl is a 12px track holding 8px option pills with a 4px inset. The selected pill uses the action green with white text, the same selected treatment as category pills; unselected labels are slate-600 and darken on hover. The track uses the slate-50 surface with a hairline slate-200 border so it stays defined in light theme without competing with the green in dark.
+
+Slider draws a 6px rounded track inside a 44px touch row: action green up to the thumb, slate-200 after it. The thumb is a 20px surface circle with a 2px green ring and a soft shadow, growing 15% on hover only where a real pointer exists and reduced motion is not requested. Keyboard focus adds a 4px translucent green halo around the thumb. The current value sits in a brand-tinted badge with tabular figures so digits do not shift while dragging.
+
+Select keeps the OS popup and gains an authored chevron in slate-500, inset 12px from the right edge, matching the line weight of every other icon on the site.

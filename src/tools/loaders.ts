@@ -4,6 +4,18 @@ export type ToolLoader = () => Promise<{ default: ComponentType }>;
 
 /** slug → dynamic import ของ Tool.tsx (code-split ต่อเครื่องมือ) */
 export const toolLoaders: Record<string, ToolLoader> = {
+  'pdf-merge': () => import('./documents/pdf-merge/Tool'),
+  'pdf-extract': () => import('./documents/pdf-extract/Tool'),
+  'pdf-remove-pages': () => import('./documents/pdf-remove-pages/Tool'),
+  'pdf-rotate': () => import('./documents/pdf-rotate/Tool'),
+  'images-to-pdf': () => import('./documents/images-to-pdf/Tool'),
+  'excel-to-csv': () => import('./documents/excel-to-csv/Tool'),
+  'csv-to-excel': () => import('./documents/csv-to-excel/Tool'),
+  'word-to-text': () => import('./documents/word-to-text/Tool'),
+  'image-compress': () => import('./images/image-compress/Tool'),
+  'image-resize': () => import('./images/image-resize/Tool'),
+  'image-convert': () => import('./images/image-convert/Tool'),
+  'image-rotate': () => import('./images/image-rotate/Tool'),
   'thai-income-tax': () => import('./finance/thai-income-tax/Tool'),
   'loan-installment': () => import('./finance/loan-installment/Tool'),
   'net-salary': () => import('./finance/net-salary/Tool'),
