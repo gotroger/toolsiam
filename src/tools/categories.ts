@@ -93,6 +93,15 @@ export const categories: CategoryMeta[] = [
     nameEn: 'Image Tools',
     description: 'ลดขนาดรูป ปรับขนาด แปลง JPG PNG WebP และหมุนหรือกลับด้านภาพ',
   },
+  {
+    id: 'video',
+    order: 13,
+    status: 'active',
+    gradient: ['#fdf4ff', '#f0abfc'],
+    name: 'วิดีโอและเสียง',
+    nameEn: 'Video & Audio',
+    description: 'ตัดคลิป แปลงวิดีโอเป็น MP3 หรือ GIF ลดขนาดวิดีโอ ดาวน์โหลดรูปปก YouTube และล้างลิงก์แชร์',
+  },
 
   /* --- vertical: มีบ้านหลักของตัวเอง ไม่มีหน้า /categories/ --- */
   {

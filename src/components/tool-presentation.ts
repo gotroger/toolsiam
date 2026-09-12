@@ -4,6 +4,7 @@ import type { CategoryId, ToolMeta } from '@/tools/types';
 export const categoryLabels: Record<CategoryId, string> = {
   documents: 'เอกสาร / PDF',
   images: 'รูปภาพ',
+  video: 'วิดีโอ',
   finance: 'การเงิน',
   loan: 'บ้านและรถ',
   business: 'ค้าขาย',
@@ -62,6 +63,12 @@ const summaries: Record<string, [string, string]> = {
   'shop-profit': ['กำไรร้านค้าออนไลน์', 'รวมต้นทุนและค่าธรรมเนียมก่อนตั้งราคา'],
   'fuel-cost': ['คำนวณค่าน้ำมัน', 'ประมาณค่าเดินทางจากระยะทางและอัตราสิ้นเปลือง'],
   'json-formatter': ['จัดรูปแบบ JSON', 'จัดย่อหน้า ตรวจสอบ และย่อข้อมูล JSON'],
+  'video-trim': ['ตัดคลิปวิดีโอ', 'เลือกช่วงเวลาแล้วบันทึกเป็นไฟล์ใหม่'],
+  'video-to-mp3': ['แปลงวิดีโอเป็น MP3', 'ดึงเสียงจากคลิปเป็นไฟล์ MP3'],
+  'video-to-gif': ['แปลงวิดีโอเป็น GIF', 'ทำ GIF จากช่วงสั้น ๆ ของคลิป'],
+  'video-compress': ['ลดขนาดไฟล์วิดีโอ', 'ย่อคลิปให้ส่งแชตหรืออัปโหลดง่ายขึ้น'],
+  'youtube-thumbnail': ['รูปปก YouTube', 'ดาวน์โหลดรูปปกคลิปทุกขนาดที่มี'],
+  'clean-share-link': ['ล้างลิงก์แชร์', 'ตัดพารามิเตอร์ติดตามออกจากลิงก์'],
 };
 export type DiscoveryTool = Pick<ToolMeta, 'slug' | 'name' | 'nameEn' | 'category' | 'description' | 'keywords'>;
 export function toolPresentation(tool: Pick<ToolMeta, 'slug' | 'name' | 'description'>) {

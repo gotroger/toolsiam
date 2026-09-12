@@ -11,7 +11,8 @@ export type CategoryId =
   | 'dream'
   | 'horoscope'
   | 'documents'
-  | 'images';
+  | 'images'
+  | 'video';
 
 /** อัตรา/กฎหมายที่เครื่องมืออ้างอิง → Trust panel (§17) */
 export interface RateSource {

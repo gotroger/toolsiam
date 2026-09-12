@@ -455,7 +455,8 @@
     --tile-accent: var(--color-accent-lime);
   }
   [data-category='date'],
-  [data-category='dream'] {
+  [data-category='dream'],
+  [data-category='video'] {
     --tile-accent: var(--color-accent-violet);
   }
   [data-category='daily'],
