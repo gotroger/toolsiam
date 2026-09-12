@@ -10,6 +10,7 @@ export { Button, CopyButton } from './button';
 export { FileDrop, SelectedFiles } from './file-drop';
 export { SegmentedControl, type SegmentedOption } from './segmented';
 export { Slider } from './slider';
+export { ProgressBar } from './progress';
 export { Alert, Disclaimer, EmptyState, ResultBox, Stat } from './feedback';
 export { TabPanel, Tabs, type TabItem } from './tabs';
 export { DataTable, type Column } from './table';

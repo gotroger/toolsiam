@@ -899,6 +899,35 @@
     border-radius: 12px;
     background: var(--color-slate-100);
   }
+  /* แถบความคืบหน้า (ProgressBar) — indeterminate เลื่อนไปมาเฉพาะเมื่อผู้ใช้ไม่ปิดแอนิเมชัน */
+  .product-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-slate-200);
+    overflow: hidden;
+  }
+  .product-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-brand-600);
+    transition: width var(--motion-fast);
+  }
+  .product-progress-indeterminate {
+    width: 40%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .product-progress-indeterminate {
+      animation: product-progress-slide 1.4s ease-in-out infinite;
+    }
+    @keyframes product-progress-slide {
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(250%);
+      }
+    }
+  }
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .product-slider::-webkit-slider-thumb {
       transition: transform var(--motion-fast);

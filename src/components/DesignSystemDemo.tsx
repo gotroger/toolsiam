@@ -11,6 +11,7 @@ import {
   Field,
   Input,
   NumberInput,
+  ProgressBar,
   ResultBox,
   Select,
   Stat,
@@ -63,6 +64,8 @@ export default function DesignSystemDemo() {
           <Field label="ปิดใช้งาน" htmlFor="ds-disabled">
             <Input id="ds-disabled" disabled value="แก้ไขไม่ได้" readOnly />
           </Field>
+          <ProgressBar id="ds-progress" label="กำลังแปลงวิดีโอ" value={42} detail="ประมาณ 1 นาที" />
+          <ProgressBar id="ds-progress-wait" label="กำลังโหลดตัวประมวลผล" value={null} />
         </div>
       </TabPanel>
 
