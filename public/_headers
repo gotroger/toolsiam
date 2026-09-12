@@ -1,3 +1,4 @@
 # ffmpeg core มีเวอร์ชันอยู่ใน path (public/ffmpeg/<ver>/) จึง cache ยาวได้ — ไม่งั้นเบราว์เซอร์ต้อง revalidate ไฟล์ 10 MB ทุกครั้ง
-/ffmpeg/*
+# จงใจไม่ครอบ /ffmpeg/manifest.json — มันชี้เวอร์ชันปัจจุบันและต้องเปลี่ยนได้ทันทีเมื่ออัปเกรด core
+/ffmpeg/*/*
   Cache-Control: public, max-age=31536000, immutable
