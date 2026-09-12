@@ -35,6 +35,7 @@ import { creditCardDebtMeta } from './loan/credit-card-debt/meta';
 import { flatEffectiveRateMeta } from './loan/flat-effective-rate/meta';
 import { electricityBillMeta } from './daily/electricity-bill/meta';
 import { shopProfitMeta } from './business/shop-profit/meta';
+import { videoToolMetas } from './video/catalog';
 import { youtubeThumbnailMeta } from './video/youtube-thumbnail/meta';
 import { cleanShareLinkMeta } from './video/clean-share-link/meta';
 
@@ -78,6 +79,7 @@ export const tools: ToolMeta[] = [
   electricityBillMeta,
   fuelCostMeta,
   jsonFormatterMeta,
+  ...videoToolMetas,
   youtubeThumbnailMeta,
   cleanShareLinkMeta,
 ];

@@ -50,6 +50,10 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'flat-effective-rate': () => import('./loan/flat-effective-rate/Tool'),
   'electricity-bill': () => import('./daily/electricity-bill/Tool'),
   'shop-profit': () => import('./business/shop-profit/Tool'),
+  'video-trim': () => import('./video/video-trim/Tool'),
+  'video-to-mp3': () => import('./video/video-to-mp3/Tool'),
+  'video-to-gif': () => import('./video/video-to-gif/Tool'),
+  'video-compress': () => import('./video/video-compress/Tool'),
   'youtube-thumbnail': () => import('./video/youtube-thumbnail/Tool'),
   'clean-share-link': () => import('./video/clean-share-link/Tool'),
 };
