@@ -214,7 +214,7 @@ describe('covers', () => {
 /** P9 — public/ ต้องมีแต่ไฟล์ที่ตั้งใจ deploy */
 describe('public/ ไม่มีไฟล์ขยะ', () => {
   const ALLOWED_ROOT = new Set([
-    '_redirects', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
+    '_redirects', '_headers', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
     'favicon-192.png', 'apple-touch-icon.png', 'logo.png',
   ]);
   const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts', 'ffmpeg']);
