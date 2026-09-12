@@ -50,4 +50,6 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'flat-effective-rate': () => import('./loan/flat-effective-rate/Tool'),
   'electricity-bill': () => import('./daily/electricity-bill/Tool'),
   'shop-profit': () => import('./business/shop-profit/Tool'),
+  'youtube-thumbnail': () => import('./video/youtube-thumbnail/Tool'),
+  'clean-share-link': () => import('./video/clean-share-link/Tool'),
 };
