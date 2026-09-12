@@ -10,6 +10,9 @@ export default function YoutubeThumbnailTool() {
   const [busy, setBusy] = useState<ThumbnailKey | null>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
+  function hide(key: ThumbnailKey) {
+    setMissing((m) => (m.includes(key) ? m : [...m, key]));
+  }
   function fail(message: string) {
     setError(message);
     requestAnimationFrame(() => errorRef.current?.focus());
@@ -84,7 +87,11 @@ export default function YoutubeThumbnailTool() {
                 height={size.height}
                 className="h-auto w-full rounded-lg bg-slate-100"
                 loading="lazy"
-                onError={() => setMissing((m) => (m.includes(size.key) ? m : [...m, size.key]))}
+                // ขนาดที่ไม่มีจริง YouTube ตอบ 404 หรือส่งรูปแทน 120×90 กลับมาแทน (พบทั้งสองแบบตอน QA) — ซ่อนทั้งคู่
+                onLoad={(e) => {
+                  if (e.currentTarget.naturalWidth < size.width / 2) hide(size.key);
+                }}
+                onError={() => hide(size.key)}
               />
               <div className="mt-2 flex items-center justify-between gap-2">
                 <span className="text-sm font-medium">{size.label}</span>
