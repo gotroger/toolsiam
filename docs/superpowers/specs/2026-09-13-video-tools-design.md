@@ -51,7 +51,7 @@
 
 | ประเด็น                  | ข้อสรุป                                                                                                       |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| engine                   | ffmpeg.wasm แบบ single-thread (`@ffmpeg/ffmpeg` 0.12.15 + `@ffmpeg/core` 0.12.10) ไม่ใช้ core-mt               |
+| engine                   | `@ffmpeg/core` 0.12.10 (single-thread, ไม่ใช้ core-mt) ผ่าน Web Worker ของเราเอง (`ffmpeg.worker.ts`) — ไม่ใช้ `@ffmpeg/ffmpeg` เพราะ worker ภายในของมันสร้างด้วย `new URL(..., import.meta.url)` ใน node_modules ซึ่ง Vite ไม่รับประกันว่าจะ bundle |
 | ที่เก็บ core             | เสิร์ฟจาก `public/ffmpeg/<version>/` ของเว็บเอง ไม่ใช้ CDN ภายนอก ไม่ต้องมี R2                                  |
 | ขนาดไฟล์ core            | `ffmpeg-core.wasm` ดิบ 30.7 MB เกินเพดาน 25 MiB/ไฟล์ของ Cloudflare static assets → เก็บเป็น `.wasm.gz` 9.7 MB แล้วคลายในเบราว์เซอร์ด้วย `DecompressionStream` |
 | ไฟล์ core ใน git         | ไม่ commit — `scripts/copy-ffmpeg.mjs` คัดลอกจาก `node_modules` ตอน `postinstall` และก่อน `build`; `public/ffmpeg/` อยู่ใน `.gitignore` |
@@ -86,8 +86,8 @@ Safari รองรับไม่ครบ (AudioEncoder) MP3 ต้องห�
   │ hydrate → VideoTool.tsx  (UI + lifecycle · ไม่มี engine ใน chunk นี้)
   │ กดเริ่ม → import('./engine')
   │           ├─ fetch /ffmpeg/<ver>/ffmpeg-core.wasm.gz → DecompressionStream → Blob → blob: URL
-  │           ├─ new FFmpeg().load({ coreURL: /ffmpeg/<ver>/ffmpeg-core.js, wasmURL: blob: })
-  │           │   (@ffmpeg/ffmpeg สร้าง Web Worker ของมันเอง — งานทั้งหมดอยู่นอก main thread)
+  │           ├─ ffmpeg.worker.ts (Web Worker ของเรา) import ffmpeg-core.js + wasm จาก blob: URL
+  │           │   งานทั้งหมดอยู่นอก main thread
   │           ├─ writeFile(input) → exec(args จาก args.ts) → readFile(output)
   │           └─ progress/log → VideoTool (แถบความคืบหน้า)
   ↓
@@ -158,7 +158,7 @@ fps ความกว้าง GIF preset และ lifecycle ที่ต่�
 1. `fetch('/ffmpeg/<ver>/ffmpeg-core.wasm.gz')` อ่านเป็น stream รายงานไบต์ที่ได้เทียบกับ `Content-Length`
    เพื่อแสดง "กำลังโหลดตัวประมวลผล 3.2 / 9.7 MB" (ครั้งแรกเท่านั้น ครั้งถัดไปมาจาก HTTP cache)
 2. ต่อท่อผ่าน `new DecompressionStream('gzip')` → `Blob` → `URL.createObjectURL`
-3. `new FFmpeg().load({ coreURL: '/ffmpeg/<ver>/ffmpeg-core.js', wasmURL: <blob URL> })`
+3. worker `import()` `/ffmpeg/<ver>/ffmpeg-core.js` แล้วเรียก `createFFmpegCore({ mainScriptUrlOrBlob: coreURL + '#' + base64({ wasmURL }) })` (วิธีเดียวกับที่ `@ffmpeg/ffmpeg` ใช้ส่ง wasmURL เข้า core)
 4. ไม่มี `DecompressionStream` (เบราว์เซอร์ก่อน Safari 16.4 / Chrome 80) → ข้อความ
    "เบราว์เซอร์นี้ไม่รองรับเครื่องมือวิดีโอ กรุณาอัปเดตเบราว์เซอร์" ไม่มี fallback ทางอื่น
 
@@ -259,8 +259,9 @@ Lifecycle เหมือน FileTool ในสิ่งที่พิสูจ
 - ลบโฟลเดอร์เวอร์ชันเก่าใน `public/ffmpeg/` เพื่อไม่ให้ deploy ไฟล์ 10 MB ซ้ำหลายชุด
 - `package.json`: `"postinstall": "node scripts/copy-ffmpeg.mjs"`, `"build": "node scripts/copy-ffmpeg.mjs && astro build"`,
   `"deploy": "npm run build && wrangler deploy"`, `"preview": "npm run build && wrangler dev"`
-- dependencies: `@ffmpeg/ffmpeg@0.12.15` (runtime) · devDependencies: `@ffmpeg/core@0.12.10` (ถูกคัดลอกตอน build เท่านั้น ไม่ถูก bundle)
-- ไม่ใช้ `@ffmpeg/util` — `fetchFile` แทนได้ด้วย `new Uint8Array(await file.arrayBuffer())` และ `toBlobURL` ถูกแทนด้วยขั้นตอนคลาย gzip ของเราเอง
+- devDependencies: `@ffmpeg/core@0.12.10` เท่านั้น (ถูกคัดลอกตอน build ไม่ถูก bundle) — ไม่มี runtime dependency ใหม่ worker ของเราคุยกับ core ผ่าน `createFFmpegCore` โดยตรง (exec/FS.writeFile/FS.readFile/setProgress ตามที่ `@ffmpeg/ffmpeg` ทำ)
+- worker ตรวจ magic bytes ของ gzip ก่อนคลาย เพราะเซิร์ฟเวอร์บางตัว (Vite dev) ส่ง `.gz` พร้อม `Content-Encoding: gzip` ให้เบราว์เซอร์คลายเองแล้ว
+- ยืนยันจาก smoke test 13 กันยายน 2569: `time` ใน progress ของ core เป็นไมโครวินาที; ตัดคลิป 3 วินาทีแบบ stream copy ใช้ 161 ms; MP3 12 วินาที 92 ms; ไฟล์เสียหายได้ข้อความไทยและ core ทำงานต่อได้
 - `registry.test.ts` allowlist `public/` เพิ่ม `ffmpeg` และเพิ่มข้อทดสอบว่า `public/ffmpeg/` มีโฟลเดอร์เวอร์ชันเดียวและตรงกับ `package.json`
 
 ## 8. งบประสิทธิภาพและขนาด

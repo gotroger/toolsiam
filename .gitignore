@@ -17,3 +17,6 @@ assets/
 # Local browser QA artifacts
 output/
 .playwright-cli/
+
+# ffmpeg core ถูก generate จาก node_modules ด้วย scripts/copy-ffmpeg.mjs (ไฟล์ 10 MB ไม่เก็บใน git)
+public/ffmpeg/

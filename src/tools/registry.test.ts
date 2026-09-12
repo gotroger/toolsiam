@@ -217,12 +217,23 @@ describe('public/ ไม่มีไฟล์ขยะ', () => {
     '_redirects', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
     'favicon-192.png', 'apple-touch-icon.png', 'logo.png',
   ]);
-  const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts']);
+  const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts', 'ffmpeg']);
 
   it('ไฟล์ระดับบนสุดอยู่ใน allowlist ทั้งหมด', () => {
     for (const entry of readdirSync('public', { withFileTypes: true })) {
       if (entry.isDirectory()) expect(ALLOWED_DIRS.has(entry.name), entry.name).toBe(true);
       else expect(ALLOWED_ROOT.has(entry.name), entry.name).toBe(true);
+    }
+  });
+
+  it('ffmpeg/ มี manifest และโฟลเดอร์เวอร์ชันเดียวตรงกับ manifest (generate ด้วย scripts/copy-ffmpeg.mjs)', () => {
+    const manifest = JSON.parse(readFileSync(join('public', 'ffmpeg', 'manifest.json'), 'utf8'));
+    const dirs = readdirSync(join('public', 'ffmpeg'), { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+    expect(dirs).toEqual([manifest.version]);
+    for (const f of ['ffmpeg-core.js', 'ffmpeg-core.wasm.gz']) {
+      expect(existsSync(join('public', 'ffmpeg', manifest.version, f)), f).toBe(true);
     }
   });
 

@@ -7,9 +7,10 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro build && wrangler dev",
-    "deploy": "astro build && wrangler deploy",
+    "postinstall": "node scripts/copy-ffmpeg.mjs",
+    "build": "node scripts/copy-ffmpeg.mjs && astro build",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260907.1",
     "@eslint/js": "^9.39.5",
+    "@ffmpeg/core": "^0.12.10",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
