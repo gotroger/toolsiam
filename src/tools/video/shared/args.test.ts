@@ -22,7 +22,7 @@ describe('inputExt', () => {
 });
 
 describe('buildJob', () => {
-  it('trim เร็ว: stream copy, mp4 ได้ faststart, webm ไม่ได้', () => {
+  it('trim เร็ว: stream copy เป็น mp4 พร้อม faststart', () => {
     const mp4 = buildJob('video-trim', 'a.mov', opts({ start: 5, end: 12.5 }));
     expect(mp4.args).toEqual([
       '-ss',
@@ -33,28 +33,17 @@ describe('buildJob', () => {
       '7.5',
       '-c',
       'copy',
-      '-avoid_negative_ts',
-      'make_zero',
       '-movflags',
       '+faststart',
       'out.mp4',
     ]);
     expect(mp4).toMatchObject({ output: 'a-trim.mp4', mime: 'video/mp4', expectedSeconds: 7.5 });
+  });
+
+  it('trim เร็วของ webm เข้ารหัสใหม่เสมอ เพราะ stream copy ตัดไม่ตรง', () => {
     const webm = buildJob('video-trim', 'a.webm', opts({ start: 0, end: 3 }));
-    expect(webm.args).toEqual([
-      '-ss',
-      '0',
-      '-i',
-      'in.webm',
-      '-t',
-      '3',
-      '-c',
-      'copy',
-      '-avoid_negative_ts',
-      'make_zero',
-      'out.webm',
-    ]);
-    expect(webm).toMatchObject({ output: 'a-trim.webm', mime: 'video/webm' });
+    expect(webm.args).toContain('libx264');
+    expect(webm).toMatchObject({ output: 'a-trim.mp4', mime: 'video/mp4', expectedSeconds: 3 });
   });
 
   it('trim แม่นยำ: เข้ารหัสใหม่เป็น H.264/AAC เสมอ', () => {

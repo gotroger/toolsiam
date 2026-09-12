@@ -64,7 +64,8 @@ export function buildJob(id: VideoToolId, fileName: string, options: VideoOption
   switch (id) {
     case 'video-trim': {
       const duration = range(options);
-      if (options.precise) {
+      // webm ไม่มี edit list — stream copy ตัดได้แค่ที่คีย์เฟรมและความยาวเพี้ยน (QA: ขอ 4 วิ ได้ 6 วิ) จึงเข้ารหัสใหม่เสมอ
+      if (options.precise || ext === 'webm') {
         return {
           args: [
             '-ss',
@@ -91,8 +92,9 @@ export function buildJob(id: VideoToolId, fileName: string, options: VideoOption
           expectedSeconds: duration,
         };
       }
-      // stream copy: คง container เดิม (webm อยู่ webm) · faststart มีความหมายเฉพาะ mp4
-      const webm = ext === 'webm';
+      // stream copy ของ mp4/mov/m4v: muxer เขียน edit list ให้เริ่มเล่นที่จุดตัดจริงแม้เฟรมเริ่มที่คีย์เฟรมก่อนหน้า
+      // ไม่ใส่ -avoid_negative_ts make_zero: มันเลื่อนเฟรมก่อนจุดเริ่ม (ตั้งแต่คีย์เฟรม) มาเป็นเวลา 0 ทำให้คลิปยาวเกิน
+      // ปล่อยให้ muxer เขียน edit list แทน → ผู้เล่นเริ่มที่จุดตัดจริงและได้ความยาวตรง (ทดสอบ ffmpeg 7.1: 7.00 วิ)
       return {
         args: [
           '-ss',
@@ -103,13 +105,12 @@ export function buildJob(id: VideoToolId, fileName: string, options: VideoOption
           fmt(duration),
           '-c',
           'copy',
-          '-avoid_negative_ts',
-          'make_zero',
-          ...(webm ? [] : ['-movflags', '+faststart']),
-          webm ? 'out.webm' : 'out.mp4',
+          '-movflags',
+          '+faststart',
+          'out.mp4',
         ],
-        output: outputName(fileName, '-trim', webm ? 'webm' : 'mp4'),
-        mime: webm ? 'video/webm' : 'video/mp4',
+        output: outputName(fileName, '-trim', 'mp4'),
+        mime: 'video/mp4',
         expectedSeconds: duration,
       };
     }
