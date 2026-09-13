@@ -49,10 +49,12 @@ docs/video-tools-verification.md, docs/perf-budget.md       ← Task 7
 ### Task 1: primitive `ProgressBar`
 
 **Files:**
+
 - Create: `src/components/ui/progress.tsx`, `src/components/ui/progress.test.tsx`
 - Modify: `src/components/ui/index.ts` (export), `src/styles/product.css` (คลาส `.product-progress*` ต่อจาก `.tool-loading-bars`), `src/components/DesignSystemDemo.tsx` (ตัวอย่าง 1 ชิ้น)
 
 **Interfaces:**
+
 - Produces: `ProgressBar({ id, label, value, detail })` — `value: number | null` (0–100, `null` = indeterminate), `detail?: string` ข้อความใต้แถบ
 
 - [ ] **Step 1: เขียน test**
@@ -151,30 +153,34 @@ export function ProgressBar({
 เพิ่มใน `src/styles/product.css` ถัดจากบล็อก `.tool-loading-bars > span { … }`:
 
 ```css
-  .product-progress {
-    height: 8px;
-    border-radius: 999px;
-    background: var(--color-slate-200);
-    overflow: hidden;
-  }
-  .product-progress-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--color-brand-600);
-    transition: width var(--motion-fast);
-  }
+.product-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-slate-200);
+  overflow: hidden;
+}
+.product-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-brand-600);
+  transition: width var(--motion-fast);
+}
+.product-progress-indeterminate {
+  width: 40%;
+}
+@media (prefers-reduced-motion: no-preference) {
   .product-progress-indeterminate {
-    width: 40%;
+    animation: product-progress-slide 1.4s ease-in-out infinite;
   }
-  @media (prefers-reduced-motion: no-preference) {
-    .product-progress-indeterminate {
-      animation: product-progress-slide 1.4s ease-in-out infinite;
+  @keyframes product-progress-slide {
+    from {
+      transform: translateX(-100%);
     }
-    @keyframes product-progress-slide {
-      from { transform: translateX(-100%); }
-      to { transform: translateX(250%); }
+    to {
+      transform: translateX(250%);
     }
   }
+}
 ```
 
 ใน `DesignSystemDemo.tsx` เพิ่ม `ProgressBar` เข้า import และวางใน TabPanel `normal` ท้ายสุด:
@@ -201,11 +207,13 @@ git commit -m "feat(ui): primitive ProgressBar สำหรับงานที
 หมวด active ต้องมีเครื่องมือ ≥ 1 (registry.test) จึงเปิดหมวดพร้อมเครื่องมือตัวแรกที่ไม่ต้องใช้ engine
 
 **Files:**
+
 - Modify: `src/tools/types.ts` (CategoryId), `src/tools/categories.ts`, `src/lib/category-icons.mjs`, `src/components/tool-presentation.ts`, `src/styles/product.css`, `src/tools/registry.ts`, `src/tools/loaders.ts`
 - Create: `src/tools/video/clean-share-link/logic.ts`, `logic.test.ts`, `meta.ts`, `Tool.tsx`
 - Generate: `public/covers/_category-video.svg`
 
 **Interfaces:**
+
 - Produces: `cleanLink(raw: string): CleanResult`, `cleanLinks(text: string): CleanResult[]` โดย `CleanResult = { input: string; cleaned: string; removed: string[]; ok: boolean; note?: string }`
 
 - [ ] **Step 1: หมวดและไอคอน**
@@ -321,8 +329,24 @@ export interface CleanResult {
 }
 
 const TRACKING = new Set([
-  'fbclid', 'gclid', 'dclid', 'msclkid', 'twclid', 'ttclid', 'igshid', 'igsh', 'mc_cid', 'mc_eid',
-  'yclid', '_ga', '_gl', 'ref_src', 'ref_url', 'si', 'feature', 'mibextid',
+  'fbclid',
+  'gclid',
+  'dclid',
+  'msclkid',
+  'twclid',
+  'ttclid',
+  'igshid',
+  'igsh',
+  'mc_cid',
+  'mc_eid',
+  'yclid',
+  '_ga',
+  '_gl',
+  'ref_src',
+  'ref_url',
+  'si',
+  'feature',
+  'mibextid',
 ]);
 const isTracking = (key: string) => key.toLowerCase().startsWith('utm_') || TRACKING.has(key.toLowerCase());
 
@@ -345,7 +369,13 @@ export function cleanLink(raw: string): CleanResult {
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return { input, cleaned: input, removed: [], ok: false };
   const host = url.hostname.toLowerCase();
   if (SHORT_HOSTS.has(host)) {
-    return { input, cleaned: input, removed: [], ok: true, note: 'ลิงก์สั้นต้องเปิดในแอปก่อนจึงเห็นลิงก์เต็ม เบราว์เซอร์แก้ให้ไม่ได้' };
+    return {
+      input,
+      cleaned: input,
+      removed: [],
+      ok: true,
+      note: 'ลิงก์สั้นต้องเปิดในแอปก่อนจึงเห็นลิงก์เต็ม เบราว์เซอร์แก้ให้ไม่ได้',
+    };
   }
   const removed: string[] = [];
   let transformed = false;
@@ -358,7 +388,8 @@ export function cleanLink(raw: string): CleanResult {
     for (const key of url.searchParams.keys()) if (key !== 't') removed.push(key);
     return { input, cleaned: rebuild(next), removed: [...new Set(removed)], ok: true };
   }
-  const isYoutube = host === 'www.youtube.com' || host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com';
+  const isYoutube =
+    host === 'www.youtube.com' || host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com';
   const stripAll =
     (host.endsWith('tiktok.com') && /\/video\/\d+/.test(url.pathname)) ||
     (host.endsWith('douyin.com') && /\/video\/\d+/.test(url.pathname));
@@ -400,11 +431,24 @@ export const cleanShareLinkMeta: ToolMeta = {
   description:
     'ตัด utm, fbclid, si และพารามิเตอร์ติดตามอื่นออกจากลิงก์ YouTube TikTok Facebook และเว็บทั่วไป ทำได้หลายลิงก์พร้อมกัน ประมวลผลในเบราว์เซอร์',
   keywords: ['ล้างลิงก์', 'ลบ utm', 'ตัด fbclid', 'ลิงก์ youtube สั้น', 'clean url'],
-  howTo: ['วางลิงก์ บรรทัดละ 1 ลิงก์ (สูงสุด 50 บรรทัด)', 'ดูลิงก์ที่ล้างแล้วและจำนวนพารามิเตอร์ที่ตัดออก', 'กดคัดลอกทั้งหมดไปแชร์ต่อ'],
+  howTo: [
+    'วางลิงก์ บรรทัดละ 1 ลิงก์ (สูงสุด 50 บรรทัด)',
+    'ดูลิงก์ที่ล้างแล้วและจำนวนพารามิเตอร์ที่ตัดออก',
+    'กดคัดลอกทั้งหมดไปแชร์ต่อ',
+  ],
   faq: [
-    { q: 'ตัดพารามิเตอร์อะไรบ้าง', a: 'utm_* ทุกตัว, fbclid, gclid, msclkid, ttclid, igshid, si, feature, mibextid และตัวติดตามที่รู้จักอื่น ๆ พารามิเตอร์ที่ไม่รู้จักจะเก็บไว้เพื่อไม่ให้ลิงก์เสีย' },
-    { q: 'ทำไมลิงก์ youtu.be ถูกเปลี่ยนเป็น youtube.com', a: 'ลิงก์ youtu.be มักพ่วง si= ที่ระบุตัวผู้แชร์ เครื่องมือแปลงเป็นลิงก์ watch มาตรฐานและเก็บเวลาเริ่ม (t=) ไว้ให้' },
-    { q: 'ลิงก์สั้นของ TikTok หรือ Douyin ล้างได้ไหม', a: 'ไม่ได้ ลิงก์สั้นต้องให้เซิร์ฟเวอร์ของแอปแปลงเป็นลิงก์เต็มก่อน ซึ่งเบราว์เซอร์ทำจากหน้าเว็บนี้ไม่ได้ ให้เปิดลิงก์ในแอปแล้วคัดลอกลิงก์เต็มมาวาง' },
+    {
+      q: 'ตัดพารามิเตอร์อะไรบ้าง',
+      a: 'utm_* ทุกตัว, fbclid, gclid, msclkid, ttclid, igshid, si, feature, mibextid และตัวติดตามที่รู้จักอื่น ๆ พารามิเตอร์ที่ไม่รู้จักจะเก็บไว้เพื่อไม่ให้ลิงก์เสีย',
+    },
+    {
+      q: 'ทำไมลิงก์ youtu.be ถูกเปลี่ยนเป็น youtube.com',
+      a: 'ลิงก์ youtu.be มักพ่วง si= ที่ระบุตัวผู้แชร์ เครื่องมือแปลงเป็นลิงก์ watch มาตรฐานและเก็บเวลาเริ่ม (t=) ไว้ให้',
+    },
+    {
+      q: 'ลิงก์สั้นของ TikTok หรือ Douyin ล้างได้ไหม',
+      a: 'ไม่ได้ ลิงก์สั้นต้องให้เซิร์ฟเวอร์ของแอปแปลงเป็นลิงก์เต็มก่อน ซึ่งเบราว์เซอร์ทำจากหน้าเว็บนี้ไม่ได้ ให้เปิดลิงก์ในแอปแล้วคัดลอกลิงก์เต็มมาวาง',
+    },
   ],
   contentUpdatedAt: '2026-09-13',
   related: ['youtube-thumbnail', 'qr-generator'],
@@ -425,7 +469,13 @@ export default function CleanShareLinkTool() {
   return (
     <div className="space-y-4">
       <Field label="ลิงก์ต้นฉบับ" htmlFor="links" hint={`บรรทัดละ 1 ลิงก์ สูงสุด ${MAX_LINES} บรรทัด`}>
-        <Textarea id="links" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder="https://youtu.be/…?si=…" />
+        <Textarea
+          id="links"
+          rows={6}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="https://youtu.be/…?si=…"
+        />
       </Field>
       <div className="grid gap-3 sm:grid-cols-2">
         <Stat label="ลิงก์" value={results.length} />
@@ -437,7 +487,9 @@ export default function CleanShareLinkTool() {
             <li key={i} className="rounded-[10px] border border-slate-200 bg-surface p-3">
               <div className="break-all font-medium">{r.cleaned}</div>
               <div className="mt-1 text-xs text-slate-600">
-                {!r.ok ? 'ไม่ใช่ลิงก์ http/https' : r.note ?? (r.removed.length ? `ตัดออก: ${r.removed.join(', ')}` : 'ไม่มีอะไรให้ตัด')}
+                {!r.ok
+                  ? 'ไม่ใช่ลิงก์ http/https'
+                  : (r.note ?? (r.removed.length ? `ตัดออก: ${r.removed.join(', ')}` : 'ไม่มีอะไรให้ตัด'))}
               </div>
             </li>
           ))}
@@ -468,10 +520,12 @@ git commit -m "feat(video): หมวดวิดีโอและเสีย�
 ### Task 3: เครื่องมือ "ดาวน์โหลดรูปปก YouTube"
 
 **Files:**
+
 - Create: `src/tools/video/youtube-thumbnail/logic.ts`, `logic.test.ts`, `meta.ts`, `Tool.tsx`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `parseYoutubeId(input: string): string | null`, `THUMBNAIL_SIZES: { key; label; width; height }[]`, `thumbnailUrl(id: string, key: string): string`
 
 - [ ] **Step 1: test**
@@ -492,10 +546,13 @@ describe('parseYoutubeId', () => {
     ['https://music.youtube.com/watch?v=dQw4w9WgXcQ&list=x', 'dQw4w9WgXcQ'],
     ['  dQw4w9WgXcQ  ', 'dQw4w9WgXcQ'],
   ])('%s → %s', (input, id) => expect(parseYoutubeId(input)).toBe(id));
-  it.each(['https://vimeo.com/123', 'https://www.youtube.com/', 'abc', 'dQw4w9WgXc', 'https://youtube.com/watch?v=too-long-id-x'])(
-    '%s → null',
-    (input) => expect(parseYoutubeId(input)).toBeNull(),
-  );
+  it.each([
+    'https://vimeo.com/123',
+    'https://www.youtube.com/',
+    'abc',
+    'dQw4w9WgXc',
+    'https://youtube.com/watch?v=too-long-id-x',
+  ])('%s → null', (input) => expect(parseYoutubeId(input)).toBeNull());
 });
 
 describe('thumbnailUrl', () => {
@@ -560,11 +617,24 @@ export const youtubeThumbnailMeta: ToolMeta = {
   description:
     'วางลิงก์ YouTube หรือ Shorts แล้วดูรูปปกทุกขนาดที่มี ตั้งแต่ 1280×720 ถึง 320×180 ดาวน์โหลดเป็น JPG ได้ทันทีโดยไม่แตะตัววิดีโอ',
   keywords: ['รูปปก youtube', 'thumbnail youtube', 'โหลดปก youtube', 'ภาพปกคลิป'],
-  howTo: ['วางลิงก์คลิป YouTube, Shorts หรือรหัสวิดีโอ 11 ตัว', 'กดค้นหารูปปก แล้วเลือกขนาดที่ต้องการ', 'กดดาวน์โหลด ได้ไฟล์ JPG'],
+  howTo: [
+    'วางลิงก์คลิป YouTube, Shorts หรือรหัสวิดีโอ 11 ตัว',
+    'กดค้นหารูปปก แล้วเลือกขนาดที่ต้องการ',
+    'กดดาวน์โหลด ได้ไฟล์ JPG',
+  ],
   faq: [
-    { q: 'ทำไมบางคลิปไม่มีขนาด 1280×720', a: 'YouTube สร้างรูปปกขนาดใหญ่สุดเฉพาะคลิปที่อัปโหลดแบบ HD คลิปเก่าหรือความละเอียดต่ำจะมีถึง 640×480 เท่านั้น เครื่องมือแสดงเฉพาะขนาดที่มีจริง' },
-    { q: 'ดาวน์โหลดตัววิดีโอได้ไหม', a: 'ไม่ได้ เครื่องมือนี้แสดงเฉพาะรูปปกสาธารณะที่ YouTube เผยแพร่อยู่แล้ว ไม่ดึงหรือแปลงตัววิดีโอ' },
-    { q: 'นำรูปปกไปใช้ได้แค่ไหน', a: 'รูปปกเป็นลิขสิทธิ์ของเจ้าของช่อง ใช้เพื่ออ้างอิง ทำสื่อประกอบ หรือดูตัวอย่างได้ การนำไปใช้เชิงพาณิชย์ควรขออนุญาตเจ้าของก่อน' },
+    {
+      q: 'ทำไมบางคลิปไม่มีขนาด 1280×720',
+      a: 'YouTube สร้างรูปปกขนาดใหญ่สุดเฉพาะคลิปที่อัปโหลดแบบ HD คลิปเก่าหรือความละเอียดต่ำจะมีถึง 640×480 เท่านั้น เครื่องมือแสดงเฉพาะขนาดที่มีจริง',
+    },
+    {
+      q: 'ดาวน์โหลดตัววิดีโอได้ไหม',
+      a: 'ไม่ได้ เครื่องมือนี้แสดงเฉพาะรูปปกสาธารณะที่ YouTube เผยแพร่อยู่แล้ว ไม่ดึงหรือแปลงตัววิดีโอ',
+    },
+    {
+      q: 'นำรูปปกไปใช้ได้แค่ไหน',
+      a: 'รูปปกเป็นลิขสิทธิ์ของเจ้าของช่อง ใช้เพื่ออ้างอิง ทำสื่อประกอบ หรือดูตัวอย่างได้ การนำไปใช้เชิงพาณิชย์ควรขออนุญาตเจ้าของก่อน',
+    },
   ],
   contentUpdatedAt: '2026-09-13',
   disclaimer: 'รูปปกเป็นของเจ้าของช่อง เครื่องมือแสดงรูปสาธารณะจาก YouTube เท่านั้น ไม่ดาวน์โหลดวิดีโอ',
@@ -683,10 +753,12 @@ git commit -m "feat(video): ดาวน์โหลดรูปปก YouTube"
 ### Task 4: ffmpeg core — สคริปต์คัดลอก, worker และ engine (พิสูจน์ในเบราว์เซอร์)
 
 **Files:**
+
 - Create: `scripts/copy-ffmpeg.mjs`, `src/tools/video/shared/types.ts`, `src/tools/video/shared/vendor.d.ts`, `src/tools/video/shared/ffmpeg.worker.ts`, `src/tools/video/shared/engine.ts`
 - Modify: `package.json` (devDependency + scripts), `.gitignore`, `src/tools/registry.test.ts` (allowlist `public/`)
 
 **Interfaces:**
+
 - Produces: `createEngine(hooks: EngineHooks): Engine` โดย
   - `EngineHooks = { onLoad(loaded: number, total: number): void; onProgress(seconds: number): void }`
   - `Engine = { run(job: EngineJob): Promise<EngineOutput>; terminate(): void }`
@@ -733,8 +805,13 @@ mkdirSync(dir, { recursive: true });
 const gz = gzipSync(wasm, { level: 9 });
 writeFileSync(join(dir, 'ffmpeg-core.wasm.gz'), gz);
 writeFileSync(join(dir, 'ffmpeg-core.js'), readFileSync(join(SRC, 'dist', 'esm', 'ffmpeg-core.js')));
-writeFileSync(manifestPath, JSON.stringify({ version, wasmBytes: wasm.length, gzipBytes: gz.length, sha256 }, null, 2) + '\n');
-console.log(`ffmpeg core ${version}: wasm ${(wasm.length / 1048576).toFixed(1)} MB → gz ${(gz.length / 1048576).toFixed(1)} MB`);
+writeFileSync(
+  manifestPath,
+  JSON.stringify({ version, wasmBytes: wasm.length, gzipBytes: gz.length, sha256 }, null, 2) + '\n',
+);
+console.log(
+  `ffmpeg core ${version}: wasm ${(wasm.length / 1048576).toFixed(1)} MB → gz ${(gz.length / 1048576).toFixed(1)} MB`,
+);
 ```
 
 `package.json` scripts แก้:
@@ -756,14 +833,16 @@ public/ffmpeg/
 `src/tools/registry.test.ts` — `ALLOWED_DIRS` เพิ่ม `'ffmpeg'` และเพิ่มข้อทดสอบใน describe เดียวกัน:
 
 ```ts
-  it('ffmpeg/ มี manifest และโฟลเดอร์เวอร์ชันเดียวตรงกับ manifest', () => {
-    const manifest = JSON.parse(readFileSync(join('public', 'ffmpeg', 'manifest.json'), 'utf8'));
-    const dirs = readdirSync(join('public', 'ffmpeg'), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name);
-    expect(dirs).toEqual([manifest.version]);
-    for (const f of ['ffmpeg-core.js', 'ffmpeg-core.wasm.gz']) {
-      expect(existsSync(join('public', 'ffmpeg', manifest.version, f)), f).toBe(true);
-    }
-  });
+it('ffmpeg/ มี manifest และโฟลเดอร์เวอร์ชันเดียวตรงกับ manifest', () => {
+  const manifest = JSON.parse(readFileSync(join('public', 'ffmpeg', 'manifest.json'), 'utf8'));
+  const dirs = readdirSync(join('public', 'ffmpeg'), { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+  expect(dirs).toEqual([manifest.version]);
+  for (const f of ['ffmpeg-core.js', 'ffmpeg-core.wasm.gz']) {
+    expect(existsSync(join('public', 'ffmpeg', manifest.version, f)), f).toBe(true);
+  }
+});
 ```
 
 รัน `node scripts/copy-ffmpeg.mjs` แล้ว `npx vitest run src/tools/registry.test.ts` → PASS
@@ -953,7 +1032,11 @@ export function createEngine(hooks: EngineHooks): Engine {
           else if (data.type === 'loaded') resolve();
           else if (data.type === 'error') fail(new Error(data.message));
         };
-        const command: WorkerCommand = { type: 'load', base: `/ffmpeg/${manifest.version}`, gzipBytes: manifest.gzipBytes };
+        const command: WorkerCommand = {
+          type: 'load',
+          base: `/ffmpeg/${manifest.version}`,
+          gzipBytes: manifest.gzipBytes,
+        };
         worker!.postMessage(command);
       });
     })();
@@ -993,6 +1076,7 @@ export function createEngine(hooks: EngineHooks): Engine {
 สร้างหน้าชั่วคราว `src/pages/dev-ffmpeg.astro` (ห้าม commit) ที่ hydrate component ทดสอบ: เลือกไฟล์ mp4 → `createEngine` → run args `['-i','in.mp4','-t','3','-c','copy','out.mp4']` → แสดงขนาด output และค่า `seconds` สุดท้ายที่ได้จาก progress
 
 เปิดด้วย preview tool (`.claude/launch.json` ชื่อ `dev` = `npm run dev` port 4321) แล้วตรวจ:
+
 1. core โหลดได้ (network: `ffmpeg-core.wasm.gz` 9.7 MB, `ffmpeg-core.js`) ไม่มี error ใน console
 2. output ไม่ว่าง และเปิดเล่นได้ (สร้าง object URL ใส่ `<video>`)
 3. `seconds` สุดท้าย ≈ 3 → ยืนยันว่า `time / 1e6` ถูก; ถ้าได้ ≈ 3000 ให้เปลี่ยนเป็น `/1e3`; ถ้า ≈ 3_000_000 ให้ไม่หาร
@@ -1016,9 +1100,11 @@ git commit -m "feat(video): ffmpeg core โฮสต์เองแบบ gzip �
 ### Task 5: `timecode.ts` และ `args.ts` (pure, TDD)
 
 **Files:**
+
 - Create: `src/tools/video/shared/timecode.ts`, `timecode.test.ts`, `args.ts`, `args.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `parseTimecode(text: string): number` (วินาที, โยน `Error` ข้อความไทยเมื่อผิดรูปแบบ), `formatTimecode(seconds: number): string`
   - `VideoToolId = 'video-trim' | 'video-to-mp3' | 'video-to-gif' | 'video-compress'`
@@ -1036,16 +1122,26 @@ import { formatTimecode, parseTimecode } from './timecode';
 
 describe('parseTimecode', () => {
   it.each([
-    ['90', 90], ['1:30', 90], ['01:30.5', 90.5], ['1:02:03', 3723], ['0:00', 0], ['12.25', 12.25], [' 2:05 ', 125],
+    ['90', 90],
+    ['1:30', 90],
+    ['01:30.5', 90.5],
+    ['1:02:03', 3723],
+    ['0:00', 0],
+    ['12.25', 12.25],
+    [' 2:05 ', 125],
   ])('%s → %s', (text, seconds) => expect(parseTimecode(text)).toBe(seconds));
   it.each(['', 'abc', '-5', '1:60', '1:2:3:4', '1:', ':30', '1.5:20'])('%s → error', (text) =>
     expect(() => parseTimecode(text)).toThrow(/รูปแบบเวลา/),
   );
 });
 describe('formatTimecode', () => {
-  it.each([[0, '0:00'], [90, '1:30'], [90.5, '1:30.5'], [3723, '1:02:03'], [59.94, '0:59.9']])('%s → %s', (s, text) =>
-    expect(formatTimecode(s)).toBe(text),
-  );
+  it.each([
+    [0, '0:00'],
+    [90, '1:30'],
+    [90.5, '1:30.5'],
+    [3723, '1:02:03'],
+    [59.94, '0:59.9'],
+  ])('%s → %s', (s, text) => expect(formatTimecode(s)).toBe(text));
 });
 ```
 
@@ -1073,8 +1169,11 @@ export function parseTimecode(text: string): number {
 export function formatTimecode(seconds: number): string {
   const whole = Math.floor(seconds);
   const frac = Math.floor((seconds - whole) * 10);
-  const h = Math.floor(whole / 3600), m = Math.floor((whole % 3600) / 60), s = whole % 60;
-  const mmss = h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+  const h = Math.floor(whole / 3600),
+    m = Math.floor((whole % 3600) / 60),
+    s = whole % 60;
+  const mmss =
+    h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
   return frac > 0 ? `${mmss}.${frac}` : mmss;
 }
 ```
@@ -1109,15 +1208,63 @@ describe('inputExt', () => {
 describe('buildJob', () => {
   it('trim เร็ว: stream copy, mp4 ได้ faststart, webm ไม่ได้', () => {
     const mp4 = buildJob('video-trim', 'a.mov', opts({ start: 5, end: 12.5 }));
-    expect(mp4.args).toEqual(['-ss', '5', '-i', 'in.mov', '-t', '7.5', '-c', 'copy', '-avoid_negative_ts', 'make_zero', '-movflags', '+faststart', 'out.mp4']);
+    expect(mp4.args).toEqual([
+      '-ss',
+      '5',
+      '-i',
+      'in.mov',
+      '-t',
+      '7.5',
+      '-c',
+      'copy',
+      '-avoid_negative_ts',
+      'make_zero',
+      '-movflags',
+      '+faststart',
+      'out.mp4',
+    ]);
     expect(mp4).toMatchObject({ output: 'a-trim.mp4', mime: 'video/mp4', expectedSeconds: 7.5 });
     const webm = buildJob('video-trim', 'a.webm', opts({ start: 0, end: 3 }));
-    expect(webm.args).toEqual(['-ss', '0', '-i', 'in.webm', '-t', '3', '-c', 'copy', '-avoid_negative_ts', 'make_zero', 'out.webm']);
+    expect(webm.args).toEqual([
+      '-ss',
+      '0',
+      '-i',
+      'in.webm',
+      '-t',
+      '3',
+      '-c',
+      'copy',
+      '-avoid_negative_ts',
+      'make_zero',
+      'out.webm',
+    ]);
     expect(webm.mime).toBe('video/webm');
   });
   it('trim แม่นยำ: เข้ารหัสใหม่เป็น H.264/AAC เสมอ', () => {
     const job = buildJob('video-trim', 'a.webm', opts({ start: 1, end: 2, precise: true }));
-    expect(job.args).toEqual(['-ss', '1', '-i', 'in.webm', '-t', '1', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', 'out.mp4']);
+    expect(job.args).toEqual([
+      '-ss',
+      '1',
+      '-i',
+      'in.webm',
+      '-t',
+      '1',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '23',
+      '-pix_fmt',
+      'yuv420p',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '128k',
+      '-movflags',
+      '+faststart',
+      'out.mp4',
+    ]);
     expect(job.output).toBe('a-trim.mp4');
   });
   it('mp3 ตามบิตเรต และไม่รู้ระยะทั้งคลิป', () => {
@@ -1128,9 +1275,17 @@ describe('buildJob', () => {
   it('gif ใช้ palette สองขั้นใน filter เดียว', () => {
     const job = buildJob('video-to-gif', 'a.mp4', opts({ start: 2, end: 7, gifWidth: 480, gifFps: 15 }));
     expect(job.args).toEqual([
-      '-ss', '2', '-t', '5', '-i', 'in.mp4', '-filter_complex',
+      '-ss',
+      '2',
+      '-t',
+      '5',
+      '-i',
+      'in.mp4',
+      '-filter_complex',
       '[0:v]fps=15,scale=480:-2:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle',
-      '-loop', '0', 'out.gif',
+      '-loop',
+      '0',
+      'out.gif',
     ]);
     expect(job).toMatchObject({ output: 'a.gif', mime: 'image/gif', expectedSeconds: 5 });
   });
@@ -1140,9 +1295,25 @@ describe('buildJob', () => {
   it('compress จำกัดด้านยาวตาม preset โดยไม่ขยาย', () => {
     const job = buildJob('video-compress', 'a.mov', opts({ preset: 720 }));
     expect(job.args).toEqual([
-      '-i', 'in.mov', '-vf',
+      '-i',
+      'in.mov',
+      '-vf',
       "scale='if(gt(iw,ih),min(1280,iw),-2)':'if(gt(iw,ih),-2,min(1280,ih))'",
-      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '96k', '-movflags', '+faststart', 'out.mp4',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '28',
+      '-pix_fmt',
+      'yuv420p',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '96k',
+      '-movflags',
+      '+faststart',
+      'out.mp4',
     ]);
     expect(job).toMatchObject({ output: 'a-compressed.mp4', expectedSeconds: null });
     expect(buildJob('video-compress', 'a.mp4', opts({ preset: 480 })).args[3]).toContain('854');
@@ -1170,7 +1341,15 @@ export interface VideoOptions {
   gifFps: 10 | 15;
   preset: 480 | 720 | 1080;
 }
-export const DEFAULT_OPTIONS: VideoOptions = { start: 0, end: 0, precise: false, bitrate: 192, gifWidth: 320, gifFps: 10, preset: 720 };
+export const DEFAULT_OPTIONS: VideoOptions = {
+  start: 0,
+  end: 0,
+  precise: false,
+  bitrate: 192,
+  gifWidth: 320,
+  gifFps: 10,
+  preset: 720,
+};
 export const MAX_GIF_SECONDS = 15;
 export const MAX_INPUT_MB = 100;
 export const ACCEPT = '.mp4,.mov,.m4v,.webm';
@@ -1192,7 +1371,11 @@ export function inputExt(fileName: string): InputExt {
 }
 
 export function outputName(fileName: string, suffix: string, ext: string): string {
-  const base = fileName.replace(/\.[^.]*$/, '').replace(/[\\/:*?"<>|\s]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+  const base = fileName
+    .replace(/\.[^.]*$/, '')
+    .replace(/[\\/:*?"<>|\s]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
   return `${base || 'video'}${suffix}.${ext}`;
 }
 
@@ -1209,29 +1392,113 @@ export function buildJob(id: VideoToolId, fileName: string, options: VideoOption
       const duration = range(options);
       if (options.precise) {
         return {
-          args: ['-ss', fmt(options.start), '-i', input, '-t', fmt(duration), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', 'out.mp4'],
-          output: outputName(fileName, '-trim', 'mp4'), mime: 'video/mp4', expectedSeconds: duration,
+          args: [
+            '-ss',
+            fmt(options.start),
+            '-i',
+            input,
+            '-t',
+            fmt(duration),
+            '-c:v',
+            'libx264',
+            '-preset',
+            'veryfast',
+            '-crf',
+            '23',
+            '-pix_fmt',
+            'yuv420p',
+            '-c:a',
+            'aac',
+            '-b:a',
+            '128k',
+            '-movflags',
+            '+faststart',
+            'out.mp4',
+          ],
+          output: outputName(fileName, '-trim', 'mp4'),
+          mime: 'video/mp4',
+          expectedSeconds: duration,
         };
       }
       const webm = ext === 'webm';
       return {
-        args: ['-ss', fmt(options.start), '-i', input, '-t', fmt(duration), '-c', 'copy', '-avoid_negative_ts', 'make_zero', ...(webm ? [] : ['-movflags', '+faststart']), webm ? 'out.webm' : 'out.mp4'],
-        output: outputName(fileName, '-trim', webm ? 'webm' : 'mp4'), mime: webm ? 'video/webm' : 'video/mp4', expectedSeconds: duration,
+        args: [
+          '-ss',
+          fmt(options.start),
+          '-i',
+          input,
+          '-t',
+          fmt(duration),
+          '-c',
+          'copy',
+          '-avoid_negative_ts',
+          'make_zero',
+          ...(webm ? [] : ['-movflags', '+faststart']),
+          webm ? 'out.webm' : 'out.mp4',
+        ],
+        output: outputName(fileName, '-trim', webm ? 'webm' : 'mp4'),
+        mime: webm ? 'video/webm' : 'video/mp4',
+        expectedSeconds: duration,
       };
     }
     case 'video-to-mp3':
-      return { args: ['-i', input, '-vn', '-c:a', 'libmp3lame', '-b:a', `${options.bitrate}k`, 'out.mp3'], output: outputName(fileName, '', 'mp3'), mime: 'audio/mpeg', expectedSeconds: null };
+      return {
+        args: ['-i', input, '-vn', '-c:a', 'libmp3lame', '-b:a', `${options.bitrate}k`, 'out.mp3'],
+        output: outputName(fileName, '', 'mp3'),
+        mime: 'audio/mpeg',
+        expectedSeconds: null,
+      };
     case 'video-to-gif': {
       const duration = range(options);
-      if (duration > MAX_GIF_SECONDS) throw new Error(`GIF ทำได้ไม่เกิน ${MAX_GIF_SECONDS} วินาที กรุณาเลือกช่วงที่สั้นลง`);
+      if (duration > MAX_GIF_SECONDS)
+        throw new Error(`GIF ทำได้ไม่เกิน ${MAX_GIF_SECONDS} วินาที กรุณาเลือกช่วงที่สั้นลง`);
       const filter = `[0:v]fps=${options.gifFps},scale=${options.gifWidth}:-2:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`;
-      return { args: ['-ss', fmt(options.start), '-t', fmt(duration), '-i', input, '-filter_complex', filter, '-loop', '0', 'out.gif'], output: outputName(fileName, '', 'gif'), mime: 'image/gif', expectedSeconds: duration };
+      return {
+        args: [
+          '-ss',
+          fmt(options.start),
+          '-t',
+          fmt(duration),
+          '-i',
+          input,
+          '-filter_complex',
+          filter,
+          '-loop',
+          '0',
+          'out.gif',
+        ],
+        output: outputName(fileName, '', 'gif'),
+        mime: 'image/gif',
+        expectedSeconds: duration,
+      };
     }
     case 'video-compress': {
       const side = LONG_SIDE[options.preset];
       return {
-        args: ['-i', input, '-vf', `scale='if(gt(iw,ih),min(${side},iw),-2)':'if(gt(iw,ih),-2,min(${side},ih))'`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '96k', '-movflags', '+faststart', 'out.mp4'],
-        output: outputName(fileName, '-compressed', 'mp4'), mime: 'video/mp4', expectedSeconds: null,
+        args: [
+          '-i',
+          input,
+          '-vf',
+          `scale='if(gt(iw,ih),min(${side},iw),-2)':'if(gt(iw,ih),-2,min(${side},ih))'`,
+          '-c:v',
+          'libx264',
+          '-preset',
+          'veryfast',
+          '-crf',
+          '28',
+          '-pix_fmt',
+          'yuv420p',
+          '-c:a',
+          'aac',
+          '-b:a',
+          '96k',
+          '-movflags',
+          '+faststart',
+          'out.mp4',
+        ],
+        output: outputName(fileName, '-compressed', 'mp4'),
+        mime: 'video/mp4',
+        expectedSeconds: null,
       };
     }
   }
@@ -1251,10 +1518,12 @@ git commit -m "feat(video): ตัวแปลงเวลาและตัว�
 ### Task 6: `catalog.ts`, `VideoTool.tsx` และ 4 เครื่องมือ
 
 **Files:**
+
 - Create: `src/tools/video/catalog.ts`, `src/tools/video/shared/VideoTool.tsx`, `src/tools/video/shared/VideoTool.test.tsx`, `src/tools/video/{video-trim,video-to-mp3,video-to-gif,video-compress}/Tool.tsx`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `createEngine` (Task 4), `buildJob`, `parseTimecode`, `formatTimecode`, `ACCEPT`, `MAX_INPUT_MB`, `DEFAULT_OPTIONS`, `VideoToolId` (Task 5), `ProgressBar` (Task 1)
 - Produces: `videoTools` config, `videoToolMetas: ToolMeta[]`
 
@@ -1268,13 +1537,26 @@ import type { VideoToolId } from './shared/args';
 export const FFMPEG_CREDIT = 'ประมวลผลด้วย FFmpeg ผ่าน ffmpeg.wasm (GPL) ในเบราว์เซอร์ของคุณ';
 export const FFMPEG_SOURCE = 'https://github.com/ffmpegwasm/ffmpeg.wasm';
 
-export const videoTools: Record<VideoToolId, { name: string; nameEn: string; action: string; description: string; detail: string; keywords: string[]; slow: boolean }> = {
+export const videoTools: Record<
+  VideoToolId,
+  {
+    name: string;
+    nameEn: string;
+    action: string;
+    description: string;
+    detail: string;
+    keywords: string[];
+    slow: boolean;
+  }
+> = {
   'video-trim': {
     name: 'ตัดคลิปวิดีโอ',
     nameEn: 'Trim Video',
     action: 'ตัดคลิป',
-    description: 'ตัดช่วงวิดีโอตามเวลาเริ่มและจบ โหมดเร็วไม่เข้ารหัสใหม่ หรือโหมดแม่นยำถึงวินาที ประมวลผลบนอุปกรณ์ ไม่อัปโหลดไฟล์',
-    detail: 'โหมดเร็วตัดที่คีย์เฟรมก่อนจุดเริ่ม อาจได้ต้นคลิปเกินมาถึง 2 วินาที โหมดแม่นยำเข้ารหัสใหม่เป็น MP4 ใช้เวลาใกล้เคียงความยาวช่วงที่เลือก',
+    description:
+      'ตัดช่วงวิดีโอตามเวลาเริ่มและจบ โหมดเร็วไม่เข้ารหัสใหม่ หรือโหมดแม่นยำถึงวินาที ประมวลผลบนอุปกรณ์ ไม่อัปโหลดไฟล์',
+    detail:
+      'โหมดเร็วตัดที่คีย์เฟรมก่อนจุดเริ่ม อาจได้ต้นคลิปเกินมาถึง 2 วินาที โหมดแม่นยำเข้ารหัสใหม่เป็น MP4 ใช้เวลาใกล้เคียงความยาวช่วงที่เลือก',
     keywords: ['ตัดคลิป', 'ตัดวิดีโอ', 'trim video', 'ตัดต่อวิดีโอออนไลน์'],
     slow: false,
   },
@@ -1282,8 +1564,10 @@ export const videoTools: Record<VideoToolId, { name: string; nameEn: string; act
     name: 'แปลงวิดีโอเป็น MP3',
     nameEn: 'Video to MP3',
     action: 'แปลงเป็น MP3',
-    description: 'ดึงเสียงจากไฟล์วิดีโอ MP4 MOV WebM เป็น MP3 เลือกบิตเรต 128 192 หรือ 320 kbps ทำในเบราว์เซอร์โดยไม่อัปโหลดไฟล์',
-    detail: 'รับไฟล์วิดีโอไม่เกิน 100 MB เข้ารหัสเสียงใหม่ทั้งคลิปด้วย libmp3lame คลิปยาว 10 นาทีใช้เวลาราวหนึ่งนาทีบนคอมพิวเตอร์ทั่วไป',
+    description:
+      'ดึงเสียงจากไฟล์วิดีโอ MP4 MOV WebM เป็น MP3 เลือกบิตเรต 128 192 หรือ 320 kbps ทำในเบราว์เซอร์โดยไม่อัปโหลดไฟล์',
+    detail:
+      'รับไฟล์วิดีโอไม่เกิน 100 MB เข้ารหัสเสียงใหม่ทั้งคลิปด้วย libmp3lame คลิปยาว 10 นาทีใช้เวลาราวหนึ่งนาทีบนคอมพิวเตอร์ทั่วไป',
     keywords: ['แปลงวิดีโอเป็น mp3', 'ดึงเสียงจากวิดีโอ', 'mp4 to mp3', 'แยกเสียง'],
     slow: false,
   },
@@ -1291,8 +1575,10 @@ export const videoTools: Record<VideoToolId, { name: string; nameEn: string; act
     name: 'แปลงวิดีโอเป็น GIF',
     nameEn: 'Video to GIF',
     action: 'สร้าง GIF',
-    description: 'ทำ GIF จากช่วงสั้น ๆ ของวิดีโอไม่เกิน 15 วินาที เลือกความกว้างและเฟรมเรต ใช้พาเลตสีอัตโนมัติให้ภาพคม ทำในเบราว์เซอร์',
-    detail: 'เลือกช่วงไม่เกิน 15 วินาที ความกว้าง 240 320 หรือ 480 พิกเซล ที่ 10 หรือ 15 เฟรมต่อวินาที ไฟล์ GIF ใหญ่ขึ้นตามความกว้าง เฟรมเรต และความยาว',
+    description:
+      'ทำ GIF จากช่วงสั้น ๆ ของวิดีโอไม่เกิน 15 วินาที เลือกความกว้างและเฟรมเรต ใช้พาเลตสีอัตโนมัติให้ภาพคม ทำในเบราว์เซอร์',
+    detail:
+      'เลือกช่วงไม่เกิน 15 วินาที ความกว้าง 240 320 หรือ 480 พิกเซล ที่ 10 หรือ 15 เฟรมต่อวินาที ไฟล์ GIF ใหญ่ขึ้นตามความกว้าง เฟรมเรต และความยาว',
     keywords: ['วิดีโอเป็น gif', 'ทำ gif', 'mp4 to gif', 'สร้างภาพเคลื่อนไหว'],
     slow: false,
   },
@@ -1300,8 +1586,10 @@ export const videoTools: Record<VideoToolId, { name: string; nameEn: string; act
     name: 'ลดขนาดไฟล์วิดีโอ',
     nameEn: 'Compress Video',
     action: 'ลดขนาดวิดีโอ',
-    description: 'ย่อไฟล์วิดีโอให้เล็กลงด้วยการเข้ารหัส H.264 ใหม่ที่ 480p 720p หรือ 1080p ส่งแชตหรืออัปโหลดง่ายขึ้น ทำในเบราว์เซอร์โดยไม่อัปโหลดไฟล์',
-    detail: 'เข้ารหัสใหม่ทั้งคลิป ใช้เวลาใกล้เคียงหรือมากกว่าความยาวคลิปบนมือถือ คลิปที่เล็กกว่า preset จะไม่ถูกขยาย ผลลัพธ์เป็น MP4 พร้อมเสียง AAC 96 kbps',
+    description:
+      'ย่อไฟล์วิดีโอให้เล็กลงด้วยการเข้ารหัส H.264 ใหม่ที่ 480p 720p หรือ 1080p ส่งแชตหรืออัปโหลดง่ายขึ้น ทำในเบราว์เซอร์โดยไม่อัปโหลดไฟล์',
+    detail:
+      'เข้ารหัสใหม่ทั้งคลิป ใช้เวลาใกล้เคียงหรือมากกว่าความยาวคลิปบนมือถือ คลิปที่เล็กกว่า preset จะไม่ถูกขยาย ผลลัพธ์เป็น MP4 พร้อมเสียง AAC 96 kbps',
     keywords: ['ลดขนาดวิดีโอ', 'บีบอัดวิดีโอ', 'compress video', 'ย่อไฟล์วิดีโอ'],
     slow: true,
   },
@@ -1317,11 +1605,21 @@ export const videoToolMetas: ToolMeta[] = (Object.keys(videoTools) as VideoToolI
     description: tool.description,
     keywords: tool.keywords,
     contentUpdatedAt: '2026-09-13',
-    howTo: ['เลือกไฟล์วิดีโอ MP4 MOV M4V หรือ WebM ไม่เกิน 100 MB', tool.detail, `กด “${tool.action}” รอแถบความคืบหน้า แล้วกดดาวน์โหลด`],
+    howTo: [
+      'เลือกไฟล์วิดีโอ MP4 MOV M4V หรือ WebM ไม่เกิน 100 MB',
+      tool.detail,
+      `กด “${tool.action}” รอแถบความคืบหน้า แล้วกดดาวน์โหลด`,
+    ],
     faq: [
-      { q: 'ไฟล์ถูกส่งขึ้นเซิร์ฟเวอร์หรือไม่?', a: 'ไม่ วิดีโอถูกประมวลผลในเบราว์เซอร์ของคุณด้วย FFmpeg เวอร์ชัน WebAssembly ไม่มีการอัปโหลดหรือเก็บไฟล์ ครั้งแรกจะโหลดตัวประมวลผลราว 10 MB แล้วเบราว์เซอร์จะจำไว้' },
+      {
+        q: 'ไฟล์ถูกส่งขึ้นเซิร์ฟเวอร์หรือไม่?',
+        a: 'ไม่ วิดีโอถูกประมวลผลในเบราว์เซอร์ของคุณด้วย FFmpeg เวอร์ชัน WebAssembly ไม่มีการอัปโหลดหรือเก็บไฟล์ ครั้งแรกจะโหลดตัวประมวลผลราว 10 MB แล้วเบราว์เซอร์จะจำไว้',
+      },
       { q: 'เครื่องมือนี้มีข้อจำกัดอะไรบ้าง?', a: tool.detail },
-      { q: 'ดาวน์โหลดวิดีโอจาก YouTube หรือ TikTok ได้ไหม?', a: 'ไม่ได้ เครื่องมือรับเฉพาะไฟล์ที่อยู่ในอุปกรณ์ของคุณ ไม่ดึงวิดีโอจากเว็บไซต์หรือแอปใด' },
+      {
+        q: 'ดาวน์โหลดวิดีโอจาก YouTube หรือ TikTok ได้ไหม?',
+        a: 'ไม่ได้ เครื่องมือรับเฉพาะไฟล์ที่อยู่ในอุปกรณ์ของคุณ ไม่ดึงวิดีโอจากเว็บไซต์หรือแอปใด',
+      },
     ],
     disclaimer: 'ใช้กับไฟล์ที่คุณมีสิทธิ์ใช้งาน เครื่องมือนี้ไม่ดาวน์โหลดวิดีโอจากเว็บไซต์หรือแอปใด',
     related: (['video-trim', 'video-to-mp3', 'video-to-gif', 'video-compress'] as const).filter((s) => s !== slug),
@@ -1365,7 +1663,10 @@ import VideoTool from './VideoTool';
 beforeEach(() => {
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:x'), revokeObjectURL: vi.fn() }));
   vi.stubGlobal('requestAnimationFrame', (cb: () => void) => (cb(), 1));
-  Object.defineProperty(File.prototype, 'arrayBuffer', { value: () => Promise.resolve(new Uint8Array([1, 2, 3]).buffer), configurable: true });
+  Object.defineProperty(File.prototype, 'arrayBuffer', {
+    value: () => Promise.resolve(new Uint8Array([1, 2, 3]).buffer),
+    configurable: true,
+  });
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -1454,14 +1755,33 @@ describe('VideoTool', () => {
 ```tsx
 // src/tools/video/shared/VideoTool.tsx
 import { useEffect, useRef, useState } from 'react';
-import { Button, Checkbox, ErrorText, Field, FileDrop, Input, ProgressBar, SegmentedControl, SelectedFiles } from '@/components/ui';
+import {
+  Button,
+  Checkbox,
+  ErrorText,
+  Field,
+  FileDrop,
+  Input,
+  ProgressBar,
+  SegmentedControl,
+  SelectedFiles,
+} from '@/components/ui';
 import { fileSize } from '@/lib/format';
 import { FFMPEG_CREDIT, FFMPEG_SOURCE, videoTools } from '../catalog';
-import { ACCEPT, buildJob, DEFAULT_OPTIONS, MAX_INPUT_MB, MAX_GIF_SECONDS, type VideoOptions, type VideoToolId } from './args';
+import {
+  ACCEPT,
+  buildJob,
+  DEFAULT_OPTIONS,
+  MAX_INPUT_MB,
+  MAX_GIF_SECONDS,
+  type VideoOptions,
+  type VideoToolId,
+} from './args';
 import { formatTimecode, parseTimecode } from './timecode';
 import type { Engine, EngineOutput } from './types';
 
-type Phase = { kind: 'idle' } | { kind: 'loading'; loaded: number; total: number } | { kind: 'working'; percent: number | null };
+type Phase =
+  { kind: 'idle' } | { kind: 'loading'; loaded: number; total: number } | { kind: 'working'; percent: number | null };
 const HARD_LIMIT_MS = 15 * 60_000;
 
 export default function VideoTool({ id }: { id: VideoToolId }) {
@@ -1497,7 +1817,12 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
     },
     [],
   );
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
 
   function clearResult() {
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
@@ -1523,8 +1848,10 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
     const picked = list?.[0];
     if (!picked) return;
     clearResult();
-    if (!ACCEPT.split(',').some((ext) => picked.name.toLowerCase().endsWith(ext))) return fail(`${picked.name}: ชนิดไฟล์ไม่รองรับ ใช้ MP4 MOV M4V หรือ WebM`);
-    if (!picked.size || picked.size > MAX_INPUT_MB * 1024 * 1024) return fail(`${picked.name}: ต้องมีข้อมูลและขนาดไม่เกิน ${MAX_INPUT_MB} MB`);
+    if (!ACCEPT.split(',').some((ext) => picked.name.toLowerCase().endsWith(ext)))
+      return fail(`${picked.name}: ชนิดไฟล์ไม่รองรับ ใช้ MP4 MOV M4V หรือ WebM`);
+    if (!picked.size || picked.size > MAX_INPUT_MB * 1024 * 1024)
+      return fail(`${picked.name}: ต้องมีข้อมูลและขนาดไม่เกิน ${MAX_INPUT_MB} MB`);
     setFile(picked);
     setDuration(null);
     setPreview(URL.createObjectURL(picked));
@@ -1539,13 +1866,24 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
     if (busy) return;
     clearResult();
     if (!file) return fail('กรุณาเลือกไฟล์ก่อน');
-    let options: VideoOptions = { ...DEFAULT_OPTIONS, precise, bitrate: +bitrate as VideoOptions['bitrate'], gifWidth: +gifWidth as VideoOptions['gifWidth'], gifFps: +gifFps as VideoOptions['gifFps'], preset: +preset as VideoOptions['preset'] };
+    let options: VideoOptions = {
+      ...DEFAULT_OPTIONS,
+      precise,
+      bitrate: +bitrate as VideoOptions['bitrate'],
+      gifWidth: +gifWidth as VideoOptions['gifWidth'],
+      gifFps: +gifFps as VideoOptions['gifFps'],
+      preset: +preset as VideoOptions['preset'],
+    };
     let spec;
     try {
       if (needsRange) {
         const s = parseTimecode(start);
-        const e = id === 'video-to-gif' ? s + parseTimecode(gifLength) : parseTimecode(end || (duration !== null ? formatTimecode(duration) : ''));
-        if (duration !== null && e > duration + 0.5) throw new Error(`เวลาจบเกินความยาวคลิป (${formatTimecode(duration)})`);
+        const e =
+          id === 'video-to-gif'
+            ? s + parseTimecode(gifLength)
+            : parseTimecode(end || (duration !== null ? formatTimecode(duration) : ''));
+        if (duration !== null && e > duration + 0.5)
+          throw new Error(`เวลาจบเกินความยาวคลิป (${formatTimecode(duration)})`);
         options = { ...options, start: s, end: e };
       }
       spec = buildJob(id, file.name, options);
@@ -1565,7 +1903,9 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
       const { createEngine } = await import('./engine');
       if (!engine.current) {
         engine.current = createEngine({
-          onLoad: (loaded, total) => { if (current === version.current) setPhase({ kind: 'loading', loaded, total }); },
+          onLoad: (loaded, total) => {
+            if (current === version.current) setPhase({ kind: 'loading', loaded, total });
+          },
           onProgress: (seconds) => {
             if (current !== version.current) return;
             setPhase({ kind: 'working', percent: expected ? Math.min(99, (seconds / expected) * 100) : null });
@@ -1574,7 +1914,11 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
       }
       const bytes = new Uint8Array(await file.arrayBuffer());
       setPhase({ kind: 'working', percent: expected ? 0 : null });
-      const output = await engine.current.run({ input: { name: `in.${file.name.toLowerCase().split('.').pop()}`, bytes }, args: spec.args, output: { name: spec.args[spec.args.length - 1], mime: spec.mime } });
+      const output = await engine.current.run({
+        input: { name: `in.${file.name.toLowerCase().split('.').pop()}`, bytes },
+        args: spec.args,
+        output: { name: spec.args[spec.args.length - 1], mime: spec.mime },
+      });
       if (current !== version.current) return;
       const blob = new Blob([output.bytes], { type: output.mime });
       objectUrl.current = URL.createObjectURL(blob);
@@ -1594,65 +1938,246 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
   const time = (label: string, idAttr: string, value: string, set: (v: string) => void, placeholder: string) => (
     <Field label={label} htmlFor={idAttr}>
       <div className="flex gap-2">
-        <Input id={idAttr} value={value} placeholder={placeholder} inputMode="decimal" onChange={(e) => { clearResult(); set(e.target.value); }} />
-        <Button type="button" variant="secondary" disabled={!preview} onClick={() => { clearResult(); useCurrentTime(set); }}>ใช้เวลาปัจจุบัน</Button>
+        <Input
+          id={idAttr}
+          value={value}
+          placeholder={placeholder}
+          inputMode="decimal"
+          onChange={(e) => {
+            clearResult();
+            set(e.target.value);
+          }}
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={!preview}
+          onClick={() => {
+            clearResult();
+            useCurrentTime(set);
+          }}
+        >
+          ใช้เวลาปัจจุบัน
+        </Button>
       </div>
     </Field>
   );
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-brand-600/20 bg-brand-50 p-4 text-sm text-brand-700">ไฟล์อยู่บนอุปกรณ์ของคุณ · ไม่อัปโหลดขึ้นเซิร์ฟเวอร์ · ครั้งแรกจะโหลดตัวประมวลผลราว 10 MB</div>
+      <div className="rounded-xl border border-brand-600/20 bg-brand-50 p-4 text-sm text-brand-700">
+        ไฟล์อยู่บนอุปกรณ์ของคุณ · ไม่อัปโหลดขึ้นเซิร์ฟเวอร์ · ครั้งแรกจะโหลดตัวประมวลผลราว 10 MB
+      </div>
       <p className="text-sm text-slate-600">{config.detail}</p>
       <fieldset disabled={busy} className="min-w-0 space-y-5">
-        <FileDrop ref={picker} id="file-input" label="เลือกไฟล์" accept={ACCEPT} disabled={busy} invalid={!!error} errorId="file-errors" hint={`MP4 MOV M4V WEBM · ไม่เกิน ${MAX_INPUT_MB} MB`} onFiles={selectFiles} />
-        {file && <SelectedFiles files={[file]} onRemove={() => { clearResult(); setFile(null); setPreview(''); setDuration(null); }} />}
+        <FileDrop
+          ref={picker}
+          id="file-input"
+          label="เลือกไฟล์"
+          accept={ACCEPT}
+          disabled={busy}
+          invalid={!!error}
+          errorId="file-errors"
+          hint={`MP4 MOV M4V WEBM · ไม่เกิน ${MAX_INPUT_MB} MB`}
+          onFiles={selectFiles}
+        />
+        {file && (
+          <SelectedFiles
+            files={[file]}
+            onRemove={() => {
+              clearResult();
+              setFile(null);
+              setPreview('');
+              setDuration(null);
+            }}
+          />
+        )}
         {preview && (
-          <video ref={videoRef} src={preview} controls preload="metadata" playsInline className="w-full rounded-xl bg-black" onLoadedMetadata={(e) => { const d = e.currentTarget.duration; setDuration(Number.isFinite(d) ? d : null); }} onError={() => setDuration(null)}>
+          <video
+            ref={videoRef}
+            src={preview}
+            controls
+            preload="metadata"
+            playsInline
+            className="w-full rounded-xl bg-black"
+            onLoadedMetadata={(e) => {
+              const d = e.currentTarget.duration;
+              setDuration(Number.isFinite(d) ? d : null);
+            }}
+            onError={() => setDuration(null)}
+          >
             <track kind="captions" />
           </video>
         )}
-        {preview && duration === null && <p className="text-xs text-slate-600">ดูตัวอย่างไม่ได้ในเบราว์เซอร์นี้ แต่ยังแปลงได้ (จะไม่แสดงเปอร์เซ็นต์ความคืบหน้า)</p>}
+        {preview && duration === null && (
+          <p className="text-xs text-slate-600">
+            ดูตัวอย่างไม่ได้ในเบราว์เซอร์นี้ แต่ยังแปลงได้ (จะไม่แสดงเปอร์เซ็นต์ความคืบหน้า)
+          </p>
+        )}
         {needsRange && time('เวลาเริ่ม', 'start', start, setStart, '0:00')}
-        {id === 'video-trim' && time('เวลาจบ', 'end', end, setEnd, duration !== null ? formatTimecode(duration) : '1:30')}
-        {id === 'video-trim' && <Checkbox label="ตัดแม่นยำถึงวินาที (เข้ารหัสใหม่ ช้ากว่า)" checked={precise} onChange={(e) => { clearResult(); setPrecise(e.target.checked); }} />}
+        {id === 'video-trim' &&
+          time('เวลาจบ', 'end', end, setEnd, duration !== null ? formatTimecode(duration) : '1:30')}
+        {id === 'video-trim' && (
+          <Checkbox
+            label="ตัดแม่นยำถึงวินาที (เข้ารหัสใหม่ ช้ากว่า)"
+            checked={precise}
+            onChange={(e) => {
+              clearResult();
+              setPrecise(e.target.checked);
+            }}
+          />
+        )}
         {id === 'video-to-gif' && (
           <Field label="ระยะเวลา" htmlFor="gif-length" hint={`ไม่เกิน ${MAX_GIF_SECONDS} วินาที`}>
-            <Input id="gif-length" value={gifLength} inputMode="decimal" onChange={(e) => { clearResult(); setGifLength(e.target.value); }} />
+            <Input
+              id="gif-length"
+              value={gifLength}
+              inputMode="decimal"
+              onChange={(e) => {
+                clearResult();
+                setGifLength(e.target.value);
+              }}
+            />
           </Field>
         )}
-        {id === 'video-to-gif' && <SegmentedControl name="gif-width" legend="ความกว้าง" value={gifWidth} options={[{ value: '240', label: '240 px' }, { value: '320', label: '320 px' }, { value: '480', label: '480 px' }]} onChange={(v) => { clearResult(); setGifWidth(v); }} />}
-        {id === 'video-to-gif' && <SegmentedControl name="gif-fps" legend="เฟรมต่อวินาที" value={gifFps} options={[{ value: '10', label: '10 fps' }, { value: '15', label: '15 fps' }]} onChange={(v) => { clearResult(); setGifFps(v); }} />}
-        {id === 'video-to-mp3' && <SegmentedControl name="bitrate" legend="บิตเรต" value={bitrate} options={[{ value: '128', label: '128 kbps' }, { value: '192', label: '192 kbps' }, { value: '320', label: '320 kbps' }]} onChange={(v) => { clearResult(); setBitrate(v); }} />}
-        {id === 'video-compress' && <SegmentedControl name="preset" legend="ความละเอียดสูงสุด" value={preset} options={[{ value: '480', label: '480p' }, { value: '720', label: '720p' }, { value: '1080', label: '1080p' }]} hint="คลิปที่เล็กกว่าจะไม่ถูกขยาย" onChange={(v) => { clearResult(); setPreset(v); }} />}
-        {error && <ErrorText id="file-errors"><div ref={errorRef} tabIndex={-1}>{error}</div></ErrorText>}
-        <Button type="button" onClick={run}>{config.action}</Button>
+        {id === 'video-to-gif' && (
+          <SegmentedControl
+            name="gif-width"
+            legend="ความกว้าง"
+            value={gifWidth}
+            options={[
+              { value: '240', label: '240 px' },
+              { value: '320', label: '320 px' },
+              { value: '480', label: '480 px' },
+            ]}
+            onChange={(v) => {
+              clearResult();
+              setGifWidth(v);
+            }}
+          />
+        )}
+        {id === 'video-to-gif' && (
+          <SegmentedControl
+            name="gif-fps"
+            legend="เฟรมต่อวินาที"
+            value={gifFps}
+            options={[
+              { value: '10', label: '10 fps' },
+              { value: '15', label: '15 fps' },
+            ]}
+            onChange={(v) => {
+              clearResult();
+              setGifFps(v);
+            }}
+          />
+        )}
+        {id === 'video-to-mp3' && (
+          <SegmentedControl
+            name="bitrate"
+            legend="บิตเรต"
+            value={bitrate}
+            options={[
+              { value: '128', label: '128 kbps' },
+              { value: '192', label: '192 kbps' },
+              { value: '320', label: '320 kbps' },
+            ]}
+            onChange={(v) => {
+              clearResult();
+              setBitrate(v);
+            }}
+          />
+        )}
+        {id === 'video-compress' && (
+          <SegmentedControl
+            name="preset"
+            legend="ความละเอียดสูงสุด"
+            value={preset}
+            options={[
+              { value: '480', label: '480p' },
+              { value: '720', label: '720p' },
+              { value: '1080', label: '1080p' },
+            ]}
+            hint="คลิปที่เล็กกว่าจะไม่ถูกขยาย"
+            onChange={(v) => {
+              clearResult();
+              setPreset(v);
+            }}
+          />
+        )}
+        {error && (
+          <ErrorText id="file-errors">
+            <div ref={errorRef} tabIndex={-1}>
+              {error}
+            </div>
+          </ErrorText>
+        )}
+        <Button type="button" onClick={run}>
+          {config.action}
+        </Button>
       </fieldset>
       {busy && (
         <div className="space-y-3" aria-live="polite">
           {phase.kind === 'loading' ? (
-            <ProgressBar id="progress" label="กำลังโหลดตัวประมวลผล" value={phase.total ? (phase.loaded / phase.total) * 100 : null} detail={phase.total ? `${fileSize(phase.loaded)} / ${fileSize(phase.total)}` : 'ครั้งแรกเท่านั้น ครั้งถัดไปเบราว์เซอร์จำไว้แล้ว'} />
+            <ProgressBar
+              id="progress"
+              label="กำลังโหลดตัวประมวลผล"
+              value={phase.total ? (phase.loaded / phase.total) * 100 : null}
+              detail={
+                phase.total
+                  ? `${fileSize(phase.loaded)} / ${fileSize(phase.total)}`
+                  : 'ครั้งแรกเท่านั้น ครั้งถัดไปเบราว์เซอร์จำไว้แล้ว'
+              }
+            />
           ) : (
-            <ProgressBar id="progress" label="กำลังแปลง" value={phase.kind === 'working' ? phase.percent : null} detail={(config.slow || precise) ? 'บนมือถืออาจใช้เวลาใกล้เคียงความยาวคลิป' : undefined} />
+            <ProgressBar
+              id="progress"
+              label="กำลังแปลง"
+              value={phase.kind === 'working' ? phase.percent : null}
+              detail={config.slow || precise ? 'บนมือถืออาจใช้เวลาใกล้เคียงความยาวคลิป' : undefined}
+            />
           )}
-          <Button type="button" variant="secondary" onClick={cancel}>ยกเลิก</Button>
+          <Button type="button" variant="secondary" onClick={cancel}>
+            ยกเลิก
+          </Button>
         </div>
       )}
       {result && (
         <div className="space-y-3 rounded-xl border border-slate-200 bg-surface p-4" aria-live="polite">
           <div className="text-sm">
-            <span className="font-medium">{result.name}</span> · {file && (id === 'video-trim' || id === 'video-compress') ? `${fileSize(file.size)} → ${fileSize(result.size)}` : fileSize(result.size)}
+            <span className="font-medium">{result.name}</span> ·{' '}
+            {file && (id === 'video-trim' || id === 'video-compress')
+              ? `${fileSize(file.size)} → ${fileSize(result.size)}`
+              : fileSize(result.size)}
           </div>
-          {result.mime.startsWith('video/') && <video src={result.url} controls playsInline className="w-full rounded-lg bg-black"><track kind="captions" /></video>}
-          {result.mime.startsWith('audio/') && <audio src={result.url} controls className="w-full"><track kind="captions" /></audio>}
-          {result.mime === 'image/gif' && <img src={result.url} alt="ตัวอย่าง GIF ที่สร้าง" className="max-w-full rounded-lg" />}
+          {result.mime.startsWith('video/') && (
+            <video src={result.url} controls playsInline className="w-full rounded-lg bg-black">
+              <track kind="captions" />
+            </video>
+          )}
+          {result.mime.startsWith('audio/') && (
+            <audio src={result.url} controls className="w-full">
+              <track kind="captions" />
+            </audio>
+          )}
+          {result.mime === 'image/gif' && (
+            <img src={result.url} alt="ตัวอย่าง GIF ที่สร้าง" className="max-w-full rounded-lg" />
+          )}
           <div className="flex flex-wrap gap-2">
-            <a href={result.url} download={result.name} className="product-button-primary">ดาวน์โหลด {result.name}</a>
-            <Button type="button" variant="secondary" onClick={clearResult}>ล้าง</Button>
+            <a href={result.url} download={result.name} className="product-button-primary">
+              ดาวน์โหลด {result.name}
+            </a>
+            <Button type="button" variant="secondary" onClick={clearResult}>
+              ล้าง
+            </Button>
           </div>
         </div>
       )}
-      <p className="text-xs text-slate-500">{FFMPEG_CREDIT} · <a href={FFMPEG_SOURCE} rel="noopener" target="_blank" className="underline">ซอร์สโค้ด</a></p>
+      <p className="text-xs text-slate-500">
+        {FFMPEG_CREDIT} ·{' '}
+        <a href={FFMPEG_SOURCE} rel="noopener" target="_blank" className="underline">
+          ซอร์สโค้ด
+        </a>
+      </p>
     </div>
   );
 }
@@ -1688,6 +2213,7 @@ git commit -m "feat(video): ตัดคลิป แปลงเป็น MP3 �
 ### Task 7: ตรวจทั้งระบบ, QA ในเบราว์เซอร์, เอกสาร
 
 **Files:**
+
 - Create: `docs/video-tools-verification.md`
 - Modify: `docs/perf-budget.md` (ถ้าเกิน budget), `docs/superpowers/specs/2026-09-13-video-tools-design.md` (ถ้าตัดสินใจเปลี่ยนระหว่างทำ)
 
@@ -1703,6 +2229,7 @@ npm test && npm run typecheck && npm run lint && npm run build && npm run size
 - [ ] **Step 2: QA ใน Chromium ผ่าน preview** (`npm run preview` = wrangler dev บน dist จริง เพื่อทดสอบ header/asset เหมือน production)
 
 เตรียมไฟล์ตัวอย่างใน scratchpad ด้วย ffmpeg ของเครื่อง (ถ้ามี) หรือใช้คลิปจริง: mp4 H.264/AAC 30 วินาที, mov, webm
+
 1. `/tools/video-trim` เร็ว 0:05–0:12 → ไฟล์เล่นได้ ความยาว ≈ 7 วิ; แม่นยำ → ความยาวตรง 7.0
 2. `/tools/video-to-mp3` 192 kbps → เล่นได้ ขนาด ≈ ความยาว × 24 KB
 3. `/tools/video-to-gif` 0:00 ระยะ 5 480px 15fps → เปิดใน `<img>` เคลื่อนไหว
