@@ -18,7 +18,8 @@ export function createEngine(hooks: EngineHooks): Engine {
   function load(): Promise<void> {
     if (loaded) return loaded;
     loaded = (async () => {
-      const res = await fetch(MANIFEST_URL);
+      // no-store: manifest ชี้เวอร์ชันปัจจุบัน ต้องสดเสมอ (ไฟล์ ~150 byte) ส่วน /ffmpeg/<ver>/* cache แบบ immutable ผ่าน public/_headers
+      const res = await fetch(MANIFEST_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error(LOAD_ERROR);
       const manifest = (await res.json()) as { version: string; gzipBytes: number };
       worker = new Worker(new URL('./ffmpeg.worker.ts', import.meta.url), { type: 'module' });
