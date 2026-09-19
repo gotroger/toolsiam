@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { joinResults, outputFileName, tidyThaiSpacing } from './text';
+import { joinResults, normalizeThai, outputFileName, tidyThaiSpacing } from './text';
 
 describe('tidyThaiSpacing', () => {
   it('ลบช่องว่างระหว่างอักขระไทยที่ติดกัน', () => {
@@ -23,11 +23,27 @@ describe('tidyThaiSpacing', () => {
   });
 });
 
+describe('normalizeThai', () => {
+  it('รวมนิคหิต + สระอา ที่ Tesseract คืนมาแยกกัน เป็นสระอำตัวเดียว', () => {
+    expect(normalizeThai('ช\u0E4D\u0E32ระ')).toBe('ชำระ');
+  });
+  it('มีวรรณยุกต์คั่นหรือสลับลำดับก็รวมได้ โดยวรรณยุกต์อยู่หน้าสระอำ', () => {
+    expect(normalizeThai('น\u0E4D\u0E49\u0E32')).toBe('น้ำ');
+    expect(normalizeThai('น\u0E49\u0E4D\u0E32')).toBe('น้ำ');
+  });
+  it('ไม่แตะข้อความที่ถูกอยู่แล้ว', () => {
+    expect(normalizeThai('น้ำดื่ม Total 1,500')).toBe('น้ำดื่ม Total 1,500');
+  });
+});
+
 describe('joinResults', () => {
   const page = (name: string, text: string, error?: string) => ({ name, text, confidence: 90, error });
   it('รูปเดียวไม่มีหัวคั่น', () => {
     expect(joinResults([page('a.jpg', 'สวัส ดี')], true)).toBe('สวัสดี');
     expect(joinResults([page('a.jpg', 'สวัส ดี')], false)).toBe('สวัส ดี');
+  });
+  it('normalize สระอำเสมอ แม้ปิดการจัดช่องว่าง', () => {
+    expect(joinResults([page('a.jpg', 'ช\u0E4D\u0E32ระ เงิน')], false)).toBe('ชำระ เงิน');
   });
   it('หลายรูปคั่นด้วยชื่อไฟล์ และข้ามรูปที่อ่านไม่ได้', () => {
     const text = joinResults([page('a.jpg', 'หนึ่ง'), page('b.png', '', 'อ่านไม่ได้'), page('c.png', 'three')], true);
