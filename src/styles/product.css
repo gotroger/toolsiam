@@ -529,8 +529,8 @@
     flex-direction: column;
     min-width: 0;
     height: 100%;
-    min-height: 198px;
-    padding: 22px;
+    /* ไม่ตั้ง min-height: ให้สูงตามเนื้อหา แถวเดียวกันสูงเท่ากันเองจาก grid */
+    padding: 20px;
     /* ไล่สีจาง ๆ จากสีประจำหมวด — เปิดหน้ามาเห็นเป็นกลุ่มสีทันทีว่าหมวดไหนอยู่ตรงไหน */
     background: linear-gradient(
       158deg,
@@ -593,7 +593,7 @@
     transition: transform var(--motion-normal);
   }
   .tool-tile-copy {
-    margin-top: 20px;
+    margin-top: 16px;
   }
   .tool-tile h3 {
     font-size: 18px;
@@ -1171,7 +1171,6 @@
     }
     .tool-tile {
       padding: 16px 14px;
-      min-height: 202px;
       border-radius: 16px;
     }
     .tool-tile h3 {
