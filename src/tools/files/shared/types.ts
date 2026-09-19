@@ -1,3 +1,4 @@
+import type { PlanLimits } from '@/lib/plan-limits';
 import type { FileToolId } from '../catalog';
 export interface Options {
   pages: string;
@@ -13,6 +14,11 @@ export interface Job {
   id: FileToolId;
   files: File[];
   options: Options;
+  /**
+   * ขีดจำกัดตามแพลนของผู้ใช้ — ส่งมากับงานเพราะ Web Worker อ่าน cookie / เรียก /api/me ไม่ได้
+   * ไม่ระบุ = แพลนฟรี (เทสต์เก่าและตัวเรียกที่ไม่รู้จักแพลน)
+   */
+  limits?: PlanLimits;
 }
 export interface Output {
   blob: Blob;
@@ -20,4 +26,15 @@ export interface Output {
   summary: string;
   text?: string;
 }
-export type WorkerReply = { output: Output; error?: never } | { error: string; output?: never };
+/** ขีดจำกัดที่ถูกชนระหว่างประมวลผล — ให้ UI ตัดสินได้ว่าเป็นเรื่องแพลนหรือไฟล์ใหญ่เกินไปจริง */
+export interface LimitHit {
+  kind: 'pages' | 'zip' | 'cells';
+  /**
+   * ค่า **อย่างน้อย** ที่พบ ไม่ใช่ค่าจริงทั้งหมด — ตัวประมวลผลหยุดทันทีที่ชนเพดาน
+   * จึงไม่รู้ยอดรวมสุดท้าย (เช่น รวม PDF หยุดกลางไฟล์ที่สาม) ใช้เป็นขอบล่างเท่านั้น:
+   * ถ้าขอบล่างยังเกินพรีเมียม แปลว่าเกินแน่นอน แต่ถ้าไม่เกินก็ยังไม่รับประกันว่าพรีเมียมจะรับไหว
+   */
+  atLeast: number;
+}
+export type WorkerReply =
+  { output: Output; error?: never; limit?: never } | { error: string; output?: never; limit?: LimitHit };

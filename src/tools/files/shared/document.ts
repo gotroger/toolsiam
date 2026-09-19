@@ -1,8 +1,24 @@
-import { MAX_CELLS, MAX_PAGES, pageIndices, parseCsv, toCsv } from './logic';
-import type { Job, Output } from './types';
+import { PLAN_LIMITS, type PlanLimits } from '@/lib/plan-limits';
+import { CellLimitError, pageIndices, parseCsv, toCsv } from './logic';
+import type { Job, LimitHit, Output } from './types';
+
+/**
+ * ชนขีดจำกัดของแพลน (หน้า PDF / ขนาด zip เมื่อคลาย / ช่องตาราง)
+ * แยกจาก Error ทั่วไปเพื่อให้ FileTool รู้ว่าควรเสนอพรีเมียมหรือบอกว่าไฟล์ใหญ่เกินไปจริง
+ */
+export class LimitError extends Error {
+  constructor(
+    message: string,
+    public readonly kind: LimitHit['kind'],
+    /** ขอบล่างของค่าที่พบ ดู LimitHit.atLeast — ตัวประมวลผลหยุดทันทีที่ชนเพดานจึงไม่รู้ยอดรวมจริง */
+    public readonly atLeast: number,
+  ) {
+    super(message);
+  }
+}
 
 /** Inspect ZIP central directory before Office parsers inflate it. */
-export function checkOfficeZip(buffer: ArrayBuffer) {
+export function checkOfficeZip(buffer: ArrayBuffer, expandedMb = PLAN_LIMITS.free.zipExpandedMb) {
   const view = new DataView(buffer);
   if (view.byteLength < 22 || view.getUint32(0, true) !== 0x04034b50)
     throw new Error('ไฟล์ Office ไม่ถูกต้อง กรุณาเลือกไฟล์ XLSX หรือ DOCX ที่เปิดได้ตามปกติ');
@@ -17,12 +33,18 @@ export function checkOfficeZip(buffer: ArrayBuffer) {
     if (offset + 46 > end || view.getUint32(offset, true) !== 0x02014b50)
       throw new Error('โครงสร้างไฟล์ Office ไม่ถูกต้อง');
     expanded += view.getUint32(offset + 24, true);
-    if (expanded > 30 * 1024 * 1024) throw new Error('เอกสารเมื่อคลายไฟล์ใหญ่เกิน 30 MB กรุณาแบ่งไฟล์ก่อน');
+    if (expanded > expandedMb * 1024 * 1024)
+      throw new LimitError(
+        `เอกสารเมื่อคลายไฟล์ใหญ่เกิน ${expandedMb} MB กรุณาแบ่งไฟล์ก่อน`,
+        'zip',
+        Math.ceil(expanded / 1024 / 1024),
+      );
     offset +=
       46 + view.getUint16(offset + 28, true) + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true);
   }
 }
-export async function processDocument({ id, files, options }: Job): Promise<Output> {
+export async function processDocument({ id, files, options, limits }: Job): Promise<Output> {
+  const plan: PlanLimits = limits ?? PLAN_LIMITS.free;
   const stem = files[0].name.replace(/\.[^.]+$/, '');
   if (id.startsWith('pdf-')) {
     const { PDFDocument, degrees } = await import('pdf-lib');
@@ -36,7 +58,8 @@ export async function processDocument({ id, files, options }: Job): Promise<Outp
         throw new Error('เปิด PDF ไม่สำเร็จ ไฟล์อาจเสียหายหรือตั้งรหัสผ่าน กรุณาใช้ PDF ที่เปิดได้โดยไม่ต้องใส่รหัส');
       }
       total += source.getPageCount();
-      if (total > MAX_PAGES) throw new Error(`รองรับรวมไม่เกิน ${MAX_PAGES} หน้า กรุณาแบ่งไฟล์ก่อน`);
+      if (total > plan.pages)
+        throw new LimitError(`รองรับรวมไม่เกิน ${plan.pages} หน้า กรุณาแบ่งไฟล์ก่อน`, 'pages', total);
       let indices = source.getPageIndices();
       if (id === 'pdf-extract') indices = pageIndices(options.pages, source.getPageCount());
       if (id === 'pdf-remove-pages') {
@@ -57,7 +80,7 @@ export async function processDocument({ id, files, options }: Job): Promise<Outp
     };
   }
   const buffer = await files[0].arrayBuffer();
-  if (id !== 'csv-to-excel') checkOfficeZip(buffer);
+  if (id !== 'csv-to-excel') checkOfficeZip(buffer, plan.zipExpandedMb);
   if (id === 'word-to-text') {
     const mammoth = await import('mammoth/mammoth.browser.js');
     const result = await mammoth.extractRawText({ arrayBuffer: buffer });
@@ -78,7 +101,13 @@ export async function processDocument({ id, files, options }: Job): Promise<Outp
     } catch {
       throw new Error('กรุณาบันทึก CSV เป็น UTF-8 ก่อนแปลง เพื่อให้ภาษาไทยถูกต้อง');
     }
-    const rows = parseCsv(text, options.delimiter);
+    let rows: string[][];
+    try {
+      rows = parseCsv(text, options.delimiter, plan.cells);
+    } catch (e) {
+      if (e instanceof CellLimitError) throw new LimitError(e.message, 'cells', e.max + 1);
+      throw e;
+    }
     if (rows.some((row) => row.length > 16384)) throw new Error('Excel รองรับไม่เกิน 16,384 คอลัมน์');
     const sheet = workbook.addWorksheet('ข้อมูล');
     sheet.addRows(rows);
@@ -94,8 +123,13 @@ export async function processDocument({ id, files, options }: Job): Promise<Outp
   const sheet = workbook.worksheets[options.sheet - 1];
   if (!sheet) throw new Error(`ไฟล์นี้มี ${workbook.worksheets.length} ชีต กรุณาระบุลำดับชีตที่มีอยู่`);
   if (!sheet.rowCount || !sheet.columnCount) throw new Error('ชีตที่เลือกไม่มีข้อมูล');
-  if (sheet.rowCount * sheet.columnCount > MAX_CELLS)
-    throw new Error('ชีตมีขนาดเกิน 100,000 ช่องข้อมูล กรุณาแบ่งตารางก่อน');
+  const cellCount = sheet.rowCount * sheet.columnCount;
+  if (cellCount > plan.cells)
+    throw new LimitError(
+      `ชีตมีขนาดเกิน ${plan.cells.toLocaleString('th-TH')} ช่องข้อมูล กรุณาแบ่งตารางก่อน`,
+      'cells',
+      cellCount,
+    );
   let missingFormula = 0;
   const rows = Array.from({ length: sheet.rowCount }, (_, r) =>
     Array.from({ length: sheet.columnCount }, (_, c) => {

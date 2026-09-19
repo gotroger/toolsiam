@@ -11,7 +11,7 @@ import DataTable from './DataTable.astro';
 import Section from './Section.astro';
 import { TrustPanel } from './ui';
 import { cardGridTwo, cardGridItem } from './grids';
-import { getCategoryUrl, getHomeUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
+import { getCategoryUrl, getHomeUrl, getPremiumUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
 interface Props {
   tool: ToolMeta;
 }
@@ -19,6 +19,9 @@ const { tool } = Astro.props;
 // เครื่องมือที่ปลดระวางมี category เป็น null — ไม่มีชิปหมวดและไม่มี related (§18.3)
 const cat = tool.category ? getCategory(tool.category) : null;
 const related = getRelatedTools(tool, 4);
+// เครื่องมือไฟล์มีขีดจำกัดพรีเมียม — ลิงก์ static ใน workspace bar เฉพาะเมื่อเปิดระบบสมาชิกตอน build
+const premiumLimits =
+  import.meta.env.PUBLIC_MEMBERSHIP === 'on' && (tool.category === 'documents' || tool.category === 'images');
 // breadcrumb ชี้ /tools ไม่ใช่หมวด เพราะ URL ของเครื่องมือไม่ฝังหมวด (§25.2)
 // หมวดยังแสดงอยู่เป็นชิปลิงก์ใต้หัวข้อ
 const crumbs = [
@@ -43,7 +46,20 @@ const crumbs = [
   </div>
 </header>
 <Card size="workspace" aria-label={tool.name}>
-  <div class="workspace-bar"><span>พื้นที่ทำงาน</span><span>ใช้ฟรี · ไม่ต้องสมัคร</span></div>
+  <div class="workspace-bar">
+    <span>พื้นที่ทำงาน</span><span
+      >ใช้ฟรี · ไม่ต้องสมัคร{
+        premiumLimits && (
+          <>
+            {' · '}
+            <a href={getPremiumUrl()} class="underline hover:text-brand-700">
+              ขีดจำกัดพรีเมียม ↗
+            </a>
+          </>
+        )
+      }</span
+    >
+  </div>
   <div class="workspace-content"><slot /></div>
 </Card>
 <div class="mt-6 text-sm leading-relaxed text-slate-600"><p>{tool.description}</p></div>

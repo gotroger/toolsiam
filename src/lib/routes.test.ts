@@ -5,6 +5,7 @@ import {
   SITE, absoluteUrl, getCategoryUrl, getDreamEntryUrl, getDreamUrl, getHomeUrl,
   getHoroscopePageUrl, getHoroscopeUrl, getLotteryDrawUrl, getLotteryUrl,
   getToolUrl, getToolsUrl, getZodiacSignUrl,
+  getAccountUrl, getBillingStatusUrl, getLoginUrl, getLogoutUrl, getPremiumUrl, getPrivacyUrl, getTermsUrl,
 } from './routes';
 import { isNoindexPath, normalizePath } from './noindex';
 
@@ -21,6 +22,17 @@ describe('routes', () => {
     expect(getHoroscopeUrl()).toBe('/horoscope');
     expect(getHoroscopePageUrl('daily')).toBe('/horoscope/daily');
     expect(getZodiacSignUrl('aries')).toBe('/horoscope/zodiac/aries');
+  });
+
+  it('เส้นทางสมาชิก/พรีเมียม — /premium แทน /pricing ที่ปลดระวาง และ next ถูก encode', () => {
+    expect(getPremiumUrl()).toBe('/premium');
+    expect(getAccountUrl()).toBe('/account');
+    expect(getPrivacyUrl()).toBe('/privacy');
+    expect(getTermsUrl()).toBe('/terms');
+    expect(getLoginUrl()).toBe('/api/auth/google/start');
+    expect(getLoginUrl('/tools/pdf-merge?x=1')).toBe('/api/auth/google/start?next=%2Ftools%2Fpdf-merge%3Fx%3D1');
+    expect(getLogoutUrl()).toBe('/api/auth/logout');
+    expect(getBillingStatusUrl('a b')).toBe('/api/billing/status?ref=a%20b');
   });
 
   it('หมวดที่เป็น vertical ใช้ landingPath แทนหน้า /categories/', () => {
@@ -59,6 +71,9 @@ describe('noindex', () => {
     expect(isNoindexPath('/categories/daily')).toBe(false);
     expect(isNoindexPath('/tools')).toBe(false);
     expect(isNoindexPath('/')).toBe(false);
+    // หน้าบัญชีขึ้นกับผู้ใช้ ไม่ควรถูก index · หน้าขายพรีเมียมเป็นเนื้อหาสาธารณะ
+    expect(isNoindexPath('/account')).toBe(true);
+    expect(isNoindexPath('/premium')).toBe(false);
   });
 });
 
@@ -92,12 +107,3 @@ describe('ไม่มี URL เก่าหลงเหลือในซอ�
   });
 });
 
-/** §20 M4–M8: ระบบ tier ถูกถอดทั้งหมด — ห้ามมีคำว่า tier หรือ "พรีเมียม" หลงเหลือในซอร์ส */
-describe('ไม่มีร่องรอยระบบ tier เหลืออยู่', () => {
-  it("ไม่มี 'tier' หรือ 'พรีเมียม' นอกไฟล์ทดสอบ", () => {
-    const offenders = walk('src')
-      .filter((f) => !f.endsWith('.test.ts'))
-      .filter((f) => /tier|พรีเมียม/i.test(readFileSync(f, 'utf8')));
-    expect(offenders).toEqual([]);
-  });
-});

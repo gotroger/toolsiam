@@ -7,27 +7,58 @@
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
   },
   "routes": [
     { "pattern": "toolsiam.com", "custom_domain": true },
-    { "pattern": "www.toolsiam.com", "custom_domain": true }
+    { "pattern": "www.toolsiam.com", "custom_domain": true },
   ],
   "observability": { "enabled": true },
   "preview_urls": false,
 
-  // อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
-  // JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ ไม่มี login (§28.2)
-  //
-  // ต้องเป็น namespace เดียวกับที่ workers/lottery-cron/ ใช้เขียน ไม่ใช่คนละอัน
-  "kv_namespaces": [
-    { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" }
-  ],
+  // LOTTERY: อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
+  //   JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ (§28.2) ต้องเป็น namespace เดียวกับที่ workers/lottery-cron/ ใช้เขียน
+  "kv_namespaces": [{ "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" }],
+
+  /*
+   * ⚠️ binding ของระบบสมาชิก — ยังไม่เปิดใช้ ต้องสร้างของจริงก่อนถึงจะใส่ได้
+   *
+   * ห้ามใส่ id ปลอมทิ้งไว้: `wrangler deploy` ตรวจ id ของ KV/D1 กับ API จริงตอนอัปโหลด
+   * ถ้าใส่ค่าที่ไม่มีอยู่จริง **deploy ของทั้งเว็บจะพัง** ไม่ใช่แค่ระบบสมาชิก
+   * และ kill switch `MEMBERSHIP` ก็ช่วยไม่ได้เพราะ binding ถูกตรวจตั้งแต่ตอน deploy
+   *
+   * ไม่มี binding = `isEnabled()` เป็นเท็จ → ทุก API ของสมาชิกตอบ 204 เว็บทำงานเหมือนไม่มีระบบสมาชิก
+   * ซึ่งเป็นสถานะที่ตั้งใจให้ merge ได้โดยไม่กระทบใคร
+   *
+   * เปิดใช้เมื่อพร้อม (ทำตามลำดับนี้):
+   *   1. npx wrangler d1 create toolsiam            → ได้ database_id
+   *   2. npx wrangler kv namespace create MEMBER_SESSION → ได้ id
+   *      (ตั้งชื่อ MEMBER_SESSION ไม่ใช่ SESSION เพราะ @astrojs/cloudflare ยึด binding ชื่อนั้นไปใช้เอง)
+   *   3. ลบ comment ของบล็อกด้านล่างแล้วใส่ id จริงทั้งสองตัว
+   *   4. ตั้ง secret + var ตาม .env.example แล้วค่อยเปิด MEMBERSHIP / PUBLIC_MEMBERSHIP
+   *
+   * "kv_namespaces": [
+   *   { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" },
+   *   { "binding": "MEMBER_SESSION", "id": "<id ที่ได้จากข้อ 2>" }
+   * ],
+   * "d1_databases": [
+   *   { "binding": "DB", "database_name": "toolsiam", "database_id": "<id ที่ได้จากข้อ 1>", "migrations_dir": "migrations" }
+   * ],
+   */
 
   "vars": {
     // kill switch — ต้องเป็น "on" เท่านั้นจึงจะเปิด /api/lottery/latest
     // ตั้งเป็นค่าอื่นเมื่อใดก็ตามที่ endpoint ของ GLO มีปัญหา แล้วเว็บจะกลับไปใช้ static ล้วนทันที
-    "LOTTERY_AUTO": "on"
-  },
+    "LOTTERY_AUTO": "on",
 
+    // ระบบสมาชิก (spec 2026-09-19) — kill switch ฝั่ง server ทุก API ตอบ 204 เมื่อไม่ใช่ "on"
+    // เปิดหลังจากตั้ง secret ครบ: GOOGLE_CLIENT_SECRET, BEAM_API_KEY, BEAM_WEBHOOK_HMAC_SECRET (wrangler secret put)
+    // และ build ด้วย repository variable PUBLIC_MEMBERSHIP=on เพื่อให้ HTML มีปุ่มเข้าสู่ระบบ
+    "MEMBERSHIP": "off",
+    "SITE_ORIGIN": "https://toolsiam.com",
+    "GOOGLE_CLIENT_ID": "",
+    // playground ก่อน — สลับเป็น https://api.beamcheckout.com เมื่อทดสอบ flow ครบและ rotate key แล้ว
+    "BEAM_API_BASE_URL": "https://playground.api.beamcheckout.com",
+    "BEAM_MERCHANT_ID": "",
+  },
 }

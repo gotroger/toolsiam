@@ -1,4 +1,4 @@
-import { processDocument } from './document';
+import { LimitError, processDocument } from './document';
 import type { Job, WorkerReply } from './types';
 self.onmessage = async (event: MessageEvent<Job>) => {
   let reply: WorkerReply;
@@ -11,6 +11,8 @@ self.onmessage = async (event: MessageEvent<Job>) => {
           ? error.message
           : 'อ่านไฟล์ไม่สำเร็จ กรุณาตรวจว่าไฟล์เปิดได้และเป็นชนิดที่รองรับ แล้วลองใหม่',
     };
+    // ชนขีดจำกัดของแพลน — ส่งรายละเอียดให้ UI เสนอพรีเมียมได้ถ้าพรีเมียมรับไหว
+    if (error instanceof LimitError) reply.limit = { kind: error.kind, atLeast: error.atLeast };
   }
   self.postMessage(reply);
 };

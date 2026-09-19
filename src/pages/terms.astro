@@ -1,0 +1,72 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import Section from '@/components/Section.astro';
+import { getHomeUrl, getPrivacyUrl, getTermsUrl } from '@/lib/routes';
+import { PREMIUM_DAYS, PREMIUM_PRICE_BAHT, QR_TTL_MINUTES } from '@/lib/plan-limits';
+
+/** ข้อกำหนดการใช้งาน — จำเป็นสำหรับหน้าขอความยินยอมของ Google OAuth และเงื่อนไขการชำระเงิน */
+const title = 'ข้อกำหนดการใช้งาน';
+const description = `เงื่อนไขการใช้เครื่องมือทูลสยามและสมาชิกพรีเมียม ${PREMIUM_PRICE_BAHT} บาทต่อ ${PREMIUM_DAYS} วัน ชำระผ่าน PromptPay ไม่ตัดเงินอัตโนมัติ`;
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: title, path: getTermsUrl() },
+];
+const updatedAt = '19 กันยายน 2569';
+const p = 'mt-3 text-sm leading-relaxed text-slate-700';
+const ul = 'mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-700';
+---
+
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-[1.75rem] font-medium tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
+  <p class="mt-2 text-sm text-slate-500">ปรับปรุงล่าสุด {updatedAt}</p>
+
+  <Section title="การใช้เครื่องมือ" class="mt-8">
+    <p class={p}>
+      เครื่องมือทุกตัวบนทูลสยามใช้ได้ฟรีโดยไม่ต้องสมัครสมาชิก
+      ผลลัพธ์จากเครื่องมือเป็นการคำนวณหรือแปลงข้อมูลตามค่าที่คุณกรอก โปรดตรวจสอบก่อนนำไปใช้ในเรื่องที่มีผลทางกฎหมาย
+      การเงิน หรือภาษี ทูลสยามไม่รับผิดชอบต่อความเสียหายจากการนำผลลัพธ์ไปใช้
+    </p>
+  </Section>
+
+  <Section title="สมาชิกพรีเมียม" class="mt-8">
+    <ul class={ul}>
+      <li>
+        ราคา {PREMIUM_PRICE_BAHT} บาท ได้สิทธิ์ {PREMIUM_DAYS} วัน นับจากวันที่ชำระ หรือต่อจากวันหมดอายุเดิมหากยังไม่หมด
+      </li>
+      <li>
+        ชำระด้วยการสแกน QR PromptPay ซึ่งมีอายุ {QR_TTL_MINUTES} นาที หากไม่ชำระภายในเวลา สร้าง QR ใหม่ได้โดยไม่มีค่าใช้จ่าย
+      </li>
+      <li>
+        ไม่มีการตัดเงินอัตโนมัติ สิทธิ์สิ้นสุดเองเมื่อครบกำหนด และไม่มีการเรียกเก็บเงินเพิ่มโดยที่คุณไม่ได้ชำระเอง
+      </li>
+      <li>ไม่สามารถขอคืนเงินสำหรับรอบที่ชำระแล้วได้ เว้นแต่เกิดจากความผิดพลาดของระบบที่ทำให้ไม่ได้รับสิทธิ์</li>
+      <li>
+        ขีดจำกัดของสมาชิกพรีเมียมเป็นไปตามที่แสดงในหน้าสมาชิกพรีเมียม และอาจปรับเพิ่มได้โดยไม่ลดสิทธิ์ของรอบที่ชำระแล้ว
+      </li>
+      <li>สิทธิ์ผูกกับบัญชี Google ที่ใช้ชำระ ไม่สามารถโอนให้บัญชีอื่นได้</li>
+    </ul>
+  </Section>
+
+  <Section title="บัญชีผู้ใช้" class="mt-8">
+    <p class={p}>
+      คุณต้องเป็นเจ้าของบัญชี Google ที่ใช้เข้าสู่ระบบ และรับผิดชอบการใช้งานภายใต้บัญชีนั้น
+      หากพบการใช้งานที่ผิดปกติหรือละเมิดข้อกำหนด เราอาจระงับบัญชีได้
+    </p>
+  </Section>
+
+  <Section title="การเปลี่ยนแปลงข้อกำหนด" class="mt-8">
+    <p class={p}>
+      เราอาจปรับปรุงข้อกำหนดนี้เป็นครั้งคราว โดยระบุวันที่ปรับปรุงไว้ด้านบน
+      การใช้งานต่อหลังการปรับปรุงถือว่ายอมรับข้อกำหนดใหม่ ดูวิธีที่เราจัดการข้อมูลได้ที่ <a
+        class="underline"
+        href={getPrivacyUrl()}>นโยบายความเป็นส่วนตัว</a
+      >
+    </p>
+  </Section>
+
+  <Section title="ติดต่อ" class="mt-8">
+    <p class={p}>อีเมล <a class="underline" href="mailto:gotroger2017@gmail.com">gotroger2017@gmail.com</a></p>
+  </Section>
+</Base>

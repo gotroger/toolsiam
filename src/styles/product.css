@@ -120,6 +120,101 @@
     font-size: 14px;
     background: var(--color-slate-50);
   }
+  /* ปุ่มเข้าสู่ระบบและเมนูบัญชีใน header (spec 2026-09-19) — ทรงเดียวกับช่องค้นหา */
+  .header-login {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 6px 14px;
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-control);
+    color: var(--color-brand-700);
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--color-surface);
+  }
+  .header-login:hover {
+    border-color: color-mix(in srgb, var(--color-brand-600) 40%, transparent);
+    background: var(--color-brand-50);
+  }
+  /* รายการในเมนูมือถือของระบบสมาชิก — คลาสเดียวแทน utility ยาว ๆ ซ้ำ 4 จุด (HTML ทุกหน้าถือ header นี้) */
+  .mnav-link {
+    display: block;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-slate-700);
+  }
+  .mnav-link:hover {
+    background: var(--color-slate-50);
+  }
+  .mnav-account {
+    display: flex;
+    flex-direction: column;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--color-slate-200);
+  }
+  .mnav-account > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--color-slate-500);
+  }
+  .account-menu {
+    position: relative;
+  }
+  .account-menu > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 4px 12px 4px 6px;
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-control);
+    font-size: 14px;
+    color: var(--color-slate-700);
+    cursor: pointer;
+    list-style: none;
+  }
+  .account-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .account-menu > summary img {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+  }
+  .account-menu-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    min-width: 12rem;
+    padding: 6px;
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-control);
+    background: var(--color-surface);
+    box-shadow: var(--product-shadow);
+    z-index: 60;
+  }
+  .account-menu-panel a,
+  .account-menu-panel button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--color-slate-700);
+  }
+  .account-menu-panel a:hover,
+  .account-menu-panel button:hover {
+    background: var(--color-slate-50);
+    color: var(--color-slate-900);
+  }
   kbd {
     font-family: var(--font-sans);
     font-size: 12px;

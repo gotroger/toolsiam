@@ -21,7 +21,8 @@ export const NOINDEX_TOOL_SLUGS = ['json-formatter'];
 export const NOINDEX_CATEGORY_IDS: string[] = [];
 
 /** หน้าที่ไม่ควร index ตรง ๆ */
-export const NOINDEX_EXACT_PATHS = ['/404', '/design-system'];
+/** `/account` แสดงข้อมูลของผู้ใช้ที่ล็อกอินอยู่ — ไม่มีเนื้อหาสาธารณะให้ index */
+export const NOINDEX_EXACT_PATHS = ['/404', '/design-system', '/account'];
 
 /** ตัด .html และ trailing slash ออกให้เทียบกันได้ (build ใช้ format: 'file') */
 export function normalizePath(pathname: string): string {

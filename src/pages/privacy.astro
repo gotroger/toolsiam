@@ -1,0 +1,93 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import Section from '@/components/Section.astro';
+import { getHomeUrl, getPremiumUrl, getPrivacyUrl } from '@/lib/routes';
+import { SESSION_TTL_SECONDS } from '@/lib/plan-limits';
+
+/**
+ * นโยบายความเป็นส่วนตัว — จำเป็นสำหรับหน้าขอความยินยอมของ Google OAuth
+ * เขียนจากสิ่งที่ระบบทำจริงเท่านั้น (ดู spec 2026-09-19-membership-premium-design)
+ */
+const title = 'นโยบายความเป็นส่วนตัว';
+const description =
+  'ทูลสยามประมวลผลข้อมูลที่กรอกในเครื่องมือบนอุปกรณ์ของคุณ ไม่ส่งขึ้นเซิร์ฟเวอร์ ระบบสมาชิกเก็บเฉพาะข้อมูลบัญชี Google และประวัติการชำระเงิน';
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: title, path: getPrivacyUrl() },
+];
+const sessionDays = SESSION_TTL_SECONDS / 86_400;
+const updatedAt = '19 กันยายน 2569';
+const p = 'mt-3 text-sm leading-relaxed text-slate-700';
+const ul = 'mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-700';
+---
+
+<Base title={`${title} — ทูลสยาม`} description={description}>
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-[1.75rem] font-medium tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
+  <p class="mt-2 text-sm text-slate-500">ปรับปรุงล่าสุด {updatedAt}</p>
+
+  <Section title="เครื่องมือทุกตัวทำงานบนอุปกรณ์ของคุณ" class="mt-8">
+    <p class={p}>
+      ตัวเลข ข้อความ และไฟล์ที่คุณกรอกหรือเลือกในเครื่องมือของทูลสยาม ถูกประมวลผลในเบราว์เซอร์ของคุณทั้งหมด
+      ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ ไม่ถูกเก็บ และเราไม่สามารถเห็นได้ ข้อนี้เป็นจริงทั้งสำหรับผู้ใช้ทั่วไปและสมาชิกพรีเมียม
+    </p>
+  </Section>
+
+  <Section title="ข้อมูลที่เก็บเมื่อคุณเข้าสู่ระบบด้วย Google" class="mt-8">
+    <p class={p}>การเข้าสู่ระบบเป็นทางเลือก ใช้เฉพาะเมื่อต้องการสมัครสมาชิกพรีเมียม เมื่อคุณเข้าสู่ระบบเราเก็บ</p>
+    <ul class={ul}>
+      <li>รหัสประจำบัญชี Google (subject id) ใช้จับคู่ว่าเป็นบัญชีเดียวกันเมื่อเข้าสู่ระบบครั้งถัดไป</li>
+      <li>อีเมล ชื่อที่แสดง และ URL รูปโปรไฟล์ ตามที่ Google ส่งให้</li>
+      <li>วันเวลาที่สร้างบัญชีและเข้าสู่ระบบล่าสุด</li>
+    </ul>
+    <p class={p}>
+      เราขอสิทธิ์จาก Google เพียง <code>openid</code>, <code>email</code> และ <code>profile</code> ไม่เข้าถึงอีเมล ปฏิทิน
+      ไฟล์ หรือข้อมูลอื่นในบัญชี Google ของคุณ
+    </p>
+  </Section>
+
+  <Section title="ข้อมูลการชำระเงิน" class="mt-8">
+    <p class={p}>
+      การชำระเงินทำผ่านผู้ให้บริการรับชำระเงิน (Beam Checkout) ด้วย QR PromptPay เราเก็บเพียงหมายเลขอ้างอิงรายการ
+      จำนวนเงิน สถานะ และเวลาชำระ เพื่อคำนวณวันหมดอายุของสมาชิก
+      เราไม่เห็นและไม่เก็บหมายเลขบัญชีธนาคารหรือข้อมูลบัตรของคุณ
+    </p>
+  </Section>
+
+  <Section title="คุกกี้" class="mt-8">
+    <ul class={ul}>
+      <li>
+        <strong>sid</strong> — คุกกี้ session หลังเข้าสู่ระบบ อายุ {sessionDays} วัน ใช้จำว่าคุณคือใคร ถูกตั้งเฉพาะเมื่อคุณกดเข้าสู่ระบบเท่านั้น
+      </li>
+      <li>
+        <strong>ts_m</strong> — ตัวบอกว่ามี session อยู่ เพื่อให้หน้าเว็บรู้ว่าควรแสดงเมนูบัญชีโดยไม่ต้องถามเซิร์ฟเวอร์ทุกหน้า
+      </li>
+      <li><strong>oauth</strong> — คุกกี้ชั่วคราวอายุ 10 นาทีระหว่างขั้นตอนเข้าสู่ระบบกับ Google ป้องกันการปลอมคำขอ</li>
+      <li><strong>toolsiam-theme</strong> — เก็บในเบราว์เซอร์ของคุณ (localStorage) เมื่อคุณเลือกโหมดสว่าง/มืดเอง</li>
+    </ul>
+    <p class={p}>ผู้ใช้ที่ไม่เข้าสู่ระบบจะไม่ได้รับคุกกี้ใด ๆ จากเรา</p>
+  </Section>
+
+  <Section title="สถิติการเข้าชม" class="mt-8">
+    <p class={p}>
+      เราใช้ Cloudflare Web Analytics ซึ่งไม่ใช้คุกกี้และไม่เก็บข้อมูลระบุตัวบุคคล
+      เพื่อดูจำนวนการเข้าชมโดยรวมของแต่ละหน้า
+    </p>
+  </Section>
+
+  <Section title="ระยะเวลาเก็บและการลบ" class="mt-8">
+    <p class={p}>
+      ข้อมูลบัญชีและประวัติการชำระเงินถูกเก็บตราบที่บัญชียังอยู่ หากต้องการลบบัญชีและข้อมูลทั้งหมด
+      ติดต่อเราทางอีเมลด้านล่างพร้อมอีเมลที่ใช้เข้าสู่ระบบ เราจะดำเนินการภายใน 30 วัน
+      (ประวัติการชำระเงินอาจต้องเก็บต่อเท่าที่กฎหมายกำหนด)
+    </p>
+  </Section>
+
+  <Section title="ติดต่อ" class="mt-8">
+    <p class={p}>
+      อีเมล <a class="underline" href="mailto:gotroger2017@gmail.com">gotroger2017@gmail.com</a> · ดูรายละเอียดสมาชิกพรีเมียมได้ที่
+      <a class="underline" href={getPremiumUrl()}>หน้าสมาชิกพรีเมียม</a>
+    </p>
+  </Section>
+</Base>

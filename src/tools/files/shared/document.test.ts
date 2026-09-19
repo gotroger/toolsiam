@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { PDFDocument, degrees } from 'pdf-lib';
 import ExcelJS from 'exceljs';
 import { strToU8, zipSync } from 'fflate';
-import { checkOfficeZip, processDocument } from './document';
+import { checkOfficeZip, LimitError, processDocument } from './document';
+import { PLAN_LIMITS } from '@/lib/plan-limits';
 import { parseCsv } from './logic';
 import type { Options } from './types';
 const options: Options = {
@@ -62,6 +63,23 @@ describe('PDF actual output', () => {
     await expect(
       processDocument({ id: 'pdf-extract', files: [await pdfFile('a.pdf', Array(151).fill(100))], options }),
     ).rejects.toThrow('150');
+  });
+  it('ขีดจำกัดหน้ามากับ Job.limits — พรีเมียมรับ 151 หน้า และการชนเพดานเป็น LimitError ที่บอกจำนวนหน้าจริง', async () => {
+    const big = await pdfFile('a.pdf', Array(151).fill(100));
+    const output = await processDocument({ id: 'pdf-rotate', files: [big], options, limits: PLAN_LIMITS.premium });
+    expect((await PDFDocument.load(await output.blob.arrayBuffer())).getPageCount()).toBe(151);
+    const error = await processDocument({ id: 'pdf-rotate', files: [big], options }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(LimitError);
+    expect(error).toMatchObject({ kind: 'pages', atLeast: 151 });
+    const tiny = { ...PLAN_LIMITS.free, pages: 2 };
+    await expect(
+      processDocument({
+        id: 'pdf-merge',
+        files: [await pdfFile('a.pdf', [1, 2]), await pdfFile('b.pdf', [3])],
+        options,
+        limits: tiny,
+      }),
+    ).rejects.toThrow('2 หน้า');
   });
 });
 describe('Office actual output', () => {
@@ -128,6 +146,26 @@ describe('Office actual output', () => {
       }
     }
     expect(() => checkOfficeZip(zip.buffer)).toThrow('30 MB');
+    // พรีเมียมคลายได้ถึง 120 MB — 40 MB จึงผ่าน · ชนเพดานเป็น LimitError ชนิด zip
+    expect(() => checkOfficeZip(zip.buffer, PLAN_LIMITS.premium.zipExpandedMb)).not.toThrow();
+    const hit = (() => {
+      try {
+        checkOfficeZip(zip.buffer);
+      } catch (e) {
+        return e;
+      }
+    })();
+    expect(hit).toBeInstanceOf(LimitError);
+    expect(hit).toMatchObject({ kind: 'zip', atLeast: 40 });
+    // ช่องตารางก็เช่นกัน: ส่ง limits เล็ก ๆ แล้วต้องได้ LimitError ชนิด cells
+    const cells = await processDocument({
+      id: 'csv-to-excel',
+      files: [new File(['a,b,c\n1,2,3'], 'a.csv')],
+      options,
+      limits: { ...PLAN_LIMITS.free, cells: 4 },
+    }).catch((e: unknown) => e);
+    expect(cells).toBeInstanceOf(LimitError);
+    expect(cells).toMatchObject({ kind: 'cells', atLeast: 5 });
     await expect(
       processDocument({
         id: 'csv-to-excel',
