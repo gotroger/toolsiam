@@ -42,7 +42,7 @@ Astro API routes (prerender=false, shim บาง ๆ) → src/lib/membership/ha
   ├── GET  /api/me                    private, no-store → {user, plan, premiumUntil, expiringSoon}
   ├── POST /api/billing/checkout      สร้าง payments(pending) → Beam charge → QR base64 (ใช้ pending เดิมที่ยังไม่หมดอายุซ้ำ)
   ├── GET  /api/billing/status?ref=   DB เป็นความจริง · เลย QR TTL → expired
-  └── POST /api/billing/webhook       HMAC-SHA256 ของ raw body → settle แบบ idempotent (status='pending' เท่านั้น)
+  └── POST /api/billing/webhook       HMAC-SHA256 ของ raw body → settle แบบ idempotent (pending หรือ expired)
 ```
 
 ## ด่านตรวจ (ทุก API)
@@ -50,7 +50,7 @@ Astro API routes (prerender=false, shim บาง ๆ) → src/lib/membership/ha
 1. `env.MEMBERSHIP !== 'on'` หรือไม่มี binding/secret ที่ต้องใช้ → 204 (เว็บทำงานเหมือนไม่มีระบบสมาชิก)
 2. mutation ทุกตัวเป็น POST + `Origin` ต้องเป็น `https://toolsiam.com`, `https://www.toolsiam.com` หรือ `http://localhost:*`
 3. cookie `sid` HttpOnly Secure SameSite=Lax · `ts_m` ไม่ HttpOnly ใช้เป็น hint เท่านั้น · production ตั้ง `Domain=toolsiam.com` ให้ apex/www ใช้ร่วมกัน
-4. `next` หลังล็อกอินต้องขึ้นต้นด้วย `/` และไม่ใช่ `//` (กัน open redirect)
+4. `next` หลังล็อกอินต้องขึ้นต้นด้วย `/` ไม่ใช่ `//` หรือ `/\` และ **ห้ามมีอักขระควบคุม** (URL parser ลบ tab/CR/LF ทิ้งก่อนแยกส่วน `/<tab>/evil.com` จึงกลายเป็น `//evil.com`) — กัน open redirect
 5. webhook: อ่าน raw body (≤ 64 KB) ก่อน parse, ตรวจลายเซ็นแบบ constant-time, ตรวจ `merchantId`, event ที่ไม่รู้จักตอบ 200 ให้ Beam เลิก retry
 6. ตัวเลขทุกตัว (ราคา วัน ขีดจำกัด) มาจาก `src/lib/plan-limits.ts` — ไม่พิมพ์มือที่อื่น
 
@@ -81,7 +81,7 @@ merge ได้โดยยังไม่เปิดทั้งสอง → 
 
 ## งานนอกโค้ด
 
-1. Cloudflare: Workers Paid · `wrangler d1 create toolsiam` → ใส่ `database_id` · `wrangler kv namespace create SESSION` → ใส่ `id` · token ของ CI เพิ่มสิทธิ์ D1:Edit · repo variable `PUBLIC_MEMBERSHIP=on` ตอน go-live
+1. Cloudflare: Workers Paid · `wrangler d1 create toolsiam` → ได้ `database_id` · `wrangler kv namespace create MEMBER_SESSION` → ได้ `id` → **ปลด comment บล็อก binding ใน `wrangler.jsonc` แล้วใส่ id จริงทั้งสองตัว** (ก่อนหน้านั้นถูก comment ไว้โดยตั้งใจ: `wrangler deploy` ตรวจ id กับ API จริง ใส่ค่าปลอมแล้ว deploy ของทั้งเว็บพัง ไม่ใช่แค่ระบบสมาชิก) · token ของ CI เพิ่มสิทธิ์ D1:Edit · repo variable `PUBLIC_MEMBERSHIP=on` ตอน go-live
 2. Google Cloud: OAuth consent screen (external; homepage, `/privacy`, `/terms`) · Web client redirect URIs `https://toolsiam.com/api/auth/google/callback`, `https://www.toolsiam.com/api/auth/google/callback`, `http://localhost:4321/api/auth/google/callback`, `http://localhost:8787/api/auth/google/callback` · `wrangler secret put GOOGLE_CLIENT_SECRET`
 3. Beam: merchant + playground key + HMAC secret + webhook `https://toolsiam.com/api/billing/webhook` · `wrangler secret put BEAM_API_KEY`, `BEAM_WEBHOOK_HMAC_SECRET` · ทดสอบ playground ครบก่อนสลับ `BEAM_API_BASE_URL`
 4. Local: `.dev.vars` + `npx wrangler d1 migrations apply toolsiam --local`
@@ -89,6 +89,7 @@ merge ได้โดยยังไม่เปิดทั้งสอง → 
 ## ความเสี่ยง
 
 - ชื่อ field ของ Beam อ้างจากโปรเจกต์ข้างเคียง (spec เดิม §6) — ต้อง smoke test playground ก่อนเชื่อ assertion
-- webhook มาก่อน/ซ้ำ → `settlePayment` guard ที่ `status='pending'`; status endpoint อ่าน DB เป็นความจริง
+- webhook มาก่อน/ซ้ำ → `settlePayment` guard ที่ `SETTLEABLE` (pending/expired) แล้วปิดด้วย `paid`; status endpoint อ่าน DB เป็นความจริง
+- จ่ายวินาทีท้าย ๆ แล้ว poll ปิด QR ไปก่อน → ยังให้สิทธิ์ตามปกติ และ log `เงินมาถึงหลังปิดรายการ` ไว้ดูความถี่
 - perf budget (`docs/perf-budget.md`): header HTML ทุกหน้า + chunk ของ FileTool โตขึ้น — วัดแล้ว ledger ถ้าต้องยก
 - KV eventually consistent → OAuth state ไม่เก็บใน KV (ใช้ cookie) · session อ่านจาก PoP เดียวกับที่เขียนในทางปฏิบัติ
