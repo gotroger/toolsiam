@@ -525,8 +525,6 @@
   }
   .tool-tile {
     position: relative;
-    /* ลายน้ำวางที่ z-index ติดลบ จึงต้องมี stacking context ของตัวเองไม่ให้ทะลุไปหลังการ์ด */
-    isolation: isolate;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -571,29 +569,6 @@
       inset 0 1px 0 rgb(255 255 255 / 0.35),
       0 6px 12px -6px color-mix(in srgb, var(--tile-accent) 70%, transparent);
     transition: transform var(--motion-normal) var(--ease-product);
-  }
-  /* ลายน้ำ: ไอคอนเดิมของเครื่องมือ ขยายใหญ่แล้วปล่อยล้นมุมขวาล่าง */
-  .tool-tile:not(.tool-tile-featured) {
-    overflow: hidden;
-  }
-  .tile-watermark {
-    position: absolute;
-    z-index: -1;
-    right: -16px;
-    bottom: -18px;
-    width: 104px;
-    height: 104px;
-    color: var(--tile-accent);
-    opacity: 0.14;
-    pointer-events: none;
-    transition:
-      transform var(--motion-normal) var(--ease-product),
-      opacity var(--motion-normal);
-  }
-  .tile-watermark svg {
-    width: 100%;
-    height: 100%;
-    stroke-width: 1;
   }
   .tile-category {
     display: inline-flex;
@@ -1007,10 +982,6 @@
     .tool-tile:hover .tool-icon {
       transform: translateY(-2px) rotate(-3deg);
     }
-    .tool-tile:hover .tile-watermark {
-      transform: translate(-4px, -6px) rotate(-8deg);
-      opacity: 0.14;
-    }
     .tool-tile:hover .tile-arrow,
     .vertical-tile:hover .tile-arrow {
       transform: translate(2px, -2px);
@@ -1202,12 +1173,6 @@
       padding: 16px 14px;
       min-height: 202px;
       border-radius: 16px;
-    }
-    .tile-watermark {
-      right: -13px;
-      bottom: -14px;
-      width: 82px;
-      height: 82px;
     }
     .tool-tile h3 {
       font-size: 16px;
