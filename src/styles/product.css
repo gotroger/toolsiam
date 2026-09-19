@@ -19,6 +19,11 @@
     --color-accent-rose: #cf7894;
     --color-accent-teal: #379e9c;
     --color-accent-gold: #c9a33a;
+    --color-accent-indigo: #6170d6;
+    --color-accent-coral: #d96a5b;
+    --color-accent-cyan: #2f9cc6;
+    --color-accent-purple: #a668c9;
+    --color-accent-pink: #d066a6;
     --color-scrollbar: var(--color-slate-400);
     --color-scrollbar-track: var(--color-slate-100);
     scrollbar-gutter: stable;
@@ -481,9 +486,18 @@
   [data-category] {
     --tile-accent: var(--color-accent-mint);
   }
-  [data-category='documents'],
-  [data-category='loan'] {
+  /* หนึ่งหมวดหนึ่งสี ไม่ใช้ซ้ำกัน — กวาดตาแล้วแยกกลุ่มได้จากสีก่อนอ่านชื่อ */
+  [data-category='documents'] {
     --tile-accent: var(--color-accent-blue);
+  }
+  [data-category='images'] {
+    --tile-accent: var(--color-accent-teal);
+  }
+  [data-category='video'] {
+    --tile-accent: var(--color-accent-violet);
+  }
+  [data-category='loan'] {
+    --tile-accent: var(--color-accent-indigo);
   }
   [data-category='business'] {
     --tile-accent: var(--color-accent-orange);
@@ -491,21 +505,23 @@
   [data-category='land'] {
     --tile-accent: var(--color-accent-lime);
   }
-  [data-category='date'],
-  [data-category='dream'],
-  [data-category='video'] {
-    --tile-accent: var(--color-accent-violet);
+  [data-category='date'] {
+    --tile-accent: var(--color-accent-coral);
   }
-  [data-category='daily'],
-  [data-category='horoscope'] {
+  [data-category='daily'] {
     --tile-accent: var(--color-accent-rose);
   }
-  [data-category='images'],
   [data-category='qr'] {
-    --tile-accent: var(--color-accent-teal);
+    --tile-accent: var(--color-accent-cyan);
   }
   [data-category='lottery'] {
     --tile-accent: var(--color-accent-gold);
+  }
+  [data-category='dream'] {
+    --tile-accent: var(--color-accent-purple);
+  }
+  [data-category='horoscope'] {
+    --tile-accent: var(--color-accent-pink);
   }
   .tool-tile {
     position: relative;
@@ -543,16 +559,17 @@
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    color: var(--color-slate-800);
+    /* พื้นสีหมวดเต็ม + ลายเส้นขาว: ไอคอนเป็นจุดสีที่ตาจับได้ก่อน แทนกล่องเทาที่กลืนกันทั้งหน้า */
+    color: #fff;
     background: linear-gradient(
       145deg,
-      color-mix(in srgb, var(--tile-accent) 8%, var(--color-surface)),
-      color-mix(in srgb, var(--tile-accent) 22%, var(--color-surface))
+      color-mix(in srgb, var(--tile-accent) 82%, #fff),
+      color-mix(in srgb, var(--tile-accent) 88%, #000)
     );
-    border: 1px solid color-mix(in srgb, var(--tile-accent) 20%, var(--color-slate-200));
+    border: 1px solid color-mix(in srgb, var(--tile-accent) 80%, #000);
     box-shadow:
-      inset 0 2px 0 rgb(255 255 255 / 0.2),
-      0 4px 0 -2px color-mix(in srgb, var(--tile-accent) 25%, var(--color-surface));
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      0 6px 12px -6px color-mix(in srgb, var(--tile-accent) 70%, transparent);
     transition: transform var(--motion-normal) var(--ease-product);
   }
   /* ลายน้ำ: ไอคอนเดิมของเครื่องมือ ขยายใหญ่แล้วปล่อยล้นมุมขวาล่าง */
@@ -567,7 +584,7 @@
     width: 104px;
     height: 104px;
     color: var(--tile-accent);
-    opacity: 0.09;
+    opacity: 0.14;
     pointer-events: none;
     transition:
       transform var(--motion-normal) var(--ease-product),
