@@ -36,6 +36,12 @@ jobs:
 
       - run: npm ci
 
+      # ตรวจว่า SQL ใน migrations/ รันผ่านบน D1 local — ไม่ต้องใช้ credential
+      # ทำเฉพาะเมื่อเปิดระบบสมาชิกแล้ว (ก่อนหน้านั้น wrangler.jsonc ยังถือ id placeholder)
+      - name: ตรวจ migration ของ D1
+        if: vars.PUBLIC_MEMBERSHIP == 'on'
+        run: npx wrangler d1 migrations apply toolsiam --local
+
       - name: ตรวจสไตล์โค้ดและ a11y
         run: npm run lint
 
@@ -55,6 +61,8 @@ jobs:
           #
           # คงบรรทัดนี้ไว้เพื่อให้สลับกลับมาใช้ JS snippet ได้โดยไม่ต้องแก้ workflow
           PUBLIC_CF_BEACON_TOKEN: ${{ vars.PUBLIC_CF_BEACON_TOKEN }}
+          # "on" = HTML มีปุ่มเข้าสู่ระบบ/สมัครพรีเมียม (ดู .env.example) — ตั้งเป็น repository variable ตอน go-live
+          PUBLIC_MEMBERSHIP: ${{ vars.PUBLIC_MEMBERSHIP }}
 
       # budget อยู่ใน docs/perf-budget.md — เกินเมื่อไหร่ job แดงทันที ไม่ต้องรอให้ใครนึกได้ว่าต้องรันเอง
       - name: ตรวจขนาดหน้าเว็บเทียบ budget
@@ -81,6 +89,16 @@ jobs:
         env:
           # ดูคำเตือนเรื่อง token ใน job check ด้านบน
           PUBLIC_CF_BEACON_TOKEN: ${{ vars.PUBLIC_CF_BEACON_TOKEN }}
+          PUBLIC_MEMBERSHIP: ${{ vars.PUBLIC_MEMBERSHIP }}
+
+      # migration ต้องถึง production ก่อนโค้ดที่ใช้ตารางใหม่ — token ของ CI ต้องมีสิทธิ์ D1:Edit ด้วย
+      - name: Apply migration ของ D1 บน production
+        if: vars.PUBLIC_MEMBERSHIP == 'on'
+        uses: cloudflare/wrangler-action@v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply toolsiam --remote
 
       - name: Deploy ขึ้น Cloudflare Workers
         uses: cloudflare/wrangler-action@v3.14.1

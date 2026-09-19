@@ -3,6 +3,13 @@ import { PLAN_LIMITS } from '@/lib/plan-limits';
 /** ค่าเริ่มต้น = แพลนฟรี — ตัวเลขจริงมาจาก src/lib/plan-limits.ts และถูกส่งมากับ Job ตามแพลนของผู้ใช้ */
 export const MAX_PAGES = PLAN_LIMITS.free.pages;
 export const MAX_CELLS = PLAN_LIMITS.free.cells;
+
+/** ชนเพดานจำนวนช่องข้อมูล — document.ts แปลงเป็น LimitError ที่ UI รู้จัก (logic.ts ไม่ import types ของ worker) */
+export class CellLimitError extends Error {
+  constructor(public readonly max: number) {
+    super(`รองรับไม่เกิน ${max.toLocaleString('th-TH')} ช่องข้อมูล`);
+  }
+}
 export function pageIndices(input: string, count: number): number[] {
   if (!input.trim()) throw new Error('กรุณาระบุหมายเลขหน้า เช่น 1,3-5');
   const result = new Set<number>();
@@ -17,7 +24,7 @@ export function pageIndices(input: string, count: number): number[] {
   }
   return [...result];
 }
-export function parseCsv(text: string, delimiter = ','): string[][] {
+export function parseCsv(text: string, delimiter = ',', maxCells = MAX_CELLS): string[][] {
   text = text.replace(/^\uFEFF/, '');
   if (!text.trim()) throw new Error('CSV ไม่มีข้อมูล');
   const rows: string[][] = [];
@@ -30,7 +37,7 @@ export function parseCsv(text: string, delimiter = ','): string[][] {
     row.push(value);
     value = '';
     closed = false;
-    if (++cells > MAX_CELLS) throw new Error('รองรับไม่เกิน 100,000 ช่องข้อมูล');
+    if (++cells > maxCells) throw new CellLimitError(maxCells);
   };
   for (let i = 0; i < text.length; i++) {
     const c = text[i];

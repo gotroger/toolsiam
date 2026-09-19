@@ -42,7 +42,10 @@ export function json(status: number, body: unknown, headers: Record<string, stri
 }
 
 export function empty(status: number, headers: HeadersInit = {}): Response {
-  return new Response(null, { status, headers: { ...NO_STORE, ...headers } });
+  // Headers object กระจายด้วย spread ไม่ได้ — ต้องประกอบผ่าน Headers API
+  const merged = new Headers(headers);
+  merged.set('Cache-Control', NO_STORE['Cache-Control']);
+  return new Response(null, { status, headers: merged });
 }
 
 export function redirect(status: 302 | 303, location: string, cookies: string[] = []): Response {

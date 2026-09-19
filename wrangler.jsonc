@@ -16,18 +16,36 @@
   "observability": { "enabled": true },
   "preview_urls": false,
 
-  // อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
-  // JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ ไม่มี login (§28.2)
-  //
-  // ต้องเป็น namespace เดียวกับที่ workers/lottery-cron/ ใช้เขียน ไม่ใช่คนละอัน
+  // LOTTERY: อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
+  //   JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ (§28.2) ต้องเป็น namespace เดียวกับที่ workers/lottery-cron/ ใช้เขียน
+  // MEMBER_SESSION: session ของสมาชิก `SESSION:<sid>` TTL 30 วัน (spec 2026-09-19)
+  //   ตั้งชื่อไม่ใช่ SESSION เพราะ @astrojs/cloudflare จะยึด binding ชื่อนั้นไปใช้กับ Astro sessions เอง
+  //   สร้างด้วย `wrangler kv namespace create MEMBER_SESSION` แล้วใส่ id ที่ได้แทนค่าว่างด้านล่าง
   "kv_namespaces": [
-    { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" }
+    { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" },
+    { "binding": "MEMBER_SESSION", "id": "REPLACE_WITH_KV_ID" }
+  ],
+
+  // D1 ของระบบสมาชิก: users / subscriptions / payments — ไม่มีตารางไหนเก็บข้อมูลที่ผู้ใช้กรอกในเครื่องมือ
+  // สร้างด้วย `wrangler d1 create toolsiam` แล้วใส่ database_id · migration ใน migrations/ (CI apply ให้ก่อน deploy)
+  "d1_databases": [
+    { "binding": "DB", "database_name": "toolsiam", "database_id": "REPLACE_WITH_D1_ID", "migrations_dir": "migrations" }
   ],
 
   "vars": {
     // kill switch — ต้องเป็น "on" เท่านั้นจึงจะเปิด /api/lottery/latest
     // ตั้งเป็นค่าอื่นเมื่อใดก็ตามที่ endpoint ของ GLO มีปัญหา แล้วเว็บจะกลับไปใช้ static ล้วนทันที
-    "LOTTERY_AUTO": "on"
+    "LOTTERY_AUTO": "on",
+
+    // ระบบสมาชิก (spec 2026-09-19) — kill switch ฝั่ง server ทุก API ตอบ 204 เมื่อไม่ใช่ "on"
+    // เปิดหลังจากตั้ง secret ครบ: GOOGLE_CLIENT_SECRET, BEAM_API_KEY, BEAM_WEBHOOK_HMAC_SECRET (wrangler secret put)
+    // และ build ด้วย repository variable PUBLIC_MEMBERSHIP=on เพื่อให้ HTML มีปุ่มเข้าสู่ระบบ
+    "MEMBERSHIP": "off",
+    "SITE_ORIGIN": "https://toolsiam.com",
+    "GOOGLE_CLIENT_ID": "",
+    // playground ก่อน — สลับเป็น https://api.beamcheckout.com เมื่อทดสอบ flow ครบและ rotate key แล้ว
+    "BEAM_API_BASE_URL": "https://playground.api.beamcheckout.com",
+    "BEAM_MERCHANT_ID": ""
   },
 
 }

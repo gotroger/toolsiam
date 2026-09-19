@@ -3,7 +3,21 @@
  * Header หลักของเว็บ — sticky, พื้นขาว, เส้นคั่นบาง, เบลอพื้นหลังเมื่อเลื่อนลง
  * ลิงก์ทุกตัวชี้ไปยัง route/anchor ที่มีอยู่จริงเท่านั้น
  */
-import { getHomeUrl, getToolsUrl } from '@/lib/routes';
+import {
+  getAccountUrl,
+  getHomeUrl,
+  getLoginUrl,
+  getLogoutUrl,
+  getMeApiUrl,
+  getPremiumUrl,
+  getToolsUrl,
+} from '@/lib/routes';
+/**
+ * ปุ่มเข้าสู่ระบบ/เมนูบัญชีอยู่ใน HTML เฉพาะเมื่อ build ด้วย PUBLIC_MEMBERSHIP=on (spec 2026-09-19)
+ * ทำงานด้วย script ธรรมดาไม่ใช่ React island — เพิ่ม JS ให้ทุกหน้าไม่ได้ (perf budget)
+ * และยิง /api/me เฉพาะเมื่อมี cookie ts_m=1 → ผู้ใช้ทั่วไปไม่มี request เพิ่มเลย
+ */
+const membershipOn = import.meta.env.PUBLIC_MEMBERSHIP === 'on';
 const links = [
   { href: getToolsUrl(), label: 'เครื่องมือทั้งหมด', match: (p: string) => p.startsWith('/tools') },
   { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่', match: (p: string) => p.startsWith('/categories/') },
@@ -58,6 +72,28 @@ const current = Astro.url.pathname;
           >Ctrl K</kbd
         >
       </a>
+      {
+        membershipOn && (
+          <>
+            <a href={getLoginUrl()} data-login data-me-url={getMeApiUrl()} class="header-login hidden md:inline-flex">
+              เข้าสู่ระบบ
+            </a>
+            <details data-account-menu class="account-menu hidden md:block" hidden>
+              <summary aria-label="เมนูบัญชี">
+                <img data-avatar alt="" width="28" height="28" hidden referrerpolicy="no-referrer" />
+                <span data-name class="max-w-[9rem] truncate" />
+              </summary>
+              <div class="account-menu-panel">
+                <a href={getAccountUrl()}>บัญชีของฉัน</a>
+                <a href={getPremiumUrl()}>สมาชิกพรีเมียม</a>
+                <form method="post" action={getLogoutUrl()}>
+                  <button type="submit">ออกจากระบบ</button>
+                </form>
+              </div>
+            </details>
+          </>
+        )
+      }
       <button
         type="button"
         id="theme-toggle"
@@ -136,6 +172,29 @@ const current = Astro.url.pathname;
           );
         })
       }
+      {
+        membershipOn && (
+          <>
+            <a href={getLoginUrl()} data-login class="mnav-link text-brand-700">
+              เข้าสู่ระบบ
+            </a>
+            <div data-account-menu hidden class="mnav-account">
+              <span data-name />
+              <a href={getAccountUrl()} class="mnav-link">
+                บัญชีของฉัน
+              </a>
+              <a href={getPremiumUrl()} class="mnav-link">
+                สมาชิกพรีเมียม
+              </a>
+              <form method="post" action={getLogoutUrl()}>
+                <button type="submit" class="mnav-link w-full text-left">
+                  ออกจากระบบ
+                </button>
+              </form>
+            </div>
+          </>
+        )
+      }
     </div>
   </nav>
 </header>
@@ -204,6 +263,63 @@ const current = Astro.url.pathname;
       if (!root.dataset.theme) paint();
     });
     paint();
+  }
+
+  /**
+   * สถานะสมาชิกใน header — HTML ที่ build ไว้มีปุ่ม "เข้าสู่ระบบ" เสมอ (ทุกคนเห็นเหมือนกัน)
+   * เฉพาะเบราว์เซอร์ที่มี cookie ts_m=1 (ตั้งตอนล็อกอิน) จึงถาม /api/me แล้วสลับเป็นเมนูบัญชี
+   *   200 → แสดงเมนู ซ่อนปุ่ม · 401 → คงปุ่มไว้ · 204 (ระบบปิด) หรือพัง → ซ่อนทั้งคู่
+   * ปุ่ม login พา `next` = หน้าปัจจุบัน เพื่อกลับมาที่เดิมหลังล็อกอิน
+   */
+  const loginLinks = document.querySelectorAll<HTMLAnchorElement>('[data-login]');
+  const accountMenus = document.querySelectorAll<HTMLElement>('[data-account-menu]');
+  if (loginLinks.length) {
+    const next = encodeURIComponent(location.pathname + location.search);
+    for (const a of loginLinks) a.href = `${a.href.split('?')[0]}?next=${next}`;
+    const meUrl = loginLinks[0].dataset.meUrl;
+    const hasHint = document.cookie.split(';').some((c) => c.trim() === 'ts_m=1');
+    const show = (els: NodeListOf<HTMLElement>, visible: boolean) => {
+      for (const el of els) el.hidden = !visible;
+    };
+    if (hasHint && meUrl) {
+      fetch(meUrl, { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(3000) })
+        .then(async (res) => {
+          if (res.status === 200) {
+            const me = (await res.json()) as { user?: { displayName?: string; avatarUrl?: string | null } };
+            for (const menu of accountMenus) {
+              const name = menu.querySelector<HTMLElement>('[data-name]');
+              const avatar = menu.querySelector<HTMLImageElement>('[data-avatar]');
+              if (name) name.textContent = me.user?.displayName ?? 'บัญชีของฉัน';
+              if (avatar && me.user?.avatarUrl) {
+                avatar.src = me.user.avatarUrl;
+                avatar.hidden = false;
+              }
+            }
+            show(loginLinks, false);
+            show(accountMenus, true);
+          } else if (res.status !== 401) {
+            show(loginLinks, false);
+          }
+        })
+        .catch(() => {
+          /* เครือข่ายพัง — คงปุ่มเข้าสู่ระบบไว้ */
+        });
+    }
+    // ปิดเมนู <details> เมื่อคลิกนอกหรือกด Esc — เหมือนเมนูมือถือ
+    document.addEventListener('click', (e) => {
+      for (const menu of accountMenus) {
+        if (menu instanceof HTMLDetailsElement && menu.open && !menu.contains(e.target as Node)) menu.open = false;
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      for (const menu of accountMenus) {
+        if (menu instanceof HTMLDetailsElement && menu.open) {
+          menu.open = false;
+          menu.querySelector('summary')?.focus();
+        }
+      }
+    });
   }
 
   const header = document.getElementById('site-header');

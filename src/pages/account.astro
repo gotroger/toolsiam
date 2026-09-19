@@ -1,0 +1,27 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import Card from '@/components/Card.astro';
+import AccountPanel from '@/components/account/AccountPanel';
+import { getAccountUrl, getHomeUrl } from '@/lib/routes';
+
+/**
+ * หน้าบัญชี — HTML เป็น static (noindex ผ่านรายการกลางใน src/lib/noindex.ts)
+ * เนื้อหาที่ขึ้นกับผู้ใช้ทั้งหมดมาจาก island หลัง hydrate ผ่าน /api/me
+ *
+ * `?error=google` มาจาก callback เมื่อ Google ไม่ยืนยันบัญชี — island อ่านเองตอน mount เพราะหน้าเป็น static
+ */
+const title = 'บัญชีของฉัน';
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: title, path: getAccountUrl() },
+];
+---
+
+<Base title={`${title} — ทูลสยาม`} description="จัดการบัญชีและสมาชิกพรีเมียมของทูลสยาม">
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-[1.75rem] font-medium tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
+  <Card class="mt-6">
+    <AccountPanel client:load />
+  </Card>
+</Base>

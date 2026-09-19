@@ -15,7 +15,7 @@ export interface LotteryEnv {
   LOTTERY_AUTO?: string;
 }
 
-/** key เดียวใน KV เก็บ JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ ไม่มี login */
+/** key เดียวใน KV เก็บ JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ (session ของสมาชิกอยู่คนละ namespace) */
 export const KV_KEY = 'latest-draw';
 
 export interface StoredDraw {

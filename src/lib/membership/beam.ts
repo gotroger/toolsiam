@@ -146,6 +146,10 @@ export function extractCharge(payload: unknown): WebhookCharge {
   return { id: null, referenceId: null, status: null };
 }
 
-function b64(text: string): Uint8Array {
-  return Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
+/** คืน Uint8Array บน ArrayBuffer จริง — Web Crypto รับ BufferSource ไม่รับ ArrayBufferLike */
+function b64(text: string): Uint8Array<ArrayBuffer> {
+  const s = atob(text);
+  const out = new Uint8Array(new ArrayBuffer(s.length));
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
 }
