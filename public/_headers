@@ -3,3 +3,7 @@
 # (กฎ /ffmpeg/*/* ไม่ match ใน wrangler — ทดสอบแล้ว 13 ก.ย. 2569)
 /ffmpeg/*
   Cache-Control: public, max-age=31536000, immutable
+
+# ตัวอ่านข้อความ (OCR) มีเวอร์ชันอยู่ใน path เช่นกัน — engine.ts fetch manifest ด้วย cache: "no-store"
+/ocr/*
+  Cache-Control: public, max-age=31536000, immutable

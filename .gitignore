@@ -20,3 +20,5 @@ output/
 
 # ffmpeg core ถูก generate จาก node_modules ด้วย scripts/copy-ffmpeg.mjs (ไฟล์ 10 MB ไม่เก็บใน git)
 public/ffmpeg/
+# ตัวอ่านข้อความ (tesseract) ถูก generate ด้วย scripts/copy-ocr.mjs เช่นกัน
+public/ocr/

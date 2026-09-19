@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "postinstall": "node scripts/copy-ffmpeg.mjs",
-    "build": "node scripts/copy-ffmpeg.mjs && astro build",
+    "postinstall": "node scripts/copy-ffmpeg.mjs && node scripts/copy-ocr.mjs",
+    "build": "node scripts/copy-ffmpeg.mjs && node scripts/copy-ocr.mjs && astro build",
     "preview": "npm run build && wrangler dev",
     "deploy": "npm run build && wrangler deploy",
     "lint": "eslint .",
@@ -43,12 +43,15 @@
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260907.1",
     "@eslint/js": "^9.39.5",
     "@ffmpeg/core": "^0.12.10",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/tha": "^1.0.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
@@ -67,6 +70,7 @@
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
+    "tesseract.js-core": "^7.0.0",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.70.0",
     "vitest": "^5.0.0",
