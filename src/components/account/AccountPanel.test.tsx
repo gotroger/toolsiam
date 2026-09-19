@@ -6,6 +6,11 @@ import AccountPanel, { __setPlanForTests } from './AccountPanel';
 beforeEach(() => {
   __setPlanForTests(null);
   Object.defineProperty(document, 'cookie', { value: '', configurable: true, writable: true });
+  // ค่าเริ่มต้น: ยังไม่เคยจ่าย — เทสต์ที่สนใจประวัติจะ stub ทับเอง
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response(JSON.stringify({ payments: [] }))),
+  );
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -57,6 +62,38 @@ describe('AccountPanel', () => {
     expect(screen.getByText(/พรีเมียมจะหมดอายุใน 2 วัน/)).toBeInTheDocument();
     expect(screen.getByText('สมาชิกพรีเมียม')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ต่ออายุอีก 30 วัน · 19 บาท' })).toBeInTheDocument();
+  });
+
+  it('เคยจ่ายแล้ว → แสดงตารางประวัติพร้อมวันที่ จำนวนเงิน และสถานะภาษาไทย', async () => {
+    __setPlanForTests({ status: 'signedIn', plan: 'free', user });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url === '/api/billing/history')
+          return new Response(
+            JSON.stringify({
+              payments: [
+                { createdAt: Date.UTC(2026, 8, 19) / 1000, amountSatang: 1900, status: 'paid' },
+                { createdAt: Date.UTC(2026, 7, 19) / 1000, amountSatang: 1900, status: 'expired' },
+              ],
+            }),
+          );
+        throw new Error(`ไม่คาดคิด: ${url}`);
+      }),
+    );
+    render(<AccountPanel />);
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+    expect(screen.getByText('ชำระแล้ว')).toBeInTheDocument();
+    expect(screen.getByText('หมดอายุ')).toBeInTheDocument();
+    expect(screen.getAllByText('19.00 บาท')).toHaveLength(2);
+    expect(screen.getByText(/19 กันยายน 2569/)).toBeInTheDocument();
+  });
+
+  it('ยังไม่เคยจ่าย → ไม่มีตารางประวัติให้รกหน้า', async () => {
+    __setPlanForTests({ status: 'signedIn', plan: 'free', user });
+    render(<AccountPanel />);
+    await waitFor(() => expect(screen.getByText('สมชาย')).toBeInTheDocument());
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
   it('กดสมัคร → POST checkout → แสดง QR และ poll จน paid', async () => {

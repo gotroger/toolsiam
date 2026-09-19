@@ -42,6 +42,7 @@ Astro API routes (prerender=false, shim บาง ๆ) → src/lib/membership/ha
   ├── GET  /api/me                    private, no-store → {user, plan, premiumUntil, expiringSoon}
   ├── POST /api/billing/checkout      สร้าง payments(pending) → Beam charge → QR base64 (ใช้ pending เดิมที่ยังไม่หมดอายุซ้ำ)
   ├── GET  /api/billing/status?ref=   DB เป็นความจริง · เลย QR TTL → expired
+  ├── GET  /api/billing/history       ประวัติของตัวเอง 10 รายการล่าสุด (แยกจาก /api/me ที่ถูกเรียกทุกหน้า)
   └── POST /api/billing/webhook       HMAC-SHA256 ของ raw body → settle แบบ idempotent (pending หรือ expired)
 ```
 
@@ -53,6 +54,7 @@ Astro API routes (prerender=false, shim บาง ๆ) → src/lib/membership/ha
 4. `next` หลังล็อกอินต้องขึ้นต้นด้วย `/` ไม่ใช่ `//` หรือ `/\` และ **ห้ามมีอักขระควบคุม** (URL parser ลบ tab/CR/LF ทิ้งก่อนแยกส่วน `/<tab>/evil.com` จึงกลายเป็น `//evil.com`) — กัน open redirect
 5. webhook: อ่าน raw body (≤ 64 KB) ก่อน parse, ตรวจลายเซ็นแบบ constant-time, ตรวจ `merchantId`, event ที่ไม่รู้จักตอบ 200 ให้ Beam เลิก retry
 6. ตัวเลขทุกตัว (ราคา วัน ขีดจำกัด) มาจาก `src/lib/plan-limits.ts` — ไม่พิมพ์มือที่อื่น
+7. `/api/billing/history` ส่งออกเฉพาะ `createdAt` / `amountSatang` / `status` — `beamChargeId`, `rawWebhookJson`, `qrImage` ไม่ออกนอก server
 
 ## โครงข้อมูล (D1, `migrations/0001_membership.sql`)
 

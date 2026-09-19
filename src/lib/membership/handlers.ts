@@ -246,6 +246,24 @@ export async function handleStatus(request: Request, env: MembershipEnv, deps: D
   return json(200, { status, premiumUntil: await deps.store.getExpiresAt(session.userId) });
 }
 
+/**
+ * `GET /api/billing/history` — ประวัติการชำระเงินของผู้ใช้เอง
+ *
+ * แยกจาก `/api/me` โดยตั้งใจ: `/api/me` ถูกเรียกทุกหน้าที่ล็อกอินอยู่ จึงไม่ควรโตตามจำนวนรายการ
+ * ส่งออกเฉพาะสามช่องที่เจ้าของบัญชีต้องใช้ — ไม่ส่ง beamChargeId / rawWebhookJson / qrImage ออกนอก server
+ */
+export const HISTORY_LIMIT = 10;
+
+export async function handleHistory(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+  if (!ready(env, deps)) return empty(204);
+  const session = await requireSession(request, deps);
+  if (!session) return empty(401);
+  const payments = await deps.store.listPayments(session.userId, HISTORY_LIMIT);
+  return json(200, {
+    payments: payments.map((p) => ({ createdAt: p.createdAt, amountSatang: p.amountSatang, status: p.status })),
+  });
+}
+
 /** `POST /api/billing/webhook` — ไม่มี cookie ไม่มี Origin ใช้ HMAC เท่านั้น */
 export async function handleWebhook(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
   if (!ready(env, deps) || !isBillingEnabled(env)) return empty(204);

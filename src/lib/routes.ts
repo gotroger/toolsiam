@@ -30,6 +30,7 @@ export const getLogoutUrl = () => '/api/auth/logout';
 export const getMeApiUrl = () => '/api/me';
 export const getCheckoutApiUrl = () => '/api/billing/checkout';
 export const getBillingStatusUrl = (ref: string) => `/api/billing/status?ref=${encodeURIComponent(ref)}`;
+export const getBillingHistoryUrl = () => '/api/billing/history';
 export const getBillingWebhookPath = () => '/api/billing/webhook';
 
 /** หมวดที่เป็น vertical จะมี landingPath ของตัวเอง (เพิ่มจริงที่ Phase 0B) */

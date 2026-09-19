@@ -2,11 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   handleCallback,
   handleCheckout,
+  handleHistory,
   handleLogout,
   handleMe,
   handleStart,
   handleStatus,
   handleWebhook,
+  HISTORY_LIMIT,
   type Deps,
 } from './handlers';
 import type { MembershipEnv } from './env';
@@ -348,6 +350,62 @@ describe('billing', () => {
       now: () => opts.now ?? NOW,
     });
   }
+
+  it('history: ต้อง login · เห็นเฉพาะของตัวเอง · ส่งออกแค่สามช่อง ไม่มีข้อมูลภายในหลุด', async () => {
+    const d = setup();
+    expect((await handleHistory(get('/api/billing/history'), fullEnv(), d.deps)).status).toBe(401);
+    const { cookie, user } = await signedIn(d);
+
+    // ยังไม่เคยจ่าย → รายการว่าง
+    expect(await (await handleHistory(get('/api/billing/history', { cookie }), fullEnv(), d.deps)).json()).toEqual({
+      payments: [],
+    });
+
+    for (const [i, owner] of [user.id, 'someone-else', user.id].entries()) {
+      await d.store.createPayment({
+        id: `p${i}`,
+        userId: owner,
+        amountSatang: 1900,
+        beamChargeId: `ch${i}`,
+        qrExpiresAt: NOW,
+        qrImage: 'ความลับ',
+        qrRaw: 'ความลับ',
+        createdAt: NOW + i,
+      });
+    }
+    const res = await handleHistory(get('/api/billing/history', { cookie }), fullEnv(), d.deps);
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    const body = (await res.json()) as { payments: Record<string, unknown>[] };
+    // ของคนอื่นไม่ติดมา และเรียงใหม่ไปเก่า
+    expect(body.payments).toEqual([
+      { createdAt: NOW + 2, amountSatang: 1900, status: 'pending' },
+      { createdAt: NOW, amountSatang: 1900, status: 'pending' },
+    ]);
+    // ไม่มี field ภายในหลุดออกไป
+    expect(JSON.stringify(body)).not.toContain('ความลับ');
+    expect(JSON.stringify(body)).not.toContain('ch0');
+  });
+
+  it('history: จำกัดจำนวนรายการที่ส่งออก', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    for (let i = 0; i < HISTORY_LIMIT + 5; i++) {
+      await d.store.createPayment({
+        id: `p${i}`,
+        userId: user.id,
+        amountSatang: 1900,
+        beamChargeId: null,
+        qrExpiresAt: NOW,
+        qrImage: null,
+        qrRaw: null,
+        createdAt: NOW + i,
+      });
+    }
+    const body = (await (await handleHistory(get('/api/billing/history', { cookie }), fullEnv(), d.deps)).json()) as {
+      payments: unknown[];
+    };
+    expect(body.payments).toHaveLength(HISTORY_LIMIT);
+  });
 
   it('webhook: ลายเซ็นผิด → 401 · body ใหญ่เกิน → 413 · JSON พัง → 400 · merchant ไม่ตรง → 401', async () => {
     const d = setup();

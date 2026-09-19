@@ -68,6 +68,8 @@ export interface MembershipStore {
   findPaymentByChargeId(chargeId: string): Promise<Payment | null>;
   /** pending ที่ QR ยังไม่หมดอายุ ณ `now` — ใช้ซ้ำแทนการสร้าง charge ใหม่ทุกครั้งที่กดปุ่ม */
   latestPendingPayment(userId: string, now: number): Promise<Payment | null>;
+  /** ประวัติการชำระเงินของผู้ใช้ ใหม่ไปเก่า — ใช้ index payments_user_created */
+  listPayments(userId: string, limit: number): Promise<Payment[]>;
   expirePayment(id: string): Promise<void>;
   /**
    * atomic: payments → paid และ subscriptions.expires_at = max(now, เดิม) + days
@@ -200,6 +202,14 @@ export function d1Store(db: D1Database): MembershipStore {
         .bind(userId, now)
         .first<PaymentRow>();
       return row ? toPayment(row) : null;
+    },
+
+    async listPayments(userId, limit) {
+      const { results } = await db
+        .prepare(`SELECT ${PAYMENT_COLS} FROM payments WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2`)
+        .bind(userId, limit)
+        .all<PaymentRow>();
+      return (results ?? []).map(toPayment);
     },
 
     async expirePayment(id) {

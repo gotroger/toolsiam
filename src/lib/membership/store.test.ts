@@ -22,6 +22,10 @@ function fakeD1(firstResults: unknown[] = [], changes = 1) {
         calls.push({ sql, args: s.args });
         return firstResults[i++] ?? null;
       },
+      async all() {
+        calls.push({ sql, args: s.args });
+        return { results: (firstResults[i++] as unknown[]) ?? [] };
+      },
       async run() {
         calls.push({ sql, args: s.args });
         return { meta: { changes } };
@@ -60,6 +64,13 @@ describe('d1Store', () => {
     expect(await d1Store(db).latestPendingPayment('u1', 500)).toBeNull();
     expect(db.calls[0].sql).toMatch(/status = 'pending' AND qr_expires_at > \?2/);
     expect(db.calls[0].args).toEqual(['u1', 500]);
+  });
+
+  it('listPayments เรียงใหม่ไปเก่าและจำกัดจำนวน ใช้ index user+created', async () => {
+    const db = fakeD1([]);
+    await d1Store(db).listPayments('u1', 10);
+    expect(db.calls[0].sql).toContain('WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2');
+    expect(db.calls[0].args).toEqual(['u1', 10]);
   });
 
   it('settlePayment ใช้ batch เดียว: บวกวันและ mark paid ด้วยเงื่อนไข SETTLEABLE ชุดเดียวกัน', async () => {

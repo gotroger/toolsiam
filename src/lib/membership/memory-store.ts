@@ -55,6 +55,12 @@ export function memoryStore(): MembershipStore & {
           .sort((a, b) => b.createdAt - a.createdAt)[0] ?? null
       );
     },
+    async listPayments(userId, limit) {
+      return [...payments.values()]
+        .filter((p) => p.userId === userId)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, limit);
+    },
     async expirePayment(id) {
       const payment = payments.get(id);
       if (payment?.status === 'pending') payments.set(id, { ...payment, status: 'expired' });

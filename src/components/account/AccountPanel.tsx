@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, CopyButton, EmptyState, Stat } from '@/components/ui';
+import { Alert, Button, CopyButton, DataTable, EmptyState, Stat } from '@/components/ui';
 import { __setPlanForTests, refreshPlan, usePlan, type PlanState } from '@/lib/plan-client';
 import { PREMIUM_DAYS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
 import { daysLeft } from '@/lib/membership/plan';
 import {
   getAccountUrl,
+  getBillingHistoryUrl,
   getBillingStatusUrl,
   getCheckoutApiUrl,
   getLoginUrl,
   getLogoutUrl,
   getPremiumUrl,
 } from '@/lib/routes';
+import { formatBaht } from '@/lib/format';
 import { formatThaiDate } from '@/lib/thai-date';
 
 export { __setPlanForTests };
@@ -142,6 +144,7 @@ function SignedIn({ state }: { state: PlanState }) {
         />
       </div>
       <BuyPremium premium={premium} />
+      <PaymentHistory />
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4 text-sm">
         <a className="text-brand-700 underline" href={getPremiumUrl()}>
           ดูสิทธิ์ของสมาชิกพรีเมียม
@@ -299,6 +302,74 @@ export function BuyPremium({ premium }: { premium: boolean }) {
           <p className="text-sm text-slate-600">สแกน QR PromptPay · ไม่ตัดเงินอัตโนมัติ</p>
         </div>
       )}
+    </section>
+  );
+}
+
+interface HistoryRow {
+  /** unix seconds */
+  createdAt: number;
+  amountSatang: number;
+  status: 'pending' | 'paid' | 'expired';
+}
+
+const STATUS_LABEL: Record<HistoryRow['status'], string> = {
+  paid: 'ชำระแล้ว',
+  pending: 'รอชำระ',
+  expired: 'หมดอายุ',
+};
+
+/**
+ * ประวัติการชำระเงินของผู้ใช้เอง — โหลดแยกจาก /api/me เพราะ /api/me ถูกเรียกทุกหน้าที่ล็อกอินอยู่
+ *
+ * ยังไม่เคยจ่าย = ไม่แสดงอะไรเลย ไม่ใช่ตารางเปล่าที่กินที่โดยไม่ให้ข้อมูล
+ * โหลดล้มเหลวก็เงียบ — ประวัติเป็นข้อมูลประกอบ ไม่ใช่สิ่งที่ขาดแล้วใช้หน้านี้ไม่ได้
+ */
+export function PaymentHistory() {
+  const [rows, setRows] = useState<HistoryRow[] | null>(null);
+
+  useEffect(() => {
+    let stopped = false;
+    void (async () => {
+      try {
+        const res = await fetch(getBillingHistoryUrl(), { credentials: 'same-origin', cache: 'no-store' });
+        if (stopped || !res.ok) return;
+        const body = (await res.json()) as { payments?: HistoryRow[] };
+        if (!stopped && Array.isArray(body.payments)) setRows(body.payments);
+      } catch {
+        /* ประวัติโหลดไม่ได้ไม่ควรทำให้หน้าบัญชีใช้ไม่ได้ */
+      }
+    })();
+    return () => {
+      stopped = true;
+    };
+  }, []);
+
+  if (!rows?.length) return null;
+  return (
+    <section aria-label="ประวัติการชำระเงิน" className="space-y-3">
+      <h2 className="text-lg font-medium tracking-tight text-slate-900">ประวัติการชำระเงิน</h2>
+      <DataTable
+        caption="ประวัติการชำระเงินล่าสุดของบัญชีนี้"
+        rowKey={(row, i) => `${row.createdAt}-${i}`}
+        rows={rows}
+        columns={[
+          {
+            key: 'date',
+            header: 'วันที่',
+            render: (row) =>
+              formatThaiDate(new Date(row.createdAt * 1000).toISOString().slice(0, 10), { style: 'medium' }),
+          },
+          {
+            key: 'amount',
+            header: 'จำนวนเงิน',
+            align: 'right',
+            render: (row) => `${formatBaht(row.amountSatang / 100)} บาท`,
+          },
+          { key: 'status', header: 'สถานะ', render: (row) => STATUS_LABEL[row.status] ?? row.status },
+        ]}
+      />
+      <p className="text-xs text-slate-500">แสดง {rows.length} รายการล่าสุด · เวลาตามที่ระบบบันทึกไว้</p>
     </section>
   );
 }
