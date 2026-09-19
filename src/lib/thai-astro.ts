@@ -524,82 +524,78 @@ export function chineseNewYearOf(year: number): string | null {
 
 export interface DayColors {
   weekdayIndex: number;
+  /** ชื่อวันเกิด — คนเกิดวันพุธหลัง 18:00 น. ได้ "พุธกลางคืน" */
   weekdayName: string;
   /** สีประจำวันเกิดตามคติไทย */
   birthColor: string;
+  /** true เมื่อคำนวณแบบพุธกลางคืน (ราหู) */
+  wednesdayNight: boolean;
   work: string[];
   money: string[];
   love: string[];
   luck: string[];
-  /** สีที่ความเชื่อว่าควรเลี่ยง */
+  /** สีกาลกิณี — สีที่ความเชื่อว่าควรเลี่ยง */
   avoid: string[];
 }
 
 /**
- * สีมงคลรายวันตามคติไทย
+ * สีมงคลตามหลัก **ทักษา** ของโหราศาสตร์ไทย — คำนวณจากกฎ ไม่ใช่ตารางที่พิมพ์มือ
  *
- * เป็นความเชื่อที่มีหลายสำนักและไม่ตรงกันทุกตำรา ชุดนี้ยึดแนวที่เผยแพร่กันทั่วไป
- * เรียงตาม weekdayIndex คือ 0 = อาทิตย์ … 6 = เสาร์
+ * ดาวแปดดวงเรียงเป็นวงตามทิศ: อาทิตย์ → จันทร์ → อังคาร → พุธ → เสาร์ → พฤหัสบดี → ราหู → ศุกร์
+ * นับเริ่มจากดาวประจำวันเกิดเวียนไปตามวง ได้ตำแหน่ง บริวาร · อายุ · เดช · ศรี · มูละ · อุตสาหะ · มนตรี · กาลกิณี
+ * สีของดาวที่ตกตำแหน่งนั้นคือสีของเรื่องนั้น — สีของดาวกาลกิณีคือสีที่ควรเลี่ยง
+ *
+ * ราหูคือคนเกิด **วันพุธกลางคืน** (หลัง 18:00 น.) ซึ่งตำราไทยนับเป็นอีกวันหนึ่ง แยกจากพุธกลางวัน
+ * ตารางเดิมที่พิมพ์มือมีจุดขัดกันเอง (วันจันทร์มีสีแดงทั้งในสีเสริมการงานและสีที่ควรเลี่ยง) จึงเปลี่ยนมาใช้กฎ
  */
-const DAY_COLORS: Record<number, Omit<DayColors, 'weekdayIndex' | 'weekdayName' | 'birthColor'>> = {
-  0: {
-    work: ['เขียว', 'เทา'],
-    money: ['ม่วง', 'ชมพู'],
-    love: ['แดง', 'ส้ม'],
-    luck: ['แดง', 'ทอง'],
-    avoid: ['ฟ้า', 'น้ำเงิน'],
-  },
-  1: {
-    work: ['ส้ม', 'แดง'],
-    money: ['ครีม', 'เหลือง'],
-    love: ['ขาว', 'ครีม'],
-    luck: ['เหลือง', 'ทอง'],
-    avoid: ['แดงเข้ม'],
-  },
-  2: {
-    work: ['ชมพู', 'แดง'],
-    money: ['เขียว', 'ฟ้า'],
-    love: ['ชมพู', 'ม่วงอ่อน'],
-    luck: ['ชมพู', 'ทอง'],
-    avoid: ['เหลือง'],
-  },
-  3: {
-    work: ['เขียว', 'เทา'],
-    money: ['ส้ม', 'ทอง'],
-    love: ['ชมพู', 'ครีม'],
-    luck: ['เขียว', 'เหลือง'],
-    avoid: ['ชมพู'],
-  },
-  4: {
-    work: ['ส้ม', 'เหลือง'],
-    money: ['ฟ้า', 'น้ำเงิน'],
-    love: ['ครีม', 'ขาว'],
-    luck: ['ส้ม', 'ทอง'],
-    avoid: ['ม่วงเข้ม'],
-  },
-  5: {
-    work: ['ฟ้า', 'น้ำเงิน'],
-    money: ['ม่วง', 'ชมพู'],
-    love: ['แดง', 'ชมพู'],
-    luck: ['ฟ้า', 'เงิน'],
-    avoid: ['ดำ', 'เทาเข้ม'],
-  },
-  6: {
-    work: ['ม่วง', 'ดำ'],
-    money: ['เขียว', 'เทา'],
-    love: ['ฟ้า', 'ขาว'],
-    luck: ['ม่วง', 'เงิน'],
-    avoid: ['เขียวสด'],
-  },
+const TAKSA_RING = ['sun', 'moon', 'mars', 'mercury', 'saturn', 'jupiter', 'rahu', 'venus'] as const;
+type TaksaPlanet = (typeof TAKSA_RING)[number];
+
+const PLANET_COLORS: Record<TaksaPlanet, string[]> = {
+  sun: ['แดง'],
+  moon: ['เหลือง', 'ขาวนวล'],
+  mars: ['ชมพู'],
+  mercury: ['เขียว'],
+  saturn: ['ม่วง', 'ดำ'],
+  jupiter: ['ส้ม'],
+  rahu: ['เทา', 'ดำ'],
+  venus: ['ฟ้า', 'น้ำเงิน'],
 };
 
-export function dayColorsFromDate(iso: string): DayColors {
+/** ดาวประจำวันเกิด เรียงตาม weekdayIndex 0 = อาทิตย์ … 6 = เสาร์ */
+const WEEKDAY_PLANET: TaksaPlanet[] = ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn'];
+
+const TAKSA_ROLES = ['บริวาร', 'อายุ', 'เดช', 'ศรี', 'มูละ', 'อุตสาหะ', 'มนตรี', 'กาลกิณี'] as const;
+export type TaksaRole = (typeof TAKSA_ROLES)[number];
+
+/** ดาวที่ตกแต่ละตำแหน่งทักษาของคนเกิดใต้ดาว `birth` */
+function taksaOf(birth: TaksaPlanet): Record<TaksaRole, TaksaPlanet> {
+  const start = TAKSA_RING.indexOf(birth);
+  return Object.fromEntries(
+    TAKSA_ROLES.map((role, i) => [role, TAKSA_RING[(start + i) % TAKSA_RING.length]]),
+  ) as Record<TaksaRole, TaksaPlanet>;
+}
+
+export function dayColorsFromDate(iso: string, opts: { wednesdayNight?: boolean } = {}): DayColors {
   const wd = weekdayIndex(iso);
+  // ตัวเลือกพุธกลางคืนมีผลเฉพาะวันพุธ — วันอื่นส่งมาก็ไม่เปลี่ยนผล
+  const night = wd === 3 && opts.wednesdayNight === true;
+  const taksa = taksaOf(night ? 'rahu' : WEEKDAY_PLANET[wd]);
+  const avoid = PLANET_COLORS[taksa.กาลกิณี];
+  // สีดำเป็นของทั้งเสาร์และราหู — ถ้าดาวใดดาวหนึ่งเป็นกาลกิณี ต้องไม่โผล่ในสีเสริมของอีกดวง
+  const colors = (...roles: TaksaRole[]) => [
+    ...new Set(roles.flatMap((r) => PLANET_COLORS[taksa[r]]).filter((c) => !avoid.includes(c))),
+  ];
   return {
     weekdayIndex: wd,
-    weekdayName: THAI_WEEKDAYS[wd],
-    birthColor: THAI_DAY_COLORS[wd],
-    ...DAY_COLORS[wd],
+    weekdayName: night ? 'พุธกลางคืน' : THAI_WEEKDAYS[wd],
+    birthColor: night ? 'เทา' : THAI_DAY_COLORS[wd],
+    wednesdayNight: night,
+    work: colors('อุตสาหะ', 'มนตรี'),
+    money: colors('มูละ', 'ศรี'),
+    love: colors('บริวาร'),
+    luck: colors('ศรี', 'เดช'),
+    avoid,
   };
 }
 

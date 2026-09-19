@@ -301,6 +301,47 @@ describe('สีมงคลประจำวันเกิด', () => {
     expect(r.birthColor).toBe('ชมพู');
   });
 
+  it('สีกาลกิณีของทุกวันตรงตามทักษา — สำเนาอิสระ ไม่คำนวณจากซอร์ส', () => {
+    // อาทิตย์→ศุกร์ · จันทร์→อาทิตย์ · อังคาร→จันทร์ · พุธ→อังคาร · พฤหัส→เสาร์ · ศุกร์→ราหู · เสาร์→พุธ
+    const expected = [
+      ['ฟ้า', 'น้ำเงิน'],
+      ['แดง'],
+      ['เหลือง', 'ขาวนวล'],
+      ['ชมพู'],
+      ['ม่วง', 'ดำ'],
+      ['เทา', 'ดำ'],
+      ['เขียว'],
+    ];
+    for (let i = 0; i < 7; i++) {
+      const iso = new Date(Date.UTC(2026, 8, 6 + i)).toISOString().slice(0, 10);
+      expect(dayColorsFromDate(iso).avoid, iso).toEqual(expected[i]);
+    }
+  });
+
+  it('สีเสริมไม่มีวันซ้ำกับสีที่ควรเลี่ยงของวันเดียวกัน', () => {
+    for (let i = 0; i < 7; i++) {
+      const iso = new Date(Date.UTC(2026, 8, 6 + i)).toISOString().slice(0, 10);
+      for (const night of [false, true]) {
+        const r = dayColorsFromDate(iso, { wednesdayNight: night });
+        for (const key of ['work', 'money', 'love', 'luck'] as const) {
+          for (const c of r[key]) expect(r.avoid, `${iso} ${key} ${c}`).not.toContain(c);
+        }
+      }
+    }
+  });
+
+  it('พุธกลางคืนนับเป็นราหู: สีเทา กาลกิณีคือสีส้มของพฤหัสบดี และมีผลเฉพาะวันพุธ', () => {
+    // 2026-09-09 เป็นวันพุธ
+    const night = dayColorsFromDate('2026-09-09', { wednesdayNight: true });
+    expect(night.weekdayName).toBe('พุธกลางคืน');
+    expect(night.birthColor).toBe('เทา');
+    expect(night.avoid).toEqual(['ส้ม']);
+    expect(night.love).toEqual(['เทา', 'ดำ']);
+    expect(dayColorsFromDate('2026-09-09').weekdayName).toBe('พุธ');
+    // วันอังคาร ส่งตัวเลือกมาก็ไม่เปลี่ยนผล
+    expect(dayColorsFromDate('2026-09-08', { wednesdayNight: true }).weekdayName).toBe('อังคาร');
+  });
+
   it('ทุกวันมีสีครบทุกหมวด', () => {
     for (let i = 0; i < 7; i++) {
       const iso = new Date(Date.UTC(2026, 8, 6 + i)).toISOString().slice(0, 10);

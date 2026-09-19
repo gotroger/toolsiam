@@ -1,7 +1,8 @@
 import { DatePicker } from '@/components/ui/date-picker';
+import { useState } from 'react';
 import { useDateInput } from '@/lib/use-today';
 import { dayColorsFromDate } from '@/lib/thai-astro';
-import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
+import { Checkbox, ErrorText, Field, ResultBox, Stat } from '@/components/ui';
 
 const GROUPS = [
   { key: 'work', label: 'สีเสริมการงาน' },
@@ -13,12 +14,13 @@ const GROUPS = [
 /** สีมงคลจากวันเกิด — ผู้ใช้กรอกวันเกิด ไม่ใช่วันนี้ เพราะสีประจำตัวยึดวันที่เกิด */
 export default function LuckyColorFinder() {
   const [birth, setBirth] = useDateInput();
+  const [night, setNight] = useState(false);
 
   let error = '';
   let colors: ReturnType<typeof dayColorsFromDate> | null = null;
   if (birth !== '') {
     try {
-      colors = dayColorsFromDate(birth);
+      colors = dayColorsFromDate(birth, { wednesdayNight: night });
     } catch (e) {
       error = (e as Error).message;
     }
@@ -37,6 +39,15 @@ export default function LuckyColorFinder() {
         />
       </Field>
 
+      {/* ตำราไทยนับคนเกิดวันพุธหลัง 18:00 น. เป็น "พุธกลางคืน" (ราหู) ซึ่งสีต่างจากพุธกลางวันทั้งชุด */}
+      {colors && colors.weekdayIndex === 3 && (
+        <Checkbox
+          label="เกิดวันพุธหลัง 18:00 น. (พุธกลางคืน)"
+          checked={night}
+          onChange={(e) => setNight(e.target.checked)}
+        />
+      )}
+
       {error && <ErrorText>{error}</ErrorText>}
 
       {colors && (
@@ -53,7 +64,7 @@ export default function LuckyColorFinder() {
 
           <p className="rounded-[10px] border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
             สีที่ความเชื่อว่าควรเลี่ยงสำหรับคนเกิดวัน{colors.weekdayName} คือสี{colors.avoid.join(' และสี')} —
-            ตำราสีมงคลมีหลายสำนักและระบุไม่ตรงกันทั้งหมด ชุดนี้ยึดแนวที่เผยแพร่กันทั่วไป
+            ชุดนี้คำนวณตามหลักทักษาของโหราศาสตร์ไทย ตำราสำนักอื่นอาจระบุต่างออกไป
           </p>
         </>
       )}

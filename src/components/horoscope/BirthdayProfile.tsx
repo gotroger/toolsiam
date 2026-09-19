@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useDateInput } from '@/lib/use-today';
 import {
@@ -10,7 +11,7 @@ import {
   zodiacGlyph,
 } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
-import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
+import { Checkbox, ErrorText, Field, ResultBox, Stat } from '@/components/ui';
 import { getHoroscopePageUrl } from '@/lib/routes';
 
 /**
@@ -19,6 +20,7 @@ import { getHoroscopePageUrl } from '@/lib/routes';
  */
 export default function BirthdayProfile() {
   const [birth, setBirth] = useDateInput();
+  const [night, setNight] = useState(false);
 
   let error = '';
   let sign: ReturnType<typeof zodiacFromDate> | null = null;
@@ -30,7 +32,7 @@ export default function BirthdayProfile() {
   if (birth !== '') {
     try {
       sign = zodiacFromDate(birth);
-      colors = dayColorsFromDate(birth);
+      colors = dayColorsFromDate(birth, { wednesdayNight: night });
       numbers = numerologyFromDate(birth);
     } catch (e) {
       error = (e as Error).message;
@@ -55,6 +57,14 @@ export default function BirthdayProfile() {
           aria-describedby="bd-birth-hint"
         />
       </Field>
+
+      {colors && colors.weekdayIndex === 3 && (
+        <Checkbox
+          label="เกิดวันพุธหลัง 18:00 น. (พุธกลางคืน)"
+          checked={night}
+          onChange={(e) => setNight(e.target.checked)}
+        />
+      )}
 
       {error && <ErrorText>{error}</ErrorText>}
 
