@@ -10,7 +10,8 @@
 /c/image       /tools              301
 /c/pdf         /tools              301
 /c/web         /tools              301
-/pricing       /tools              301
+# /pricing กลับมามีหน้าขายจริงแล้วที่ /premium (spec 2026-09-19) — ยังคง 1 hop
+/pricing       /premium            301
 
 # กฎทั่วไป
 /c/*           /categories/:splat  301

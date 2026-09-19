@@ -1,6 +1,6 @@
 ---
 import { getActiveCategories, getBrowsableCategories, getToolsByCategory, getVisibleTools } from '@/tools/registry';
-import { getCategoryUrl, getHomeUrl, getToolsUrl } from '@/lib/routes';
+import { getCategoryUrl, getHomeUrl, getPremiumUrl, getPrivacyUrl, getTermsUrl, getToolsUrl } from '@/lib/routes';
 
 /**
  * Footer — แสดงเฉพาะลิงก์ที่มี route จริงเท่านั้น (ไม่มี dead link)
@@ -21,6 +21,13 @@ const toolLinks = [
   { href: `${getHomeUrl()}#featured`, label: 'เครื่องมือแนะนำ' },
   { href: `${getHomeUrl()}#categories`, label: 'หมวดหมู่' },
   ...verticalLinks.map((c) => ({ href: getCategoryUrl(c), label: c.name })),
+];
+
+// สมาชิกพรีเมียมเป็นทางเลือกเสริม — เครื่องมือทุกตัวยังใช้ฟรีโดยไม่ต้องสมัคร (spec 2026-09-19)
+const siteLinks = [
+  { href: getPremiumUrl(), label: 'สมาชิกพรีเมียม' },
+  { href: getPrivacyUrl(), label: 'นโยบายความเป็นส่วนตัว' },
+  { href: getTermsUrl(), label: 'ข้อกำหนดการใช้งาน' },
 ];
 
 const linkClass =
@@ -74,6 +81,17 @@ const linkClass =
         <p class="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
           ทุกเครื่องมือคำนวณในเบราว์เซอร์ของคุณ ข้อมูลที่กรอกไม่ถูกส่งออกไปที่ไหน
         </p>
+        <ul class="mt-4 space-y-2.5">
+          {
+            siteLinks.map((l) => (
+              <li>
+                <a href={l.href} class={linkClass}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </div>
 

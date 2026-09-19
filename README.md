@@ -16,6 +16,13 @@
 
 Spec: `docs/superpowers/specs/2026-09-07-toolsiam-design.md`
 
+## สมาชิกและพรีเมียม
+- เครื่องมือทุกตัวใช้ฟรีไม่ต้อง login · สมาชิกพรีเมียม 19 บาท/30 วัน (Google login + PromptPay ผ่าน Beam) ขยายขีดจำกัดเครื่องมือไฟล์
+- ตัวเลขขีดจำกัดทั้งหมดอยู่ที่ `src/lib/plan-limits.ts` · logic ฝั่ง server อยู่ที่ `src/lib/membership/` · route ใน `src/pages/api/`
+- เปิด/ปิดได้สองชั้น: var `MEMBERSHIP=on` ใน `wrangler.jsonc` (runtime, ทุก API) และ `PUBLIC_MEMBERSHIP=on` ตอน build (แสดงปุ่ม login ใน HTML)
+- ตัวแปรและ secret ที่ต้องตั้ง ดู `.env.example` · migration D1 อยู่ใน `migrations/`
+- Spec: `docs/superpowers/specs/2026-09-19-membership-premium-design.md`
+
 ## โดเมน
 
 เว็บออนไลน์แล้วที่ **https://toolsiam.com** (ผูกเป็น custom domain ของ Worker `toolsiam` ผ่าน `routes` ใน `wrangler.jsonc` — ทั้ง apex และ `www`)

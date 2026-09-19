@@ -1,5 +1,8 @@
-export const MAX_PAGES = 150;
-export const MAX_CELLS = 100_000;
+import { PLAN_LIMITS } from '@/lib/plan-limits';
+
+/** ค่าเริ่มต้น = แพลนฟรี — ตัวเลขจริงมาจาก src/lib/plan-limits.ts และถูกส่งมากับ Job ตามแพลนของผู้ใช้ */
+export const MAX_PAGES = PLAN_LIMITS.free.pages;
+export const MAX_CELLS = PLAN_LIMITS.free.cells;
 export function pageIndices(input: string, count: number): number[] {
   if (!input.trim()) throw new Error('กรุณาระบุหมายเลขหน้า เช่น 1,3-5');
   const result = new Set<number>();

@@ -34,7 +34,7 @@ Static render includes the tool list and ordinary internal links for crawlers an
 
 ## Tools and content
 
-Full original H1, title, description, canonical, JSON-LD, sources, FAQ and how-to content remain. Original description is below the workspace; a short discovery summary introduces it. Each tool retains its original calculation/validation behavior. Date fields use the shared authored DatePicker; ordinary select controls retain OS keyboard/popups. No authentication, billing, CRUD, delete or permission capability is introduced.
+Full original H1, title, description, canonical, JSON-LD, sources, FAQ and how-to content remain. Original description is below the workspace; a short discovery summary introduces it. Each tool retains its original calculation/validation behavior. Date fields use the shared authored DatePicker; ordinary select controls retain OS keyboard/popups. No authentication, billing, CRUD, delete or permission capability is introduced. **(แก้ไข 19 ก.ย. 2569: เพิ่มระบบสมาชิก Google + พรีเมียมตาม `docs/superpowers/specs/2026-09-19-membership-premium-design.md` — ข้อความนี้ใช้กับงาน refactor ก่อนหน้านั้นเท่านั้น)**
 
 ## Accessibility and recovery
 
