@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Button,
   Checkbox,
   ErrorText,
@@ -13,15 +14,97 @@ import {
   Slider,
 } from '@/components/ui';
 import { fileSize } from '@/lib/format';
+import { limitsFor, mb, PLAN_LIMITS, PREMIUM_PRICE_BAHT, type PlanLimits } from '@/lib/plan-limits';
+import { usePlan, type PlanStatus } from '@/lib/plan-client';
+import { getAccountUrl, getLoginUrl, getPremiumUrl } from '@/lib/routes';
 import { fileTools, type FileToolId } from '../catalog';
-import type { Options, Output, WorkerReply } from './types';
+import type { LimitHit, Options, Output, WorkerReply } from './types';
+
+/**
+ * ขีดจำกัดที่ถูกชน — แยก "เกินฟรีแต่พรีเมียมรับไหว" (เสนอพรีเมียม) ออกจาก "เกินพรีเมียมด้วย" (บอกให้แบ่งไฟล์)
+ * ตัวเลขทั้งหมดมาจาก src/lib/plan-limits.ts
+ */
+type Upsell = { kind: 'perFile' | 'maxFiles' | 'total' | LimitHit['kind']; name?: string };
+
+function premiumFits(kind: Upsell['kind'], value: number, fileClass: keyof PlanLimits['perFileMb']): boolean {
+  const p = PLAN_LIMITS.premium;
+  switch (kind) {
+    case 'perFile':
+      return value <= mb(p.perFileMb[fileClass]);
+    case 'total':
+      return value <= mb(p.totalMb);
+    case 'maxFiles':
+      return value <= p.maxFiles;
+    case 'pages':
+      return value <= p.pages;
+    case 'zip':
+      return value <= p.zipExpandedMb;
+    case 'cells':
+      return value <= p.cells;
+  }
+}
+
+/** ข้อความข้อเสนอพรีเมียม — status บอกว่าควรพาไปล็อกอินหรือไปหน้าบัญชี */
+export function PremiumUpsell({
+  hit,
+  status,
+  fileClass,
+}: {
+  hit: Upsell;
+  status: PlanStatus;
+  fileClass: keyof PlanLimits['perFileMb'];
+}) {
+  const p = PLAN_LIMITS.premium;
+  const f = PLAN_LIMITS.free;
+  const what =
+    hit.kind === 'perFile'
+      ? `แบบฟรีรับไฟล์ละไม่เกิน ${f.perFileMb[fileClass]} MB`
+      : hit.kind === 'maxFiles'
+        ? `แบบฟรีรับสูงสุด ${f.maxFiles} ไฟล์ต่อครั้ง`
+        : hit.kind === 'total'
+          ? `แบบฟรีรับรวมไม่เกิน ${f.totalMb} MB ต่อครั้ง`
+          : hit.kind === 'pages'
+            ? `แบบฟรีรับ PDF รวมไม่เกิน ${f.pages} หน้า`
+            : hit.kind === 'cells'
+              ? `แบบฟรีรับตารางไม่เกิน ${f.cells.toLocaleString('th-TH')} ช่องข้อมูล`
+              : `แบบฟรีรับเอกสารที่คลายแล้วไม่เกิน ${f.zipExpandedMb} MB`;
+  const link = 'font-medium text-brand-700 underline';
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+  return (
+    <Alert tone="note" title={hit.name ? `${hit.name}: เกินขีดจำกัดแบบฟรี` : 'เกินขีดจำกัดแบบฟรี'}>
+      <p>
+        {what} · สมาชิกพรีเมียม {PREMIUM_PRICE_BAHT} บาท/เดือน รับไฟล์ละ {p.perFileMb[fileClass]} MB, {p.maxFiles} ไฟล์
+        รวม {p.totalMb} MB และ PDF {p.pages.toLocaleString('th-TH')} หน้า
+      </p>
+      <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+        {status === 'signedIn' ? (
+          <a className={link} href={getAccountUrl()}>
+            สมัครพรีเมียม {PREMIUM_PRICE_BAHT} บาท
+          </a>
+        ) : (
+          <a className={link} href={getLoginUrl(path)}>
+            เข้าสู่ระบบด้วย Google
+          </a>
+        )}
+        <a className={link} href={getPremiumUrl()}>
+          ดูรายละเอียดพรีเมียม
+        </a>
+      </p>
+    </Alert>
+  );
+}
 
 export default function FileTool({ id }: { id: FileToolId }) {
   const config = fileTools[id];
   const multiple = 'multiple' in config && config.multiple;
   const isImage = config.category === 'images';
+  const { status, plan } = usePlan();
+  // ระบบปิด (off) หรือยังไม่รู้ = แพลนฟรีโดยไม่มีข้อเสนอ — เว็บทำตัวเหมือนไม่มีระบบสมาชิก
+  const limits = limitsFor(status === 'signedIn' ? plan : 'anonymous');
+  const canUpsell = status === 'anonymous' || (status === 'signedIn' && plan !== 'premium');
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState('');
+  const [upsell, setUpsell] = useState<Upsell | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<(Output & { url: string }) | null>(null);
   const [pages, setPages] = useState('');
@@ -56,6 +139,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
     objectUrl.current = '';
     setResult(null);
     setError('');
+    setUpsell(null);
     setNotice('');
   }
   function cancel() {
@@ -72,22 +156,50 @@ export default function FileTool({ id }: { id: FileToolId }) {
     setError(message);
     requestAnimationFrame(() => errorRef.current?.focus());
   }
+  /** ไฟล์ที่เกินขีดจำกัดของแพลนปัจจุบัน — ถ้าพรีเมียมรับไหวและผู้ใช้ยังไม่ใช่พรีเมียม ให้เสนอแทนการด่า */
+  function reject(kind: Upsell['kind'], value: number, name: string | undefined, message: string, errors: string[]) {
+    if (canUpsell && premiumFits(kind, value, config.fileClass)) {
+      setUpsell((current) => current ?? { kind, name });
+    } else {
+      errors.push(message);
+    }
+  }
   function selectFiles(selected: FileList | null) {
     if (!selected) return;
     clearResult();
     const next = multiple ? [...files] : [];
     const errors: string[] = [];
+    const perFile = mb(limits.perFileMb[config.fileClass]);
+    const total = mb(limits.totalMb);
     for (const file of Array.from(selected)) {
       if (!config.accept.split(',').some((ext) => file.name.toLowerCase().endsWith(ext))) {
         errors.push(`${file.name}: ชนิดไฟล์ไม่รองรับ`);
         continue;
       }
-      if (!file.size || file.size > config.limit * 1024 * 1024) {
-        errors.push(`${file.name}: ต้องมีข้อมูลและขนาดไม่เกิน ${config.limit} MB`);
+      if (!file.size) {
+        errors.push(`${file.name}: ไฟล์ว่างเปล่า`);
         continue;
       }
-      if (next.length >= (multiple ? 20 : 1) || next.reduce((sum, f) => sum + f.size, file.size) > 30 * 1024 * 1024) {
-        errors.push(`${file.name}: เกินขีดจำกัด 20 ไฟล์หรือรวม 30 MB`);
+      if (file.size > perFile) {
+        reject(
+          'perFile',
+          file.size,
+          file.name,
+          `${file.name}: ขนาดไม่เกิน ${limits.perFileMb[config.fileClass]} MB`,
+          errors,
+        );
+        continue;
+      }
+      if (next.length >= (multiple ? limits.maxFiles : 1)) {
+        // เครื่องมือไฟล์เดียวไม่มีเพดานจำนวนไฟล์ให้ขยาย พรีเมียมก็รับได้ไฟล์เดียวเท่ากัน — อย่าเสนอขาย
+        if (!multiple) errors.push(`${file.name}: เครื่องมือนี้รับได้ครั้งละหนึ่งไฟล์`);
+        else
+          reject('maxFiles', next.length + 1, file.name, `${file.name}: เกินขีดจำกัด ${limits.maxFiles} ไฟล์`, errors);
+        continue;
+      }
+      const sum = next.reduce((acc, f) => acc + f.size, file.size);
+      if (sum > total) {
+        reject('total', sum, file.name, `${file.name}: รวมทุกไฟล์ต้องไม่เกิน ${limits.totalMb} MB`, errors);
         continue;
       }
       next.push(file);
@@ -135,30 +247,40 @@ export default function FileTool({ id }: { id: FileToolId }) {
     timer.current = setTimeout(() => {
       if (current === version.current) {
         cancel();
-        fail('ใช้เวลานานเกิน 60 วินาที กรุณาลดขนาดไฟล์แล้วลองใหม่');
+        fail(`ใช้เวลานานเกิน ${limits.timeoutMs / 1000} วินาที กรุณาลดขนาดไฟล์แล้วลองใหม่`);
       }
-    }, 60_000);
+    }, limits.timeoutMs);
     try {
       let output: Output;
       if (isImage || id === 'images-to-pdf') {
         const { processImage } = await import('./image');
-        output = await processImage({ id, files, options }, abort.signal);
+        output = await processImage({ id, files, options, limits }, abort.signal);
       } else {
         output = await new Promise<Output>((resolve, reject) => {
           const task = new Worker(new URL('./document.worker.ts', import.meta.url), { type: 'module' });
           worker.current = task;
           abort.signal.addEventListener('abort', () => reject(new Error('cancelled')), { once: true });
-          task.onmessage = (event: MessageEvent<WorkerReply>) =>
-            event.data.error !== undefined ? reject(new Error(event.data.error)) : resolve(event.data.output);
+          task.onmessage = (event: MessageEvent<WorkerReply>) => {
+            if (event.data.error === undefined) return resolve(event.data.output);
+            const limit = event.data.limit;
+            // ชนขีดจำกัดของแพลนที่พรีเมียมรับไหว → เสนอพรีเมียมแทนข้อความผิดพลาด
+            if (limit && canUpsell && premiumFits(limit.kind, limit.atLeast, config.fileClass)) {
+              setUpsell({ kind: limit.kind });
+              return reject(new Error(''));
+            }
+            reject(new Error(event.data.error));
+          };
           task.onerror = () => reject(new Error('โหลดตัวแปลงไฟล์ไม่สำเร็จ กรุณาตรวจการเชื่อมต่อแล้วลองใหม่'));
-          task.postMessage({ id, files, options });
+          task.postMessage({ id, files, options, limits });
         });
       }
       if (current !== version.current) return;
       objectUrl.current = URL.createObjectURL(output.blob);
       setResult({ ...output, url: objectUrl.current });
     } catch (cause) {
-      if (current === version.current) fail(cause instanceof Error ? cause.message : 'แปลงไฟล์ไม่สำเร็จ กรุณาลองใหม่');
+      if (current !== version.current) return;
+      const message = cause instanceof Error ? cause.message : 'แปลงไฟล์ไม่สำเร็จ กรุณาลองใหม่';
+      if (message) fail(message);
     } finally {
       if (current === version.current) {
         clearTimeout(timer.current);
@@ -169,6 +291,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
       }
     }
   }
+  const hintPlan = status === 'signedIn' && plan === 'premium' ? 'พรีเมียม · ' : '';
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-brand-600/20 bg-brand-50 p-4 text-sm text-brand-700">
@@ -190,7 +313,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
               ? 'ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์ เพิ่มได้หลายครั้ง'
               : 'ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์'
           }
-          hint={`${config.accept.replaceAll('.', '').toUpperCase()} · ไฟล์ละไม่เกิน ${config.limit} MB${multiple ? ' · สูงสุด 20 ไฟล์ รวม 30 MB' : ''}`}
+          hint={`${hintPlan}${config.accept.replaceAll('.', '').toUpperCase()} · ไฟล์ละไม่เกิน ${limits.perFileMb[config.fileClass]} MB${multiple ? ` · สูงสุด ${limits.maxFiles} ไฟล์ รวม ${limits.totalMb} MB` : ''}`}
           onFiles={selectFiles}
         />
         <SelectedFiles
@@ -328,6 +451,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
       <div id="file-errors" ref={errorRef} tabIndex={-1}>
         {error && <ErrorText>{error}</ErrorText>}
       </div>
+      {upsell && <PremiumUpsell hit={upsell} status={status} fileClass={config.fileClass} />}
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => void run()} disabled={busy} aria-busy={busy}>
           {config.action}
@@ -339,7 +463,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
         ) : (
           <Button
             variant="secondary"
-            disabled={!files.length && !error}
+            disabled={!files.length && !error && !upsell}
             onClick={() => {
               clearResult();
               setFiles([]);

@@ -1,0 +1,11 @@
+import type { APIRoute } from 'astro';
+import { handleLogout } from '@/lib/membership/handlers';
+import { membership } from '../_membership';
+
+/** `POST /api/auth/logout` — logic อยู่ใน src/lib/membership/handlers.ts (ทดสอบได้โดยไม่ต้องมี runtime) */
+export const prerender = false;
+
+export const POST: APIRoute = ({ request }) => {
+  const { env, deps } = membership();
+  return handleLogout(request, env, deps);
+};

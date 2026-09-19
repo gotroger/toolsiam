@@ -1,0 +1,142 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/Breadcrumb.astro';
+import Card from '@/components/Card.astro';
+import DataTable from '@/components/DataTable.astro';
+import Section from '@/components/Section.astro';
+import { faqJsonLd } from '@/lib/seo';
+import { getAccountUrl, getHomeUrl, getLoginUrl, getPremiumUrl, getToolUrl, getToolsUrl } from '@/lib/routes';
+import { PLAN_LIMITS, PREMIUM_DAYS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
+
+/**
+ * หน้าขายพรีเมียม — static และ index ได้
+ *
+ * ตัวเลขในตารางเปรียบเทียบมาจาก src/lib/plan-limits.ts ทั้งหมด ไม่พิมพ์มือ
+ * จึงไม่มีทางที่หน้านี้จะสัญญาเกินกว่าที่เครื่องมือบังคับจริง
+ *
+ * ปุ่มสมัครแสดงเมื่อ build ด้วย PUBLIC_MEMBERSHIP=on เท่านั้น — ก่อนเปิดระบบ
+ * หน้านี้ยังบอกราคาและเงื่อนไขได้ แต่ไม่พาผู้ใช้ไปชนหน้า login ที่ยังปิดอยู่
+ */
+const membershipOn = import.meta.env.PUBLIC_MEMBERSHIP === 'on';
+const { free, premium } = PLAN_LIMITS;
+const title = 'สมาชิกพรีเมียม';
+const description = `สมาชิกพรีเมียมทูลสยาม ${PREMIUM_PRICE_BAHT} บาทต่อ ${PREMIUM_DAYS} วัน ขยายขีดจำกัดเครื่องมือไฟล์ PDF รูปภาพ Excel และ Word — เครื่องมือทุกตัวยังใช้ฟรีไม่ต้องสมัครเหมือนเดิม`;
+const crumbs = [
+  { name: 'ทูลสยาม', path: getHomeUrl() },
+  { name: title, path: getPremiumUrl() },
+];
+
+const n = (v: number) => v.toLocaleString('th-TH');
+const rows = [
+  ['ไฟล์ PDF ต่อไฟล์', `${free.perFileMb.pdf} MB`, `${premium.perFileMb.pdf} MB`],
+  ['ไฟล์รูปภาพต่อไฟล์', `${free.perFileMb.image} MB`, `${premium.perFileMb.image} MB`],
+  ['ไฟล์ Excel / Word / CSV ต่อไฟล์', `${free.perFileMb.office} MB`, `${premium.perFileMb.office} MB`],
+  ['จำนวนไฟล์ต่อครั้ง (รวม PDF, รูปเป็น PDF)', `${free.maxFiles} ไฟล์`, `${premium.maxFiles} ไฟล์`],
+  ['ขนาดรวมต่อครั้ง', `${free.totalMb} MB`, `${premium.totalMb} MB`],
+  ['จำนวนหน้า PDF รวม', `${n(free.pages)} หน้า`, `${n(premium.pages)} หน้า`],
+  ['ช่องข้อมูลตาราง (CSV / Excel)', `${n(free.cells)} ช่อง`, `${n(premium.cells)} ช่อง`],
+  ['เวลาประมวลผลต่อครั้ง', `${free.timeoutMs / 1000} วินาที`, `${premium.timeoutMs / 1000} วินาที`],
+];
+
+const faq = [
+  {
+    q: 'ต้องสมัครสมาชิกไหมถึงจะใช้เครื่องมือได้?',
+    a: 'ไม่ต้อง เครื่องมือทุกตัวใช้ฟรีโดยไม่ต้องสมัครเหมือนเดิม สมาชิกพรีเมียมเป็นทางเลือกสำหรับคนที่ต้องการแปลงไฟล์ขนาดใหญ่หรือหลายไฟล์ต่อครั้งเท่านั้น',
+  },
+  {
+    q: 'จ่ายอย่างไร และต่ออายุอัตโนมัติหรือไม่?',
+    a: `ชำระผ่านการสแกน QR PromptPay ครั้งละ ${PREMIUM_PRICE_BAHT} บาท ได้สิทธิ์ ${PREMIUM_DAYS} วัน ไม่มีการตัดเงินอัตโนมัติ เมื่อใกล้หมดอายุระบบจะแจ้งเตือนในหน้าบัญชี ต่ออายุเมื่อไรวันที่เหลือจะถูกบวกเพิ่มไม่หายไป`,
+  },
+  {
+    q: 'ไฟล์ของฉันถูกส่งขึ้นเซิร์ฟเวอร์หรือไม่?',
+    a: 'ไม่ ไฟล์ทุกไฟล์ยังประมวลผลในเบราว์เซอร์ของคุณเหมือนแบบฟรี ระบบสมาชิกเก็บเพียงข้อมูลบัญชี Google (ชื่อ อีเมล รูปโปรไฟล์) และประวัติการชำระเงินเท่านั้น',
+  },
+  {
+    q: 'ยกเลิกหรือขอคืนเงินได้ไหม?',
+    a: 'ไม่มีการตัดเงินซ้ำจึงไม่ต้องยกเลิก สิทธิ์จะสิ้นสุดเองเมื่อครบกำหนด และไม่สามารถคืนเงินสำหรับรอบที่ชำระแล้วได้',
+  },
+  {
+    q: 'ใช้บัญชีอะไรเข้าสู่ระบบได้บ้าง?',
+    a: 'ปัจจุบันรองรับบัญชี Google เท่านั้น เพื่อไม่ต้องตั้งหรือจำรหัสผ่านใหม่',
+  },
+];
+---
+
+<Base title={`${title} — ทูลสยาม`} description={description} jsonLd={[faqJsonLd(faq)]}>
+  <Breadcrumb items={crumbs} />
+  <h1 class="mt-2 text-[1.75rem] font-medium tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
+  <p class="mt-2 max-w-2xl text-slate-600">
+    เครื่องมือทุกตัวยังใช้ฟรีไม่ต้องสมัคร สมาชิกพรีเมียมขยายขีดจำกัดของเครื่องมือไฟล์ให้รับไฟล์ใหญ่ขึ้น หลายไฟล์ขึ้น
+    และประมวลผลได้นานขึ้น
+  </p>
+
+  <Card class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm text-slate-600">ราคา</p>
+      <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
+        {PREMIUM_PRICE_BAHT} บาท <span class="text-base font-normal text-slate-600">/ {PREMIUM_DAYS} วัน</span>
+      </p>
+      <p class="mt-1 text-sm text-slate-600">สแกน QR PromptPay · ไม่ตัดเงินอัตโนมัติ · เข้าสู่ระบบด้วย Google</p>
+    </div>
+    {
+      membershipOn ? (
+        <a
+          href={getLoginUrl(getAccountUrl())}
+          class="product-button inline-flex shrink-0 items-center justify-center bg-action px-5 py-2.5 text-sm font-medium text-white hover:bg-action-hover"
+        >
+          เข้าสู่ระบบด้วย Google เพื่อสมัคร
+        </a>
+      ) : (
+        <span class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 px-5 py-2.5 text-sm text-slate-600">
+          เปิดรับสมัครเร็ว ๆ นี้
+        </span>
+      )
+    }
+  </Card>
+
+  <Section title="เปรียบเทียบขีดจำกัด" lead="ตัวเลขชุดเดียวกับที่เครื่องมือบังคับจริง" class="mt-10">
+    <div class="mt-4">
+      <DataTable
+        caption="เปรียบเทียบขีดจำกัดแบบฟรีกับสมาชิกพรีเมียม"
+        minWidth="30rem"
+        columns={[{ header: 'รายการ' }, { header: 'ฟรี', align: 'right' }, { header: 'พรีเมียม', align: 'right' }]}
+        rows={rows}
+      />
+    </div>
+    <p class="mt-3 text-sm text-slate-600">
+      ใช้ได้กับเครื่องมือในหมวดเอกสารและรูปภาพ เช่น <a class="underline" href={getToolUrl('pdf-merge')}>รวมไฟล์ PDF</a>,
+      <a class="underline" href={getToolUrl('images-to-pdf')}>แปลงรูปภาพเป็น PDF</a> และ
+      <a class="underline" href={getToolUrl('image-compress')}>ลดขนาดไฟล์รูปภาพ</a> —
+      <a class="underline" href={getToolsUrl()}>ดูเครื่องมือทั้งหมด</a>
+    </p>
+  </Section>
+
+  <Section title="คำถามที่พบบ่อย" class="mt-10">
+    <div class="help-questions mt-4">
+      {
+        faq.map((item, index) => (
+          <details class="help-question" open={index === 0}>
+            <summary>
+              <>
+                <span>{item.q}</span>
+                <svg
+                  class="help-toggle"
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="m5 7.5 5 5 5-5" />
+                </svg>
+              </>
+            </summary>
+            <div class="help-answer">
+              <p>{item.a}</p>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </Section>
+</Base>
