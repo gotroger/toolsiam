@@ -37,7 +37,7 @@ jobs:
       - run: npm ci
 
       # ตรวจว่า SQL ใน migrations/ รันผ่านบน D1 local — ไม่ต้องใช้ credential
-      # ทำเฉพาะเมื่อเปิดระบบสมาชิกแล้ว (ก่อนหน้านั้น wrangler.jsonc ยังถือ id placeholder)
+      # ทำเฉพาะเมื่อเปิดระบบสมาชิกแล้ว (ก่อนหน้านั้น binding ของ D1 ยังถูก comment ไว้ใน wrangler.jsonc)
       - name: ตรวจ migration ของ D1
         if: vars.PUBLIC_MEMBERSHIP == 'on'
         run: npx wrangler d1 migrations apply toolsiam --local

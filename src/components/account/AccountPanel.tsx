@@ -39,6 +39,19 @@ export default function AccountPanel() {
       />
     );
   }
+  // ถามสถานะไม่สำเร็จ — อาจเป็นสมาชิกที่จ่ายแล้ว ห้ามแสดงหน้า "ยังไม่ได้เข้าสู่ระบบ" ให้เข้าใจผิดว่าหลุด
+  if (state.status === 'error') {
+    return (
+      <Alert tone="danger" title="ตรวจสอบสถานะบัญชีไม่สำเร็จ">
+        <p>การเชื่อมต่อขัดข้อง สิทธิ์สมาชิกของคุณไม่ได้หายไป กรุณาลองใหม่อีกครั้ง</p>
+        <p className="mt-3">
+          <Button variant="secondary" onClick={() => void refreshPlan()}>
+            ลองใหม่
+          </Button>
+        </p>
+      </Alert>
+    );
+  }
   if (state.status === 'anonymous') {
     return (
       <div className="space-y-4">

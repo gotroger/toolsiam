@@ -45,6 +45,16 @@ export interface SettleResult {
   expiresAt: number | null;
 }
 
+/**
+ * สถานะที่ยัง settle ได้ — รวม `expired` ด้วยโดยตั้งใจ
+ *
+ * QR ถูกปิดเป็น `expired` แบบ lazy ตอนผู้ใช้ poll ซึ่งอิงนาฬิกาฝั่งเรา แต่เงินที่โอนแล้ว
+ * คือเงินที่โอนแล้ว: ถ้าผู้ใช้สแกนจ่ายวินาทีท้าย ๆ แล้ว webhook ของ Beam มาถึงหลังเราปิดรายการไปแล้ว
+ * การยืนยันแค่ `pending` จะทำให้ "จ่ายเงินแล้วไม่ได้สิทธิ์" ซึ่งแย่กว่าการให้สิทธิ์ช้าไปเล็กน้อย
+ * (Beam ส่ง `charge.succeeded` ต่อเมื่อเก็บเงินได้จริง และการบวกวันยังกันซ้ำด้วย `status = 'paid'` เหมือนเดิม)
+ */
+const SETTLEABLE = "'pending', 'expired'";
+
 export interface MembershipStore {
   upsertUserFromGoogle(p: GoogleUpsert, now: number, newId: () => string): Promise<User>;
   getUser(id: string): Promise<User | null>;
@@ -60,12 +70,12 @@ export interface MembershipStore {
   latestPendingPayment(userId: string, now: number): Promise<Payment | null>;
   expirePayment(id: string): Promise<void>;
   /**
-   * atomic: payments pending→paid และ subscriptions.expires_at = max(now, เดิม) + days
-   * ทำงานเฉพาะเมื่อ status ยังเป็น pending — เรียกซ้ำกี่ครั้งก็บวกวันครั้งเดียว
+   * atomic: payments → paid และ subscriptions.expires_at = max(now, เดิม) + days
+   * ทำงานกับ status ใน SETTLEABLE (pending หรือ expired) — เรียกซ้ำกี่ครั้งก็บวกวันครั้งเดียว
    */
   settlePayment(
     id: string,
-    p: { beamChargeId: string; rawWebhookJson: string; now: number; days: number },
+    p: { beamChargeId: string | null; rawWebhookJson: string; now: number; days: number },
   ): Promise<SettleResult>;
 }
 
@@ -201,20 +211,20 @@ export function d1Store(db: D1Database): MembershipStore {
       if (!payment) return { applied: false, expiresAt: null };
       const current = await this.getExpiresAt(payment.userId);
       const next = extendExpiry(current, p.now, p.days);
-      // batch = transaction เดียว · statement แรกบวกวันเฉพาะเมื่อ payment ยัง pending
-      // webhook ซ้ำที่มาพร้อมกันจึงบวกได้แค่ครั้งเดียว ไม่ว่าจะอ่าน current ไปพร้อมกันหรือไม่
+      // batch = transaction เดียว · ทั้งสอง statement ใช้เงื่อนไข SETTLEABLE ชุดเดียวกัน
+      // webhook ซ้ำที่มาพร้อมกันจึงบวกวันได้แค่ครั้งเดียว ไม่ว่าจะอ่าน current ไปพร้อมกันหรือไม่
       const results = await db.batch([
         db
           .prepare(
             `INSERT INTO subscriptions (user_id, expires_at, updated_at)
-             SELECT ?1, ?2, ?3 WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status = 'pending')
+             SELECT ?1, ?2, ?3 WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status IN (${SETTLEABLE}))
              ON CONFLICT (user_id) DO UPDATE SET expires_at = excluded.expires_at, updated_at = excluded.updated_at`,
           )
           .bind(payment.userId, next, p.now, id),
         db
           .prepare(
             `UPDATE payments SET status = 'paid', beam_charge_id = ?2, paid_at = ?3, raw_webhook_json = ?4
-             WHERE id = ?1 AND status = 'pending'`,
+             WHERE id = ?1 AND status IN (${SETTLEABLE})`,
           )
           .bind(id, p.beamChargeId, p.now, p.rawWebhookJson),
       ]);

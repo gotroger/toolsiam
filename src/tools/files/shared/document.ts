@@ -10,7 +10,8 @@ export class LimitError extends Error {
   constructor(
     message: string,
     public readonly kind: LimitHit['kind'],
-    public readonly value: number,
+    /** ขอบล่างของค่าที่พบ ดู LimitHit.atLeast — ตัวประมวลผลหยุดทันทีที่ชนเพดานจึงไม่รู้ยอดรวมจริง */
+    public readonly atLeast: number,
   ) {
     super(message);
   }

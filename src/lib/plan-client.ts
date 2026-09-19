@@ -7,7 +7,9 @@ import type { Plan } from '@/lib/plan-limits';
  *
  * - `unknown`   ยังไม่ได้ถาม (ค่าฝั่ง server และเฟรมแรก)
  * - `off`       ระบบสมาชิกปิดอยู่ (/api/me ตอบ 204) → ทำตัวเหมือนเว็บไม่มีระบบสมาชิก ไม่มีข้อเสนอ
- * - `anonymous` ไม่ได้ล็อกอิน (ไม่มี hint cookie หรือ 401 หรือเครือข่ายพัง)
+ * - `anonymous` ยืนยันแล้วว่าไม่ได้ล็อกอิน (ไม่มี hint cookie หรือได้ 401)
+ * - `error`     มี hint cookie แต่ถามไม่สำเร็จ (เครือข่ายพัง/หมดเวลา) — **อาจเป็นสมาชิกที่จ่ายแล้ว**
+ *               จึงใช้ขีดจำกัดแบบฟรีไว้ก่อนเพื่อความปลอดภัย แต่ห้ามเสนอขายซ้ำกับคนที่อาจจ่ายไปแล้ว
  * - `signedIn`  ล็อกอินอยู่ พร้อมแพลนและวันหมดอายุ
  *
  * ยิง /api/me เฉพาะเมื่อมี cookie `ts_m=1` เท่านั้น — ผู้ใช้ทั่วไปที่ไม่เคยล็อกอิน
@@ -15,7 +17,7 @@ import type { Plan } from '@/lib/plan-limits';
  *
  * ใช้ useSyncExternalStore ไม่ใช่ useEffect+setState — ESLint ของโปรเจกต์ห้าม set-state-in-effect
  */
-export type PlanStatus = 'unknown' | 'off' | 'anonymous' | 'signedIn';
+export type PlanStatus = 'unknown' | 'off' | 'anonymous' | 'error' | 'signedIn';
 
 export interface PlanState {
   status: PlanStatus;
@@ -31,6 +33,7 @@ const FETCH_TIMEOUT_MS = 3000;
 
 const initial: PlanState = { status: 'unknown', plan: 'free', premiumUntil: null, expiringSoon: false, user: null };
 const anonymous: PlanState = { ...initial, status: 'anonymous' };
+const failed: PlanState = { ...initial, status: 'error' };
 
 let state: PlanState = initial;
 let inflight: Promise<void> | null = null;
@@ -63,7 +66,9 @@ export function refreshPlan(): Promise<void> {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
       if (res.status === 204) return set({ ...initial, status: 'off' });
-      if (!res.ok) return set(anonymous);
+      // 401 = เซิร์ฟเวอร์ยืนยันว่าไม่มี session จริง (cookie ค้าง) · สถานะอื่นคือถามไม่สำเร็จ
+      if (res.status === 401) return set(anonymous);
+      if (!res.ok) return set(failed);
       const body = (await res.json()) as Omit<PlanState, 'status'>;
       set({
         status: 'signedIn',
@@ -73,7 +78,7 @@ export function refreshPlan(): Promise<void> {
         user: body.user ?? null,
       });
     } catch {
-      set(anonymous);
+      set(failed);
     } finally {
       inflight = null;
     }

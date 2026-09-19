@@ -62,7 +62,7 @@ describe('d1Store', () => {
     expect(db.calls[0].args).toEqual(['u1', 500]);
   });
 
-  it('settlePayment ใช้ batch เดียว: บวกวันเฉพาะเมื่อยัง pending และ mark paid ด้วยเงื่อนไขเดียวกัน', async () => {
+  it('settlePayment ใช้ batch เดียว: บวกวันและ mark paid ด้วยเงื่อนไข SETTLEABLE ชุดเดียวกัน', async () => {
     const paymentRow = {
       id: 'p1',
       user_id: 'u1',
@@ -85,10 +85,12 @@ describe('d1Store', () => {
     expect(result).toEqual({ applied: true, expiresAt: 1000 + 35 * DAY });
     expect(db.batch).toHaveBeenCalledTimes(1);
     const [sub, pay] = db.calls.slice(-2);
-    expect(sub.sql).toContain("WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status = 'pending')");
+    expect(sub.sql).toContain(
+      "WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status IN ('pending', 'expired'))",
+    );
     expect(sub.sql).toContain('ON CONFLICT (user_id)');
     expect(sub.args).toEqual(['u1', 1000 + 35 * DAY, 1000, 'p1']);
-    expect(pay.sql).toContain("WHERE id = ?1 AND status = 'pending'");
+    expect(pay.sql).toContain("WHERE id = ?1 AND status IN ('pending', 'expired')");
     expect(pay.args).toEqual(['p1', 'ch', 1000, '{}']);
   });
 
@@ -101,6 +103,31 @@ describe('d1Store', () => {
       applied: false,
       expiresAt: 999,
     });
+  });
+});
+
+/** เงินที่โอนแล้วต้องได้สิทธิ์เสมอ แม้ webhook จะมาถึงหลังเราปิดรายการเพราะ QR หมดอายุ */
+describe('จ่ายหลัง QR หมดอายุ', () => {
+  it('memoryStore: settle รายการที่ expired แล้วยังบวกวันให้ และซ้ำอีกครั้งไม่บวกเพิ่ม', async () => {
+    const store = memoryStore();
+    await store.upsertUserFromGoogle({ googleSub: 'g', email: 'e', displayName: 'n', avatarUrl: null }, 0, () => 'u1');
+    await store.createPayment({
+      id: 'p1',
+      userId: 'u1',
+      amountSatang: 1900,
+      beamChargeId: null,
+      qrExpiresAt: 500,
+      qrImage: null,
+      qrRaw: null,
+      createdAt: 0,
+    });
+    await store.expirePayment('p1');
+    expect(await store.getPayment('p1')).toMatchObject({ status: 'expired' });
+    const settled = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 1000, days: 30 });
+    expect(settled).toEqual({ applied: true, expiresAt: 1000 + 30 * DAY });
+    const again = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 2000, days: 30 });
+    expect(again.applied).toBe(false);
+    expect(await store.getExpiresAt('u1')).toBe(1000 + 30 * DAY);
   });
 });
 

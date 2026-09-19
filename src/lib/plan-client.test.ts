@@ -51,7 +51,7 @@ describe('plan-client', () => {
     expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toBe('/api/me');
   });
 
-  it('204 → off · 401 → anonymous · เครือข่ายพัง → anonymous', async () => {
+  it('204 → off · 401 → anonymous (ยืนยันแล้วว่าไม่ได้ล็อกอิน)', async () => {
     setCookie('ts_m=1');
     vi.stubGlobal(
       'fetch',
@@ -66,12 +66,23 @@ describe('plan-client', () => {
     );
     await refreshPlan();
     expect(renderHook(() => usePlan()).result.current.status).toBe('anonymous');
+  });
 
+  /** คนที่จ่ายเงินแล้วแต่เครือข่ายสะดุด ต้องไม่ถูกจัดเป็น anonymous แล้วโดนเสนอขายซ้ำ */
+  it('เครือข่ายพัง / 5xx / หมดเวลา → error ไม่ใช่ anonymous', async () => {
+    setCookie('ts_m=1');
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => Promise.reject(new Error('offline'))),
     );
     await refreshPlan();
-    expect(renderHook(() => usePlan()).result.current.status).toBe('anonymous');
+    expect(renderHook(() => usePlan()).result.current.status).toBe('error');
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 503 })),
+    );
+    await refreshPlan();
+    expect(renderHook(() => usePlan()).result.current.status).toBe('error');
   });
 });

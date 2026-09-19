@@ -129,6 +129,23 @@ describe('ขีดจำกัดตามแพลนและข้อเส�
     expect(screen.getByRole('alert')).toHaveTextContent('ขนาดไม่เกิน 60 MB');
   });
 
+  it('ถามสถานะไม่สำเร็จ (error) → ขีดจำกัดฟรี แต่ไม่เสนอขายกับคนที่อาจจ่ายไปแล้ว', () => {
+    __setPlanForTests({ status: 'error' });
+    render(<FileTool id="pdf-merge" />);
+    upload([sized('big.pdf', mb(free.perFileMb.pdf) + 1)]);
+    expect(screen.getByRole('alert')).toHaveTextContent('ขนาดไม่เกิน 15 MB');
+    expect(screen.queryByText(/เกินขีดจำกัดแบบฟรี/)).not.toBeInTheDocument();
+  });
+
+  /** ลากสองไฟล์มาวางพร้อมกันบนเครื่องมือที่รับไฟล์เดียว — เพดาน "จำนวนไฟล์" ของแพลนไม่เกี่ยวเลย */
+  it('เครื่องมือไฟล์เดียว: ไฟล์ส่วนเกินต้องได้ข้อความผิดพลาด ไม่ใช่ข้อเสนอเรื่องจำนวนไฟล์', () => {
+    render(<FileTool id="pdf-rotate" />);
+    upload([file('a.pdf'), file('b.pdf')]);
+    expect(screen.getByRole('alert')).toHaveTextContent('b.pdf: เครื่องมือนี้รับได้ครั้งละหนึ่งไฟล์');
+    expect(screen.queryByText(/เกินขีดจำกัดแบบฟรี/)).not.toBeInTheDocument();
+    expect(screen.getByRole('listitem')).toHaveTextContent('a.pdf');
+  });
+
   it('ระบบสมาชิกปิด (off) → ขีดจำกัดฟรีแบบไม่มีข้อเสนอ เหมือนเว็บไม่มีระบบสมาชิก', () => {
     __setPlanForTests({ status: 'off' });
     render(<FileTool id="pdf-merge" />);
@@ -142,13 +159,13 @@ describe('ขีดจำกัดตามแพลนและข้อเส�
     upload([file()]);
     fireEvent.click(screen.getByRole('button', { name: 'หมุน PDF' }));
     expect(latest().postMessage).toHaveBeenCalledWith(expect.objectContaining({ limits: free }));
-    latest().onmessage?.({ data: { error: 'รองรับรวมไม่เกิน 150 หน้า', limit: { kind: 'pages', value: 300 } } });
+    latest().onmessage?.({ data: { error: 'รองรับรวมไม่เกิน 150 หน้า', limit: { kind: 'pages', atLeast: 300 } } });
     expect(await screen.findByText('เกินขีดจำกัดแบบฟรี')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     // เกินพรีเมียมด้วย → ข้อความจาก worker ตรง ๆ
     fireEvent.click(screen.getByRole('button', { name: 'หมุน PDF' }));
     latest().onmessage?.({
-      data: { error: 'รองรับรวมไม่เกิน 150 หน้า', limit: { kind: 'pages', value: premium.pages + 1 } },
+      data: { error: 'รองรับรวมไม่เกิน 150 หน้า', limit: { kind: 'pages', atLeast: premium.pages + 1 } },
     });
     expect(await screen.findByRole('alert')).toHaveTextContent('150 หน้า');
   });

@@ -15,9 +15,15 @@ export function isTrustedOrigin(origin: string | null, siteOrigin?: string): boo
 /**
  * path ที่จะ redirect ไปหลังล็อกอิน — ต้องเป็น path ในเว็บนี้เท่านั้น
  * `//evil.com` ก็เป็น "path" ในสายตา URL parser จึงต้องกันแยก (open redirect)
+ *
+ * ตรวจอักขระควบคุมก่อนเสมอ: URL parser **ลบ** tab/CR/LF ทิ้งก่อนแยกส่วน ดังนั้น
+ * `/<tab>/evil.com` ผ่านการตรวจ prefix ทุกข้อแต่เบราว์เซอร์อ่านเป็น `//evil.com`
+ * แล้วพาออกนอกเว็บ (tab เป็นอักขระที่ใส่ใน header ได้ ต่างจาก CR/LF ที่ Headers ปฏิเสธเอง)
  */
 export function safeNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return '/';
+  // eslint-disable-next-line no-control-regex -- ตั้งใจจับอักขระควบคุมตรง ๆ นี่คือจุดประสงค์ของการตรวจ
+  if (!next || /[\u0000-\u001f\u007f]/.test(next)) return '/';
+  if (!next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return '/';
   // ไม่ให้วนกลับเข้า API เอง
   if (next.startsWith('/api/')) return '/';
   return next;

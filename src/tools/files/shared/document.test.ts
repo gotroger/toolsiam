@@ -70,7 +70,7 @@ describe('PDF actual output', () => {
     expect((await PDFDocument.load(await output.blob.arrayBuffer())).getPageCount()).toBe(151);
     const error = await processDocument({ id: 'pdf-rotate', files: [big], options }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(LimitError);
-    expect(error).toMatchObject({ kind: 'pages', value: 151 });
+    expect(error).toMatchObject({ kind: 'pages', atLeast: 151 });
     const tiny = { ...PLAN_LIMITS.free, pages: 2 };
     await expect(
       processDocument({
@@ -156,7 +156,7 @@ describe('Office actual output', () => {
       }
     })();
     expect(hit).toBeInstanceOf(LimitError);
-    expect(hit).toMatchObject({ kind: 'zip', value: 40 });
+    expect(hit).toMatchObject({ kind: 'zip', atLeast: 40 });
     // ช่องตารางก็เช่นกัน: ส่ง limits เล็ก ๆ แล้วต้องได้ LimitError ชนิด cells
     const cells = await processDocument({
       id: 'csv-to-excel',
@@ -165,7 +165,7 @@ describe('Office actual output', () => {
       limits: { ...PLAN_LIMITS.free, cells: 4 },
     }).catch((e: unknown) => e);
     expect(cells).toBeInstanceOf(LimitError);
-    expect(cells).toMatchObject({ kind: 'cells', value: 5 });
+    expect(cells).toMatchObject({ kind: 'cells', atLeast: 5 });
     await expect(
       processDocument({
         id: 'csv-to-excel',

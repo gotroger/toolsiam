@@ -19,6 +19,14 @@ describe('AccountPanel', () => {
     expect(screen.queryByRole('link', { name: /เข้าสู่ระบบ/ })).not.toBeInTheDocument();
   });
 
+  it('ถามสถานะไม่สำเร็จ → บอกว่าสิทธิ์ไม่หาย พร้อมปุ่มลองใหม่ ไม่ใช่หน้า "ยังไม่ได้เข้าสู่ระบบ"', () => {
+    __setPlanForTests({ status: 'error' });
+    render(<AccountPanel />);
+    expect(screen.getByRole('alert')).toHaveTextContent('ตรวจสอบสถานะบัญชีไม่สำเร็จ');
+    expect(screen.getByRole('button', { name: 'ลองใหม่' })).toBeInTheDocument();
+    expect(screen.queryByText('ยังไม่ได้เข้าสู่ระบบ')).not.toBeInTheDocument();
+  });
+
   it('ยังไม่ล็อกอิน → ปุ่มเข้าสู่ระบบพา next กลับมาหน้าบัญชี และแสดง error จาก Google เมื่อมี', () => {
     __setPlanForTests({ status: 'anonymous' });
     window.history.replaceState(null, '', '/account?error=google');

@@ -278,8 +278,13 @@ export async function handleWebhook(request: Request, env: MembershipEnv, deps: 
     console.warn('[membership] webhook ถึงรายการที่ไม่รู้จัก:', charge);
     return json(200, { ok: true, ignored: true });
   }
+  // จ่ายหลัง QR หมดอายุ (นาฬิกาเราปิดรายการไปก่อนเงินจะมาถึง) — ยังให้สิทธิ์ แต่ต้องรู้ว่าเกิดบ่อยแค่ไหน
+  if (payment.status === 'expired') {
+    console.warn('[membership] เงินมาถึงหลังปิดรายการ ยังให้สิทธิ์ตามปกติ:', payment.id);
+  }
   const result = await deps.store.settlePayment(payment.id, {
-    beamChargeId: charge.id ?? payment.beamChargeId ?? '',
+    // null ไม่ใช่ '' — beam_charge_id มี UNIQUE index รายการที่ไม่รู้ charge id สองรายการจึงชนกันไม่ได้
+    beamChargeId: charge.id ?? payment.beamChargeId,
     rawWebhookJson: rawBody,
     now: (deps.now ?? nowSec)(),
     days: PREMIUM_DAYS,

@@ -14,18 +14,18 @@ spec เดิม [2026-09-07](2026-09-07-toolsiam-design.md) §5–§7 ออ�
 
 ## การตัดสินใจที่ยืนยันแล้ว
 
-| ประเด็น              | ข้อสรุป                                                                                          |
-| -------------------- | ------------------------------------------------------------------------------------------------ |
-| ผู้ให้บริการ login   | Google เท่านั้น (OIDC authorization code + PKCE) ไม่มี LINE                                       |
-| ราคา                 | 19 บาท = 1,900 สตางค์ ต่อ 30 วัน                                                                  |
-| ช่องทางชำระ          | Beam Checkout QR PromptPay — ต่ออายุอัตโนมัติไม่ได้ จึงเป็นการ "เติมวัน" บวกจาก max(วันนี้, วันหมดอายุเดิม) |
-| ฟีเจอร์พรีเมียม      | ขีดจำกัดเครื่องมือไฟล์ (ต่อไฟล์ จำนวนไฟล์ ขนาดรวม หน้า PDF ช่องตาราง เวลาประมวลผล) ใน `src/lib/plan-limits.ts` |
-| tier ต่อเครื่องมือ   | ไม่มี — `ToolMeta` ไม่เปลี่ยน, `isAccessibleForFree: true` ใน JSON-LD ยังจริง                     |
-| ทดลองใช้             | ไม่มี — ผู้ใช้ที่ไม่ล็อกอินเห็นข้อเสนอแล้วต้องล็อกอิน + จ่าย                                        |
-| gating               | ฝั่ง browser (ไฟล์ไม่เคยขึ้น server) จึง bypass ได้ — ยอมรับตาม spec เดิม §11                       |
-| dependency ใหม่      | ไม่มี — Google/Beam ใช้ `fetch`, PKCE/HMAC ใช้ Web Crypto                                          |
-| cron                 | ไม่มี — QR หมดอายุจัดการแบบ lazy ใน status endpoint, banner ใกล้หมดอายุคำนวณใน `/api/me`            |
-| ที่เก็บ              | D1 `DB` (users, subscriptions, payments) + KV `SESSION`                                           |
+| ประเด็น            | ข้อสรุป                                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| ผู้ให้บริการ login | Google เท่านั้น (OIDC authorization code + PKCE) ไม่มี LINE                                                                      |
+| ราคา               | 19 บาท = 1,900 สตางค์ ต่อ 30 วัน                                                                                                 |
+| ช่องทางชำระ        | Beam Checkout QR PromptPay — ต่ออายุอัตโนมัติไม่ได้ จึงเป็นการ "เติมวัน" บวกจาก max(วันนี้, วันหมดอายุเดิม)                      |
+| ฟีเจอร์พรีเมียม    | ขีดจำกัดเครื่องมือไฟล์ (ต่อไฟล์ จำนวนไฟล์ ขนาดรวม หน้า PDF ช่องตาราง เวลาประมวลผล) ใน `src/lib/plan-limits.ts`                   |
+| tier ต่อเครื่องมือ | ไม่มี — `ToolMeta` ไม่เปลี่ยน, `isAccessibleForFree: true` ใน JSON-LD ยังจริง                                                    |
+| ทดลองใช้           | ไม่มี — ผู้ใช้ที่ไม่ล็อกอินเห็นข้อเสนอแล้วต้องล็อกอิน + จ่าย                                                                     |
+| gating             | ฝั่ง browser (ไฟล์ไม่เคยขึ้น server) จึง bypass ได้ — ยอมรับตาม spec เดิม §11                                                    |
+| dependency ใหม่    | ไม่มี — Google/Beam ใช้ `fetch`, PKCE/HMAC ใช้ Web Crypto                                                                        |
+| cron               | ไม่มี — QR หมดอายุจัดการแบบ lazy ใน status endpoint, banner ใกล้หมดอายุคำนวณใน `/api/me`                                         |
+| ที่เก็บ            | D1 `DB` (users, subscriptions, payments) + KV `MEMBER_SESSION` — binding ถูก comment ไว้ใน `wrangler.jsonc` จนกว่าจะสร้างของจริง |
 
 ## สถาปัตยกรรม
 
@@ -59,6 +59,7 @@ Astro API routes (prerender=false, shim บาง ๆ) → src/lib/membership/ha
 - `users(id, google_sub UNIQUE, email, display_name, avatar_url, created_at, last_login_at)`
 - `subscriptions(user_id PK, expires_at, updated_at)` — พรีเมียม = `expires_at > now`
 - `payments(id, user_id, amount_satang, status pending|paid|expired, beam_charge_id UNIQUE, qr_expires_at, created_at, paid_at, raw_webhook_json)`
+  - settle ได้ทั้ง `pending` และ `expired` — เงินที่โอนแล้วต้องได้สิทธิ์เสมอ แม้ webhook จะมาถึงหลังเราปิด QR ไปแล้ว
 
 เวลาเป็น unix seconds ทั้งหมด · ไม่มีตารางไหนเก็บข้อมูลที่ผู้ใช้กรอกในเครื่องมือ
 
@@ -71,12 +72,12 @@ merge ได้โดยยังไม่เปิดทั้งสอง → 
 
 ## ลำดับงาน
 
-| เฟส | งาน                                                                          | ผลลัพธ์                            |
-| --- | ---------------------------------------------------------------------------- | ---------------------------------- |
+| เฟส | งาน                                                                           | ผลลัพธ์                                    |
+| --- | ----------------------------------------------------------------------------- | ------------------------------------------ |
 | 0   | `plan-limits.ts`, routes, `/premium` `/privacy` `/terms`, redirect `/pricing` | หน้าขายขึ้น, Google consent screen ตั้งได้ |
-| 1   | `src/lib/membership/*`, migration, `/api/me` + auth, header, `/account`      | ล็อกอิน Google ได้                  |
-| 2   | Beam checkout/status/webhook, flow ซื้อใน `/account`                         | รับเงินได้ (playground → production) |
-| 3   | `Job.limits`, FileTool อ่านแพลน, ข้อเสนอเมื่อเกินฟรี, catalog เลิก hardcode   | สมาชิกได้ขีดจำกัดสูงขึ้นจริง         |
+| 1   | `src/lib/membership/*`, migration, `/api/me` + auth, header, `/account`       | ล็อกอิน Google ได้                         |
+| 2   | Beam checkout/status/webhook, flow ซื้อใน `/account`                          | รับเงินได้ (playground → production)       |
+| 3   | `Job.limits`, FileTool อ่านแพลน, ข้อเสนอเมื่อเกินฟรี, catalog เลิก hardcode   | สมาชิกได้ขีดจำกัดสูงขึ้นจริง               |
 
 ## งานนอกโค้ด
 

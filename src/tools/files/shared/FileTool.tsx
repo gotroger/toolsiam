@@ -191,7 +191,10 @@ export default function FileTool({ id }: { id: FileToolId }) {
         continue;
       }
       if (next.length >= (multiple ? limits.maxFiles : 1)) {
-        reject('maxFiles', next.length + 1, file.name, `${file.name}: เกินขีดจำกัด ${limits.maxFiles} ไฟล์`, errors);
+        // เครื่องมือไฟล์เดียวไม่มีเพดานจำนวนไฟล์ให้ขยาย พรีเมียมก็รับได้ไฟล์เดียวเท่ากัน — อย่าเสนอขาย
+        if (!multiple) errors.push(`${file.name}: เครื่องมือนี้รับได้ครั้งละหนึ่งไฟล์`);
+        else
+          reject('maxFiles', next.length + 1, file.name, `${file.name}: เกินขีดจำกัด ${limits.maxFiles} ไฟล์`, errors);
         continue;
       }
       const sum = next.reduce((acc, f) => acc + f.size, file.size);
@@ -261,7 +264,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
             if (event.data.error === undefined) return resolve(event.data.output);
             const limit = event.data.limit;
             // ชนขีดจำกัดของแพลนที่พรีเมียมรับไหว → เสนอพรีเมียมแทนข้อความผิดพลาด
-            if (limit && canUpsell && premiumFits(limit.kind, limit.value, config.fileClass)) {
+            if (limit && canUpsell && premiumFits(limit.kind, limit.atLeast, config.fileClass)) {
               setUpsell({ kind: limit.kind });
               return reject(new Error(''));
             }

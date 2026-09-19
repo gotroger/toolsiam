@@ -12,7 +12,7 @@ self.onmessage = async (event: MessageEvent<Job>) => {
           : 'อ่านไฟล์ไม่สำเร็จ กรุณาตรวจว่าไฟล์เปิดได้และเป็นชนิดที่รองรับ แล้วลองใหม่',
     };
     // ชนขีดจำกัดของแพลน — ส่งรายละเอียดให้ UI เสนอพรีเมียมได้ถ้าพรีเมียมรับไหว
-    if (error instanceof LimitError) reply.limit = { kind: error.kind, value: error.value };
+    if (error instanceof LimitError) reply.limit = { kind: error.kind, atLeast: error.atLeast };
   }
   self.postMessage(reply);
 };

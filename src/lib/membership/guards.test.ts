@@ -38,6 +38,32 @@ describe('safeNext — กัน open redirect', () => {
     expect(safeNext('tools')).toBe('/');
     expect(safeNext('/api/auth/logout')).toBe('/');
   });
+
+  /**
+   * URL parser ลบ tab/CR/LF ทิ้งก่อนแยกส่วน — `/<tab>/evil.com` จึงผ่านการตรวจ prefix
+   * แต่เบราว์เซอร์อ่านเป็น `//evil.com` แล้วออกนอกเว็บ (ยืนยันกับ URL parser จริงในเทสต์ถัดไป)
+   */
+  it('อักขระควบคุมที่ URL parser ลบทิ้ง ต้องไม่ผ่าน', () => {
+    for (const control of ['\t', '\n', '\r', '\u0000', '\u001f', '\u007f']) {
+      expect(safeNext(`/${control}/evil.com`), JSON.stringify(control)).toBe('/');
+      expect(safeNext(`/tools${control}`), JSON.stringify(control)).toBe('/');
+    }
+  });
+
+  it('ผลลัพธ์ที่คืนออกไป resolve แล้วต้องอยู่บนโดเมนเราเสมอ', () => {
+    const attempts = [
+      '/\t/evil.com',
+      '//evil.com',
+      '/\\evil.com',
+      'https://evil.com',
+      '/\r\n/evil.com',
+      '/tools/pdf-merge',
+    ];
+    for (const attempt of attempts) {
+      const resolved = new URL(safeNext(attempt), 'https://toolsiam.com');
+      expect(resolved.origin, attempt).toBe('https://toolsiam.com');
+    }
+  });
 });
 
 describe('readBody', () => {
