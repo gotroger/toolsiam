@@ -17,7 +17,11 @@ const OUT = join('public', 'ocr');
 const pkg = (name) => JSON.parse(readFileSync(join('node_modules', name, 'package.json'), 'utf8'));
 
 // เบราว์เซอร์โหลด core แค่ตัวเดียวตามความสามารถของเครื่อง (tesseract.js เลือกเอง) — LSTM-only ทั้งหมด
-const CORES = ['tesseract-core-relaxedsimd-lstm.wasm.js', 'tesseract-core-simd-lstm.wasm.js', 'tesseract-core-lstm.wasm.js'];
+const CORES = [
+  'tesseract-core-relaxedsimd-lstm.wasm.js',
+  'tesseract-core-simd-lstm.wasm.js',
+  'tesseract-core-lstm.wasm.js',
+];
 const LANGS = ['tha', 'eng'];
 
 const files = [
@@ -37,7 +41,11 @@ const sha256 = hash.digest('hex');
 const dir = join(OUT, version);
 const manifestPath = join(OUT, 'manifest.json');
 const current = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
-if (current?.version === version && current?.sha256 === sha256 && files.every((file) => existsSync(join(dir, file.to)))) {
+if (
+  current?.version === version &&
+  current?.sha256 === sha256 &&
+  files.every((file) => existsSync(join(dir, file.to)))
+) {
   console.log(`ocr ${version} พร้อมแล้ว`);
   process.exit(0);
 }
