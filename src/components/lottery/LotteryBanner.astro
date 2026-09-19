@@ -8,10 +8,10 @@ import { getLotteryCheckUrl, getLotteryLatestUrl, getLotteryUrl } from '@/lib/ro
 const draw = latestDraw();
 const prizes = draw
   ? [
-      { label: 'รางวัลที่ 1', numbers: draw.prizes.first, kind: 'first' },
-      { label: 'เลขท้าย 2 ตัว', numbers: draw.prizes.twoDigitBack, kind: 'two' },
-      { label: 'เลขหน้า 3 ตัว', numbers: draw.prizes.threeDigitFront, kind: 'three' },
-      { label: 'เลขท้าย 3 ตัว', numbers: draw.prizes.threeDigitBack, kind: 'three' },
+      { label: 'รางวัลที่ 1', numbers: draw.prizes.first, kind: 'first', key: 'first' },
+      { label: 'เลขท้าย 2 ตัว', numbers: draw.prizes.twoDigitBack, kind: 'two', key: 'twoDigitBack' },
+      { label: 'เลขหน้า 3 ตัว', numbers: draw.prizes.threeDigitFront, kind: 'three', key: 'threeDigitFront' },
+      { label: 'เลขท้าย 3 ตัว', numbers: draw.prizes.threeDigitBack, kind: 'three', key: 'threeDigitBack' },
     ]
   : [];
 ---
@@ -29,23 +29,16 @@ const prizes = draw
           </div>
           <div class="lottery-draw-meta">
             <p>
-              งวดวันที่ <time datetime={draw.drawDate}>{formatThaiDate(draw.drawDate, { style: 'medium' })}</time>
+              งวดวันที่ <time data-lottery-date datetime={draw.drawDate}>{formatThaiDate(draw.drawDate, { style: 'medium' })}</time>
             </p>
-            <span class:list={['lottery-status', draw.status === 'verified' ? 'text-brand-700' : 'text-amber-700']}>
-              {draw.status === 'verified' && (
-                <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="m3 8 3 3 7-7" />
-                </svg>
-              )}
-              {draw.status === 'verified' ? 'ตรวจกับประกาศแล้ว' : 'รอการตรวจสอบซ้ำ'}
-            </span>
+            <span class="lottery-status text-brand-700">ข้อมูลจากสำนักงานสลากฯ</span>
           </div>
         </header>
         <dl class="lottery-results">
           {prizes.map((prize) => (
             <div class="lottery-prize" data-prize={prize.kind}>
               <dt>{prize.label}</dt>
-              <dd>
+              <dd data-lottery-numbers={prize.key}>
                 {prize.numbers.map((number) => (
                   <span>{number}</span>
                 ))}
@@ -69,7 +62,7 @@ const prizes = draw
         </a>{' '}
         · <a href={getLotteryUrl()}>หวยและสลากทั้งหมด</a>
       </p>
-      <LiveDrawNotice client:idle staticDrawDate={draw.drawDate} />
+      <LiveDrawNotice client:idle staticDrawDate={draw.drawDate} replaceBoard />
     </section>
   )
 }

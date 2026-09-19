@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { LotteryDraw } from '@/data/lottery/schema';
 import { useTodayInBangkok } from '@/lib/use-today';
 import { isStale, shouldPreferRemote } from '@/lib/lottery-freshness';
 import { formatThaiDate } from '@/lib/thai-date';
@@ -10,18 +11,48 @@ import { getLotteryLatestUrl } from '@/lib/routes';
  *
  * หน้าถูก render ด้วยข้อมูล static ที่ build มาแล้ว จึงใช้งานได้ทันทีโดยไม่ต้องรอ network
  * component นี้เป็นชั้นเสริมล้วน ๆ:
- *   - ได้งวดใหม่กว่า → แจ้งพร้อมป้ายบอกสถานะการตรวจสอบ
+ *   - ได้งวดใหม่กว่า → แสดงทันที ข้อมูลมาจาก API ของสำนักงานสลากฯ โดยตรงและผ่าน validator แล้ว
+ *     จึงไม่รอคนตรวจซ้ำ · หน้าแรก (`replaceBoard`) สลับเลขในการ์ดเลย หน้าอื่นขึ้นกล่องแจ้ง
  *   - 204 / timeout / Worker ล่ม → เงียบ ใช้ข้อมูล static ต่อ ไม่มี single point of failure
  *   - ข้อมูล static เก่าเกินเกณฑ์ → เตือนผู้ใช้ ไม่แสดงงวดเก่าเงียบ ๆ ราวกับเป็นงวดล่าสุด (L5)
  */
 const TIMEOUT_MS = 3_000;
 
 interface RemoteDraw {
-  draw: { drawDate: string; status: string; prizes: { first: string[] } };
+  draw: LotteryDraw;
   fetchedAt: string;
 }
 
-export default function LiveDrawNotice({ staticDrawDate }: { staticDrawDate?: string }) {
+/** ประเภทรางวัลที่การ์ดหน้าแรกแสดง — ต้องตรงกับ `data-lottery-numbers` ใน LotteryBanner.astro */
+const BOARD_PRIZES = ['first', 'twoDigitBack', 'threeDigitFront', 'threeDigitBack'] as const;
+
+/** สลับเลขในการ์ดที่ Astro render ไว้แล้วให้เป็นงวดใหม่ โดยไม่ต้องรอ deploy */
+function replaceBoard(draw: LotteryDraw) {
+  const time = document.querySelector<HTMLTimeElement>('[data-lottery-date]');
+  if (time) {
+    time.dateTime = draw.drawDate;
+    time.textContent = formatThaiDate(draw.drawDate, { style: 'medium' });
+  }
+  for (const kind of BOARD_PRIZES) {
+    const dd = document.querySelector(`[data-lottery-numbers="${kind}"]`);
+    if (!dd) continue;
+    dd.replaceChildren(
+      ...draw.prizes[kind].map((number) => {
+        const span = document.createElement('span');
+        span.textContent = number;
+        return span;
+      }),
+    );
+  }
+}
+
+interface Props {
+  staticDrawDate?: string;
+  /** true = สลับเลขในการ์ดหน้าแรกแทนการขึ้นกล่องแจ้ง */
+  replaceBoard?: boolean;
+}
+
+export default function LiveDrawNotice({ staticDrawDate, replaceBoard: inPlace = false }: Props) {
   const [remote, setRemote] = useState<RemoteDraw | null>(null);
   const today = useTodayInBangkok();
 
@@ -41,8 +72,14 @@ export default function LiveDrawNotice({ staticDrawDate }: { staticDrawDate?: st
     return () => { clearTimeout(timer); controller.abort(); };
   }, [staticDrawDate]);
 
+  useEffect(() => {
+    if (remote && inPlace) replaceBoard(remote.draw);
+  }, [remote, inPlace]);
+
+  if (remote && inPlace) return null;
+
   if (remote) {
-    const { drawDate, status } = remote.draw;
+    const { drawDate } = remote.draw;
     return (
       <div className="rounded-[10px] border border-brand-600/30 bg-brand-50 p-4 text-sm">
         <p className="font-semibold text-slate-900">
@@ -52,9 +89,7 @@ export default function LiveDrawNotice({ staticDrawDate }: { staticDrawDate?: st
           {remote.draw.prizes.first[0]}
         </p>
         <p className="mt-2 text-slate-700">
-          {status === 'verified'
-            ? 'ตรวจกับประกาศแล้ว'
-            : 'ผลนี้ระบบดึงมาอัตโนมัติและยังไม่มีคนตรวจซ้ำกับประกาศ ก่อนขึ้นเงินรางวัลกรุณายึดประกาศอย่างเป็นทางการเสมอ'}
+          ข้อมูลจากสำนักงานสลากกินแบ่งรัฐบาลโดยตรง การขึ้นเงินรางวัลให้ยึดประกาศอย่างเป็นทางการเสมอ
         </p>
         <p className="mt-2">
           <a
@@ -63,7 +98,7 @@ export default function LiveDrawNotice({ staticDrawDate }: { staticDrawDate?: st
             target="_blank"
             className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
           >
-            ตรวจกับประกาศของสำนักงานสลากกินแบ่งรัฐบาล
+            ประกาศของสำนักงานสลากกินแบ่งรัฐบาล
           </a>
           {' · '}
           <a href={getLotteryLatestUrl()} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
