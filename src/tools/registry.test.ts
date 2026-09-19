@@ -217,7 +217,7 @@ describe('public/ ไม่มีไฟล์ขยะ', () => {
     '_redirects', '_headers', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
     'favicon-192.png', 'apple-touch-icon.png', 'logo.png',
   ]);
-  const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts', 'ffmpeg']);
+  const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts', 'ffmpeg', 'ocr']);
 
   it('ไฟล์ระดับบนสุดอยู่ใน allowlist ทั้งหมด', () => {
     for (const entry of readdirSync('public', { withFileTypes: true })) {
@@ -234,6 +234,24 @@ describe('public/ ไม่มีไฟล์ขยะ', () => {
     expect(dirs).toEqual([manifest.version]);
     for (const f of ['ffmpeg-core.js', 'ffmpeg-core.wasm.gz']) {
       expect(existsSync(join('public', 'ffmpeg', manifest.version, f)), f).toBe(true);
+    }
+  });
+
+  it('ocr/ มี manifest และโฟลเดอร์เวอร์ชันเดียวตรงกับ manifest (generate ด้วย scripts/copy-ocr.mjs)', () => {
+    const manifest = JSON.parse(readFileSync(join('public', 'ocr', 'manifest.json'), 'utf8'));
+    const dirs = readdirSync(join('public', 'ocr'), { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+    expect(dirs).toEqual([manifest.version]);
+    for (const f of [
+      'worker.min.js',
+      'core/tesseract-core-relaxedsimd-lstm.wasm.js',
+      'core/tesseract-core-simd-lstm.wasm.js',
+      'core/tesseract-core-lstm.wasm.js',
+      'lang/tha.traineddata.gz',
+      'lang/eng.traineddata.gz',
+    ]) {
+      expect(existsSync(join('public', 'ocr', manifest.version, f)), f).toBe(true);
     }
   });
 

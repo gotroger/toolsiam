@@ -25,6 +25,7 @@ export const TOOL_GLYPHS: Record<string, string> = {
   'image-compress': 'M3 4h18v16H3V4ZM7.5 8.5l3 3m0-2.5v2.5H8M16.5 15.5l-3-3m0 2.5v-2.5H16',
   'image-resize': 'M3 3h18v18H3V3Zm0 10h8v8M14 6h4v4m0-4-5 5',
   'image-convert': 'M3 3h8v8H3V3Zm10 10h8v8h-8v-8ZM15 4h3a2 2 0 0 1 2 2v3M9 20H6a2 2 0 0 1-2-2v-3',
+  'image-to-text': 'M3 4h18v16H3V4ZM7 9h10M7 12.5h10M7 16h6',
   'image-rotate': 'M4 9h11v11H4V9Zm0 8 3-3 3 3 2-2 3 3M19 13V8a4 4 0 0 0-4-4h-3m2-2-2 2 2 2',
   // การเงิน
   'thai-income-tax': `${DOC}M9 12h7M9 16h5`,

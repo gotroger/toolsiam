@@ -1,6 +1,7 @@
 import type { CategoryId, CategoryMeta, ToolMeta } from './types';
 import { categories } from './categories';
 import { fileToolMetas } from './files/catalog';
+import { imageToTextMeta } from './images/image-to-text/meta';
 import { thaiIncomeTaxMeta } from './finance/thai-income-tax/meta';
 import { loanInstallmentMeta } from './finance/loan-installment/meta';
 import { netSalaryMeta } from './finance/net-salary/meta';
@@ -45,6 +46,7 @@ export type { ToolMeta, CategoryMeta, CategoryId };
 /** ลำดับในนี้ = ลำดับแสดงผลในหน้า /tools */
 export const tools: ToolMeta[] = [
   ...fileToolMetas,
+  imageToTextMeta,
   thaiIncomeTaxMeta,
   loanInstallmentMeta,
   homeLoanMeta,
