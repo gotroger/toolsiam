@@ -6,49 +6,41 @@ import VerticalShell from '@/components/VerticalShell.astro';
 import DreamSearch from '@/components/DreamSearch';
 import { collectionPageJsonLd } from '@/lib/seo';
 import { getDreamEntryUrl, getDreamUrl, getHomeUrl, getHoroscopeUrl } from '@/lib/routes';
-import { DREAM_ENTRIES, DREAM_GROUPS, dreamsByGroup } from '@/content/dream/entries';
+import { DREAM_ENTRIES } from '@/content/dream/entries';
 
 const title = 'ทำนายฝัน — ความหมายของความฝันตามตำราไทย';
-const description = `รวมความหมายของความฝัน ${DREAM_ENTRIES.length} เรื่องตามตำราไทย ทั้งฝันเห็นงู ปลา ฟันหลุด น้ำ ไฟ และอื่น ๆ พร้อมอธิบายว่าบริบทที่ต่างกันทำให้ความหมายเปลี่ยนอย่างไร`;
+const description = `รวมความหมายของความฝัน ${DREAM_ENTRIES.length} เรื่องตามตำราไทย ทั้งฝันเห็นงู ปลา ฟันหลุด น้ำ ไฟ และอื่น ๆ พร้อมเลขนำโชคตามความเชื่อและบริบทที่ทำให้ความหมายต่างกัน`;
 ---
+
 <Base
   title={`${title} — ทูลสยาม`}
   description={description}
   wide
-  jsonLd={[collectionPageJsonLd({
-    name: title,
-    description,
-    path: getDreamUrl(),
-    items: DREAM_ENTRIES.map((e) => ({ name: e.title, path: getDreamEntryUrl(e.slug) })),
-  })]}
+  jsonLd={[
+    collectionPageJsonLd({
+      name: title,
+      description,
+      path: getDreamUrl(),
+      items: DREAM_ENTRIES.map((e) => ({ name: e.title, path: getDreamEntryUrl(e.slug) })),
+    }),
+  ]}
 >
   <VerticalShell
     title="ทำนายฝัน"
     description={description}
     category="dream"
     gradient={['#faf5ff', '#e9d5ff']}
-    crumbs={[{ name: 'ทูลสยาม', path: getHomeUrl() }, { name: 'ทำนายฝัน', path: getDreamUrl() }]}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ทำนายฝัน', path: getDreamUrl() },
+    ]}
   >
     <Card>
       <DreamSearch client:load />
     </Card>
 
-    {DREAM_GROUPS.map((g) => (
-      <Section title={`ฝันเกี่ยวกับ{g.label}`} class="mt-8">
-        <ul class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {dreamsByGroup(g.id).map((e) => (
-            <li>
-              <Card as="a" size="sm" class="block text-slate-800 transition-colors duration-150 hover:border-brand-600/40 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600" href={getDreamEntryUrl(e.slug)}>
-                {e.title}
-              </Card>
-            </li>
-          ))}
-        </ul>
-      </Section>
-    ))}
-
-    <Section title="ทำไมคนเราถึงฝัน" class="mt-8">
-      <div class="mt-2 space-y-3 text-sm text-slate-600">
+    <Section title="ทำไมคนเราถึงฝัน" class="mt-10">
+      <div class="mt-2 max-w-[68ch] space-y-3 text-sm leading-relaxed text-slate-600">
         <p>
           ความฝันเกิดขึ้นระหว่างการนอนหลับและมักหยิบเรื่องที่ค้างอยู่ในความคิดของวันก่อนหน้ามาเรียบเรียงใหม่
           ตำราทำนายฝันของไทยจึงมักตีความความฝันเป็นสัญลักษณ์ของสิ่งที่กำลังเกิดในชีวิต
@@ -68,7 +60,9 @@ const description = `รวมความหมายของความฝ�
 
     <p class="mt-8 text-sm text-slate-600">
       สนใจเรื่องราศีและสีมงคล ดูได้ที่{' '}
-      <a href={getHoroscopeUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">หน้าดูดวงและความเชื่อ</a>
+      <a href={getHoroscopeUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+        >หน้าดูดวงและความเชื่อ</a
+      >
     </p>
   </VerticalShell>
 </Base>
