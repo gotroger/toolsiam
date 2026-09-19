@@ -1,64 +1,129 @@
 ---
 import Base from '@/layouts/Base.astro';
-import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import { collectionPageJsonLd } from '@/lib/seo';
 import { getDreamUrl, getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
-import { ZODIAC_SIGNS } from '@/lib/thai-astro';
+import ZodiacBadge from '@/components/horoscope/ZodiacBadge';
+import { ZODIAC_SIGNS, zodiacRange } from '@/lib/thai-astro';
 
+/** ไอคอนเส้นของแต่ละหน้า — viewBox 24 เหมือนชุดไอคอนกลาง (§15.2) */
 const pages = [
-  { path: getHoroscopePageUrl('daily'), name: 'ดวงรายวัน 12 ราศี', desc: 'ความรัก การเงิน การงาน และสุขภาพ เปลี่ยนทุกเที่ยงคืนตามเวลาไทย' },
-  { path: getHoroscopePageUrl('zodiac'), name: 'ราศีจากวันเกิด', desc: 'กรอกวันเกิดแล้วรู้ราศีทันที พร้อมสารบัญครบทั้ง 12 ราศี' },
-  { path: getHoroscopePageUrl('chinese-zodiac'), name: 'ปีนักษัตรจากปีเกิด', desc: 'ใช้วันตรุษจีนเป็นเกณฑ์ตัดปี ตอบได้ถูกแม้เกิดต้นปี' },
-  { path: getHoroscopePageUrl('lucky-color'), name: 'สีมงคลประจำวันเกิด', desc: 'สีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ควรเลี่ยง' },
-  { path: getHoroscopePageUrl('numerology'), name: 'เลขศาสตร์วันเกิด', desc: 'บวกเลขวันเดือนปีเกิดจนเหลือหลักเดียว พร้อมแสดงขั้นตอน' },
-  { path: getHoroscopePageUrl('birthday'), name: 'ดูดวงจากวันเกิด (รวมทุกอย่าง)', desc: 'ราศี ปีนักษัตร วันเกิด สีมงคล และเลขศาสตร์ ในหน้าเดียว' },
-];
+  {
+    id: 'birthday',
+    name: 'ดูดวงจากวันเกิด',
+    desc: 'กรอกวันเกิดครั้งเดียว ได้ราศี ปีนักษัตร วันเกิด สีมงคล และเลขศาสตร์ครบในหน้าเดียว',
+    icon: 'M4 20v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M3 20h18M4 15.5c2 1.5 3.5 1.5 5.3 0s3.6-1.5 5.4 0 3.3 1.5 5.3 0M12 11V7m0-3.5V4',
+    featured: true,
+  },
+  {
+    id: 'daily',
+    name: 'ดวงรายวัน 12 ราศี',
+    desc: 'ความรัก การเงิน การงาน และสุขภาพ เปลี่ยนทุกเที่ยงคืนตามเวลาไทย',
+    icon: 'M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z',
+  },
+  {
+    id: 'zodiac',
+    name: 'ราศีจากวันเกิด',
+    desc: 'รู้ราศีทันที พร้อมธาตุ ดาวเจ้าเรือน และราศีที่เข้ากัน',
+    icon: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Zm0 0v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4',
+  },
+  {
+    id: 'chinese-zodiac',
+    name: 'ปีนักษัตรจากปีเกิด',
+    desc: 'ใช้วันตรุษจีนเป็นเกณฑ์ตัดปี ตอบได้ถูกแม้เกิดต้นปี',
+    icon: 'M12 3a9 9 0 1 0 0 18 4.5 4.5 0 0 0 0-9 4.5 4.5 0 0 1 0-9Zm0 4h.01M12 16.5h.01',
+  },
+  {
+    id: 'lucky-color',
+    name: 'สีมงคลประจำวันเกิด',
+    desc: 'สีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ควรเลี่ยง',
+    icon: 'M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2 0-1.5-1-2-1-3s1-2 2.5-2H18a3 3 0 0 0 3-3c0-4.5-4-8-9-8ZM7.5 12h.01M9 7.5h.01M14 6.5h.01M17.5 10h.01',
+  },
+  {
+    id: 'numerology',
+    name: 'เลขศาสตร์วันเกิด',
+    desc: 'บวกเลขวันเดือนปีเกิดจนเหลือหลักเดียว พร้อมแสดงขั้นตอน',
+    icon: 'M9 4 7 20M17 4l-2 16M4 9h16M3.5 15h16',
+  },
+].map((p) => ({ ...p, path: getHoroscopePageUrl(p.id) }));
 
 const title = 'ดูดวงและความเชื่อ — ราศี ปีนักษัตร สีมงคล และดวงรายวัน';
-const description = 'รวมเครื่องมือดูดวงตามความเชื่อไทยและสากล ทั้งราศีจากวันเกิด ปีนักษัตรที่ตัดปีด้วยตรุษจีน สีมงคลประจำวัน เลขศาสตร์วันเกิด และดวงรายวัน 12 ราศีที่เปลี่ยนทุกเที่ยงคืนตามเวลาไทย';
+const description =
+  'รวมเครื่องมือดูดวงตามความเชื่อไทยและสากล ทั้งราศีจากวันเกิด ปีนักษัตรที่ตัดปีด้วยตรุษจีน สีมงคลประจำวัน เลขศาสตร์วันเกิด และดวงรายวัน 12 ราศีที่เปลี่ยนทุกเที่ยงคืนตามเวลาไทย';
 ---
+
 <Base
   title={`${title} — ทูลสยาม`}
   description={description}
   wide
-  jsonLd={[collectionPageJsonLd({ name: title, description, path: getHoroscopeUrl(), items: pages.map((p) => ({ name: p.name, path: p.path })) })]}
+  jsonLd={[
+    collectionPageJsonLd({
+      name: title,
+      description,
+      path: getHoroscopeUrl(),
+      items: pages.map((p) => ({ name: p.name, path: p.path })),
+    }),
+  ]}
 >
   <VerticalShell
     title="ดูดวงและความเชื่อ"
     description={description}
     category="horoscope"
     gradient={['#fdf2f8', '#fbcfe8']}
-    crumbs={[{ name: 'ทูลสยาม', path: getHomeUrl() }, { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() }]}
+    crumbs={[
+      { name: 'ทูลสยาม', path: getHomeUrl() },
+      { name: 'ดูดวงและความเชื่อ', path: getHoroscopeUrl() },
+    ]}
   >
-    <div class="grid gap-4 sm:grid-cols-2">
-      {pages.map((p) => (
-        <a
-          href={p.path}
-          class="rounded-xl border border-slate-200 bg-surface p-4 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
-        >
-          <h2 class="flex items-center gap-2 font-medium text-slate-900">
-            {p.name}
-          </h2>
-          <p class="mt-1 text-sm text-slate-600">{p.desc}</p>
-        </a>
-      ))}
+    <div class="horoscope-hub" data-category="horoscope">
+      {
+        pages.map((p) => (
+          <a href={p.path} class:list={['horoscope-tile', p.featured && 'horoscope-tile-featured']}>
+            <span class="tool-icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d={p.icon} />
+              </svg>
+            </span>
+            <span class="horoscope-tile-copy">
+              <h2>{p.name}</h2>
+              <p>{p.desc}</p>
+            </span>
+            <span class="tile-arrow" aria-hidden="true">
+              ↗
+            </span>
+          </a>
+        ))
+      }
     </div>
 
-    <Section title="ราศีทั้ง 12 และช่วงวันเกิด" class="mt-8">
+    <Section title="ดูดวงวันนี้ตามราศี" class="mt-10">
       <p class="mt-1 text-sm text-slate-600">
-        ทูลสยามใช้ราศีสากล (Western/Tropical) ซึ่งแบ่งตามตำแหน่งดวงอาทิตย์ในรอบปี
-        และเป็นระบบเดียวกับที่ใช้ในสื่อดูดวงทั่วไป
+        แตะราศีเพื่อเปิดดวงประจำวัน · ใช้ราศีสากล (Western/Tropical) ระบบเดียวกับสื่อดูดวงทั่วไป
       </p>
-      <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {ZODIAC_SIGNS.map((s) => (
-          <Card as="li" size="sm">
-            <span aria-hidden="true">{s.symbol}</span>{' '}
-            <span class="font-medium text-slate-900">{s.name}</span>{' '}
-            <span class="text-slate-500">ธาตุ{s.element}</span>
-          </Card>
-        ))}
+      <ul class="zodiac-picker mt-4">
+        {
+          ZODIAC_SIGNS.map((s) => (
+            <li>
+              <a class="zodiac-option" data-element={s.element} href={`${getHoroscopePageUrl('daily')}?sign=${s.id}`}>
+                <ZodiacBadge sign={s} />
+                <span class="zodiac-option-name">{s.name}</span>
+                <span class="zodiac-option-range">{zodiacRange(s)}</span>
+                <span class="zodiac-option-range">ธาตุ{s.element}</span>
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </Section>
 

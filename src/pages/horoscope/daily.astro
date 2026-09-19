@@ -5,12 +5,14 @@ import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import DailyHoroscope from '@/components/horoscope/DailyHoroscope';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
-import { ZODIAC_SIGNS } from '@/lib/thai-astro';
-import { DAILY_CATEGORIES } from '@/content/horoscope/daily-pool';
+import ZodiacBadge from '@/components/horoscope/ZodiacBadge';
+import { ZODIAC_SIGNS, zodiacRange } from '@/lib/thai-astro';
 
 const title = 'ดวงรายวัน 12 ราศี — ความรัก การเงิน การงาน สุขภาพ';
-const description = 'ดูดวงรายวันครบทั้ง 12 ราศี แยกเป็นความรัก การเงิน การงาน และสุขภาพ เปลี่ยนทุกเที่ยงคืนตามเวลาประเทศไทย ผู้ใช้ทุกประเทศจึงเห็นดวงของวันเดียวกัน';
+const description =
+  'ดูดวงรายวันครบทั้ง 12 ราศี แยกเป็นความรัก การเงิน การงาน และสุขภาพ เปลี่ยนทุกเที่ยงคืนตามเวลาประเทศไทย ผู้ใช้ทุกประเทศจึงเห็นดวงของวันเดียวกัน';
 ---
+
 <Base title={`${title} — ทูลสยาม`} description={description}>
   <VerticalShell
     title="ดวงรายวัน 12 ราศี"
@@ -34,39 +36,35 @@ const description = 'ดูดวงรายวันครบทั้ง 12 �
     <Section title="ดวงรายวันของทูลสยามทำงานอย่างไร" class="mt-8">
       <div class="mt-2 space-y-3 text-sm text-slate-600">
         <p>
-          ข้อความดวงรายวันมาจากคลังข้อความที่เขียนไว้ล่วงหน้า และเลือกด้วยสูตรที่คงที่จากราศีกับวันที่
-          ไม่ใช่การสุ่ม เปิดกี่ครั้งในวันเดียวกันก็ได้ข้อความเดิมเสมอ และไม่มีการเรียกปัญญาประดิษฐ์มาแต่งข้อความใหม่
+          ข้อความดวงรายวันมาจากคลังข้อความที่เขียนไว้ล่วงหน้า และเลือกด้วยสูตรที่คงที่จากราศีกับวันที่ ไม่ใช่การสุ่ม
+          เปิดกี่ครั้งในวันเดียวกันก็ได้ข้อความเดิมเสมอ และไม่มีการเรียกปัญญาประดิษฐ์มาแต่งข้อความใหม่
         </p>
         <p>
           วันที่ที่ใช้คือวันตามเวลาประเทศไทยเสมอ คนไทยที่อยู่ต่างประเทศจึงเห็นดวงของวันเดียวกับคนที่อยู่ในไทย
           ไม่ใช่ดวงของวันตามเขตเวลาที่เครื่องตัวเองอยู่
         </p>
-        <p>
-          ในวันเดียวกัน ทั้ง 12 ราศีจะได้ข้อความคนละข้อความ ไม่มีสองราศีใดได้ข้อความซ้ำกัน
-        </p>
+        <p>ในวันเดียวกัน ทั้ง 12 ราศีจะได้ข้อความคนละข้อความ ไม่มีสองราศีใดได้ข้อความซ้ำกัน</p>
       </div>
     </Section>
 
-    <Section title="แบ่งเป็นสี่ด้าน" class="mt-8">
-      <ul class="mt-3 grid gap-2 sm:grid-cols-2">
-        {DAILY_CATEGORIES.map((c) => (
-          <Card as="li" size="sm" class="text-slate-700">
-            {c.label}
-          </Card>
-        ))}
-      </ul>
-    </Section>
-
     <Section title="ราศีทั้ง 12 และลักษณะประจำราศี" class="mt-8">
-      <ul class="mt-4 grid gap-3 sm:grid-cols-2">
-        {ZODIAC_SIGNS.map((s) => (
-          <Card as="li" size="md">
-            <h3 class="font-medium text-slate-900">
-              <span aria-hidden="true">{s.symbol}</span> {s.name} · ธาตุ{s.element}
-            </h3>
-            <p class="mt-1 text-sm text-slate-600">{s.summary}</p>
-          </Card>
-        ))}
+      <ul class="zodiac-cards mt-4">
+        {
+          ZODIAC_SIGNS.map((s) => (
+            <li class="zodiac-card" data-element={s.element}>
+              <ZodiacBadge sign={s} />
+              <div>
+                <h3>
+                  {s.name}{' '}
+                  <span>
+                    {zodiacRange(s)} · ธาตุ{s.element}
+                  </span>
+                </h3>
+                <p>{s.summary}</p>
+              </div>
+            </li>
+          ))
+        }
       </ul>
     </Section>
   </VerticalShell>

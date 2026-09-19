@@ -7,6 +7,7 @@ import {
   dayColorsFromDate,
   numerologyFromDate,
   zodiacFromDate,
+  zodiacGlyph,
 } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
 import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
@@ -60,7 +61,7 @@ export default function BirthdayProfile() {
       {sign && colors && numbers && (
         <>
           <ResultBox label="สรุปดวงจากวันเกิด">
-            {formatThaiDate(birth)} · <span aria-hidden="true">{sign.symbol}</span> {sign.name}
+            {formatThaiDate(birth)} · <span aria-hidden="true">{zodiacGlyph(sign)}</span> {sign.name}
             {chinese && <> · ปี{chinese.animal.name}</>}
           </ResultBox>
 

@@ -6,15 +6,30 @@ import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
 import ZodiacFinder from '@/components/horoscope/ZodiacFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
-import { ZODIAC_SIGNS } from '@/lib/thai-astro';
+import { ZODIAC_SIGNS, zodiacGlyph } from '@/lib/thai-astro';
 
-const THAI_MONTH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+const THAI_MONTH = [
+  'มกราคม',
+  'กุมภาพันธ์',
+  'มีนาคม',
+  'เมษายน',
+  'พฤษภาคม',
+  'มิถุนายน',
+  'กรกฎาคม',
+  'สิงหาคม',
+  'กันยายน',
+  'ตุลาคม',
+  'พฤศจิกายน',
+  'ธันวาคม',
+];
 const range = (s: (typeof ZODIAC_SIGNS)[number]) =>
   `${s.from[1]} ${THAI_MONTH[s.from[0] - 1]} – ${s.to[1]} ${THAI_MONTH[s.to[0] - 1]}`;
 
 const title = 'ราศีจากวันเกิด — เช็กราศีของคุณพร้อมช่วงวันครบ 12 ราศี';
-const description = 'กรอกวันเกิดแล้วรู้ราศีทันที พร้อมตารางช่วงวันของราศีทั้ง 12 ธาตุประจำราศี และลักษณะนิสัยตามความเชื่อ ใช้ราศีสากลแบบเดียวกับสื่อดูดวงทั่วไป';
+const description =
+  'กรอกวันเกิดแล้วรู้ราศีทันที พร้อมตารางช่วงวันของราศีทั้ง 12 ธาตุประจำราศี และลักษณะนิสัยตามความเชื่อ ใช้ราศีสากลแบบเดียวกับสื่อดูดวงทั่วไป';
 ---
+
 <Base title={`${title} — ทูลสยาม`} description={description}>
   <VerticalShell
     title="ราศีจากวันเกิด"
@@ -35,17 +50,21 @@ const description = 'กรอกวันเกิดแล้วรู้ร�
       <div class="mt-4">
         <DataTable
           caption="ตารางราศีสากลทั้ง 12 ราศี พร้อมช่วงวันเกิดและธาตุประจำราศี"
-          minWidth="36rem"
+          minWidth="52rem"
           columns={[
             { header: 'ราศี', class: 'font-medium text-slate-900' },
             { header: 'ช่วงวันเกิด' },
             { header: 'ธาตุ' },
+            { header: 'ดาวเจ้าเรือน' },
+            { header: 'คุณภาพ' },
             { header: 'ลักษณะเด่น', class: 'text-slate-600' },
           ]}
           rows={ZODIAC_SIGNS.map((s) => [
-            { text: s.name, symbol: s.symbol },
+            { text: s.name, symbol: zodiacGlyph(s) },
             range(s),
             s.element,
+            s.planet,
+            s.quality,
             s.traits.join(' · '),
           ])}
         />
@@ -66,6 +85,16 @@ const description = 'กรอกวันเกิดแล้วรู้ร�
         <p class="text-sm text-slate-600">
           เครื่องมือนี้ใช้ช่วงวันมาตรฐานตามตารางด้านบน คนที่เกิดวันรอยต่อพอดีจะถูกจัดตามวันที่ระบุไว้
           ในทางโหราศาสตร์ที่ละเอียดกว่านี้ ราศีเปลี่ยนตามเวลาจริงในวันนั้น ซึ่งต้องใช้เวลาเกิดประกอบด้วย
+        </p>
+      </div>
+      <div>
+        <h3 class="font-medium text-slate-900">ธาตุ ดาวเจ้าเรือน และคุณภาพราศีคืออะไร</h3>
+        <p class="text-sm text-slate-600">
+          ราศีทั้ง 12 แบ่งเป็นสี่ธาตุ ธาตุละสามราศี คือไฟ ดิน ลม และน้ำ ตำราสากลถือว่าราศีธาตุเดียวกันเข้ากันดีที่สุด
+          และธาตุไฟส่งเสริมกับลม ธาตุดินส่งเสริมกับน้ำ ส่วนคุณภาพราศีแบ่งเป็นจรราศี (ราศีที่เริ่มฤดู ชอบริเริ่ม)
+          สถิรราศี (ราศีกลางฤดู หนักแน่น) และอุภัยราศี (ราศีปลายฤดู ปรับตัวเก่ง)
+          ดาวเจ้าเรือนคือดาวที่ตำราถือว่าครองราศีนั้น ราศีพิจิก กุมภ์ และมีน ใช้ดาวที่ค้นพบยุคหลัง
+          จึงระบุดาวดั้งเดิมไว้ในวงเล็บด้วย
         </p>
       </div>
       <div>

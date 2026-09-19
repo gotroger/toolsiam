@@ -8,8 +8,10 @@ import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 import { THAI_DAY_COLORS, THAI_WEEKDAYS } from '@/lib/thai-date';
 
 const title = 'สีมงคลประจำวันเกิด — สีเสริมการงาน การเงิน ความรัก';
-const description = 'ดูสีมงคลประจำวันเกิดตามคติไทย ทั้งสีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ความเชื่อว่าควรเลี่ยง พร้อมตารางสีประจำวันครบทั้งเจ็ดวัน';
+const description =
+  'ดูสีมงคลประจำวันเกิดตามคติไทย ทั้งสีเสริมการงาน การเงิน ความรัก โชคลาภ และสีที่ความเชื่อว่าควรเลี่ยง พร้อมตารางสีประจำวันครบทั้งเจ็ดวัน';
 ---
+
 <Base title={`${title} — ทูลสยาม`} description={description}>
   <VerticalShell
     title="สีมงคลประจำวันเกิด"
@@ -31,12 +33,14 @@ const description = 'ดูสีมงคลประจำวันเกิ�
         คติไทยกำหนดสีประจำวันไว้ตามเทพประจำวันในตำนาน ซึ่งเป็นที่มาของธรรมเนียมแต่งกายตามสีวันด้วย
       </p>
       <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {THAI_WEEKDAYS.map((day, i) => (
-          <Card as="li" size="sm">
-            <span class="font-medium text-slate-900">วัน{day}</span>{' '}
-            <span class="text-slate-600">สี{THAI_DAY_COLORS[i]}</span>
-          </Card>
-        ))}
+        {
+          THAI_WEEKDAYS.map((day, i) => (
+            <Card as="li" size="sm">
+              <span class="font-medium text-slate-900">วัน{day}</span>{' '}
+              <span class="text-slate-600">สี{THAI_DAY_COLORS[i]}</span>
+            </Card>
+          ))
+        }
       </ul>
     </Section>
 

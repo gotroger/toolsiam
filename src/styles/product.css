@@ -1967,3 +1967,290 @@
     }
   }
 }
+
+/* ดูดวง — สีประจำธาตุ ตัวเลือกราศี และการ์ดดวงรายวัน */
+@layer components {
+  [data-element] {
+    --element: var(--color-accent-pink);
+  }
+  [data-element='ไฟ'] {
+    --element: var(--color-accent-coral);
+  }
+  [data-element='ดิน'] {
+    --element: var(--color-accent-lime);
+  }
+  [data-element='ลม'] {
+    --element: var(--color-accent-cyan);
+  }
+  [data-element='น้ำ'] {
+    --element: var(--color-accent-blue);
+  }
+  .zodiac-badge {
+    display: inline-grid;
+    place-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    font-size: 20px;
+    line-height: 1;
+    /* ฟอนต์สัญลักษณ์ของระบบ — ฟอนต์ไทยของเว็บไม่มี glyph จักรราศี */
+    font-family: 'Apple Symbols', 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'Noto Sans Symbols', sans-serif;
+    color: #fff;
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--element) 82%, #fff),
+      color-mix(in srgb, var(--element) 88%, #000)
+    );
+  }
+  .zodiac-badge-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--element) 70%, transparent);
+  }
+  .zodiac-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 8px;
+  }
+  .zodiac-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+    padding: 12px 6px;
+    border-radius: 14px;
+    border: 1px solid var(--color-slate-200);
+    background: var(--color-surface);
+    text-align: center;
+    cursor: pointer;
+    /* ไม่ transition สีพื้น/ขอบ: ตอน hydrate ราศีตั้งต้นสลับเป็นราศีที่จำไว้ ถ้าค่อย ๆ จางจะเห็นเป็นสองช่องถูกเลือกพร้อมกัน */
+    transition: transform var(--motion-normal) var(--ease-product);
+  }
+  .zodiac-option:focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+  .zodiac-option[aria-pressed='true'] {
+    border-color: var(--element);
+    background: color-mix(in srgb, var(--element) 12%, var(--color-surface));
+    box-shadow: 0 0 0 1px var(--element);
+  }
+  .zodiac-option-name {
+    margin-top: 2px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-slate-900);
+  }
+  .zodiac-option-range {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--color-slate-600);
+  }
+  /* จอแคบ: 4 คอลัมน์ 3 แถว ให้ผลดวงอยู่ในจอแรกโดยไม่ต้องเลื่อนผ่านตัวเลือกยาว ๆ */
+  @media (max-width: 639px) {
+    .zodiac-picker {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .zodiac-option {
+      padding: 8px 2px;
+    }
+    .zodiac-option-name {
+      font-size: 13px;
+    }
+    .zodiac-option-range {
+      font-size: 10px;
+    }
+  }
+  .daily-result,
+  .zodiac-result {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--element) 30%, var(--color-slate-200));
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--element) 10%, var(--color-surface)),
+      var(--color-surface) 55%
+    );
+  }
+  .daily-result-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .daily-result-head h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--color-slate-900);
+  }
+  .daily-result-head p {
+    font-size: 13px;
+    color: var(--color-slate-600);
+  }
+  .daily-aspects {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .daily-aspect {
+    --aspect: var(--color-accent-mint);
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--color-slate-200);
+    border-top: 3px solid var(--aspect);
+    background: var(--color-surface);
+  }
+  .daily-aspect[data-aspect='love'] {
+    --aspect: var(--color-accent-rose);
+  }
+  .daily-aspect[data-aspect='money'] {
+    --aspect: var(--color-accent-gold);
+  }
+  .daily-aspect[data-aspect='work'] {
+    --aspect: var(--color-accent-indigo);
+  }
+  .daily-aspect h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--aspect) 60%, var(--color-slate-900));
+  }
+  .daily-aspect p {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-slate-800);
+  }
+  .zodiac-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .zodiac-facts > div {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--color-slate-200);
+    background: var(--color-surface);
+  }
+  .zodiac-facts dt {
+    font-size: 12px;
+    color: var(--color-slate-600);
+  }
+  .zodiac-facts dd {
+    margin-top: 2px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-slate-900);
+  }
+  .zodiac-cards {
+    display: grid;
+    gap: 10px;
+  }
+  .zodiac-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--color-slate-200);
+    background: var(--color-surface);
+  }
+  .zodiac-card h3 {
+    font-weight: 500;
+    color: var(--color-slate-900);
+  }
+  .zodiac-card h3 span {
+    margin-left: 6px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-slate-600);
+  }
+  .zodiac-card p {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-slate-600);
+  }
+  .horoscope-hub {
+    display: grid;
+    gap: 12px;
+  }
+  .horoscope-tile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--tile-accent) 22%, var(--color-slate-200));
+    background: linear-gradient(
+      158deg,
+      color-mix(in srgb, var(--tile-accent) 10%, var(--color-surface)),
+      var(--color-surface) 60%
+    );
+    transition:
+      transform var(--motion-normal) var(--ease-product),
+      border-color var(--motion-normal);
+  }
+  .horoscope-tile:focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+  .horoscope-tile-copy {
+    flex: 1;
+    min-width: 0;
+  }
+  .horoscope-tile h2 {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--color-slate-900);
+  }
+  .horoscope-tile p {
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-slate-600);
+  }
+  .horoscope-tile-featured {
+    padding-block: 22px;
+    background: linear-gradient(
+      120deg,
+      color-mix(in srgb, var(--tile-accent) 22%, var(--color-surface)),
+      color-mix(in srgb, var(--color-accent-purple) 12%, var(--color-surface))
+    );
+  }
+  .horoscope-tile-featured h2 {
+    font-size: 20px;
+  }
+  @media (min-width: 640px) {
+    .daily-aspects,
+    .zodiac-cards,
+    .horoscope-hub {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .horoscope-tile-featured {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 1024px) {
+    .horoscope-hub {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .horoscope-hub .horoscope-tile:not(.horoscope-tile-featured) {
+      align-items: flex-start;
+    }
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .zodiac-option:hover,
+    .horoscope-tile:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--element, var(--tile-accent)) 55%, var(--color-slate-200));
+    }
+  }
+}

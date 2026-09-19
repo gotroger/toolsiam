@@ -8,8 +8,10 @@ import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 import { CHINESE_ZODIAC } from '@/lib/thai-astro';
 
 const title = 'ปีนักษัตรจากปีเกิด — ตัดปีด้วยตรุษจีนอย่างถูกต้อง';
-const description = 'หาปีนักษัตรจากวันเกิดโดยใช้วันตรุษจีนเป็นเกณฑ์เปลี่ยนปี คนที่เกิดเดือนมกราคมถึงต้นกุมภาพันธ์จึงได้นักษัตรที่ถูกต้อง พร้อมลักษณะประจำนักษัตรครบทั้ง 12 ปี';
+const description =
+  'หาปีนักษัตรจากวันเกิดโดยใช้วันตรุษจีนเป็นเกณฑ์เปลี่ยนปี คนที่เกิดเดือนมกราคมถึงต้นกุมภาพันธ์จึงได้นักษัตรที่ถูกต้อง พร้อมลักษณะประจำนักษัตรครบทั้ง 12 ปี';
 ---
+
 <Base title={`${title} — ทูลสยาม`} description={description}>
   <VerticalShell
     title="ปีนักษัตรจากปีเกิด"
@@ -28,15 +30,15 @@ const description = 'หาปีนักษัตรจากวันเก�
 
     <Section title="นักษัตรทั้ง 12 ปี" class="mt-8">
       <ul class="mt-4 grid gap-3 sm:grid-cols-2">
-        {CHINESE_ZODIAC.map((a) => (
-          <Card as="li" size="md">
-            <h3 class="font-medium text-slate-900">
-              ปี{a.name}
-            </h3>
-            <p class="mt-1 text-sm text-slate-600">{a.summary}</p>
-            <p class="mt-2 text-xs text-slate-500">{a.traits.join(' · ')}</p>
-          </Card>
-        ))}
+        {
+          CHINESE_ZODIAC.map((a) => (
+            <Card as="li" size="md">
+              <h3 class="font-medium text-slate-900">ปี{a.name}</h3>
+              <p class="mt-1 text-sm text-slate-600">{a.summary}</p>
+              <p class="mt-2 text-xs text-slate-500">{a.traits.join(' · ')}</p>
+            </Card>
+          ))
+        }
       </ul>
     </Section>
 
