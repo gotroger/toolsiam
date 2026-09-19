@@ -369,8 +369,45 @@
     flex-wrap: wrap;
     gap: 8px;
   }
+  /* แถวเดียวเลื่อนซ้ายวนลูป: track มีหมวดสองชุด เลื่อนไป -50% แล้วกลับมาจุดเดิมพอดี */
+  .discovery-categories {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+  }
+  .category-marquee {
+    display: flex;
+    width: max-content;
+  }
   .discovery-categories .category-pills {
-    justify-content: center;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    padding: 4px 8px 4px 0;
+  }
+  .discovery-categories .category-pill {
+    white-space: nowrap;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .category-marquee {
+      animation: category-marquee 40s linear infinite;
+    }
+    .category-marquee:hover,
+    .category-marquee:focus-within {
+      animation-play-state: paused;
+    }
+  }
+  /* ไม่เล่น animation: ซ่อนชุดสำเนาแล้วให้เลื่อนเองด้วยมือแทน */
+  @media (prefers-reduced-motion: reduce) {
+    .discovery-categories {
+      overflow-x: auto;
+    }
+    .discovery-categories .category-pills[inert] {
+      display: none;
+    }
+  }
+  @keyframes category-marquee {
+    to {
+      transform: translateX(-50%);
+    }
   }
   .category-pill {
     display: inline-flex;
@@ -1064,15 +1101,6 @@
     .category-pill {
       padding: 8px 12px;
       font-size: 13px;
-    }
-    .discovery-categories .category-pills {
-      display: grid;
-      grid-template-rows: repeat(2, 44px);
-      grid-auto-flow: column;
-      grid-auto-columns: max-content;
-      justify-content: start;
-      overflow-x: auto;
-      padding: 4px 4px 12px;
     }
     .discovery-categories {
       padding-block: 16px;

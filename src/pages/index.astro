@@ -54,9 +54,17 @@ const verticals = categories.filter((c) => c.landingPath && c.id !== 'lottery');
   </section>
 
   <nav id="categories" class="discovery-categories" aria-label="หมวดหมู่เครื่องมือ">
-    <div class="category-pills">
-      <CategoryPill href={getToolsUrl()} />{
-        categories.map((category) => <CategoryPill category={category.id} href={getCategoryUrl(category)} />)
+    {/* ชุดที่สองเป็นสำเนาให้ลูปต่อเนื่องไร้รอยต่อ — inert กันไม่ให้ screen reader และ Tab เจอลิงก์ซ้ำ */}
+    <div class="category-marquee">
+      {
+        [false, true].map((clone) => (
+          <div class="category-pills" aria-hidden={clone ? 'true' : undefined} inert={clone}>
+            <CategoryPill href={getToolsUrl()} />
+            {categories.map((category) => (
+              <CategoryPill category={category.id} href={getCategoryUrl(category)} />
+            ))}
+          </div>
+        ))
       }
     </div>
   </nav>
