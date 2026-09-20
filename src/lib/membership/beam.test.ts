@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { BeamError, createPromptPayCharge, extractCharge, signWebhook, verifyWebhookSignature } from './beam';
+import {
+  BeamError,
+  createPromptPayCharge,
+  extractCharge,
+  fetchCharge,
+  signWebhook,
+  verifyWebhookSignature,
+} from './beam';
 
 const creds = { baseUrl: 'https://playground.api.beamcheckout.com/', merchantId: 'm1', apiKey: 'k1' };
 const okBody = {
@@ -95,5 +102,31 @@ describe('extractCharge', () => {
     expect(extractCharge({ object: { referenceId: 'c' } })).toEqual({ id: null, referenceId: 'c', status: null });
     expect(extractCharge({ id: 'd', status: 'FAILED' })).toEqual({ id: 'd', referenceId: null, status: 'FAILED' });
     expect(extractCharge(null)).toEqual({ id: null, referenceId: null, status: null });
+  });
+});
+
+describe('fetchCharge', () => {
+  const creds = { baseUrl: 'https://playground.api.beamcheckout.com/', merchantId: 'm1', apiKey: 'k1' };
+
+  it('GET /api/v1/charges/{id} ด้วย Basic auth แล้วคืน status + referenceId + amount', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ chargeId: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 1900 })),
+    ) as unknown as typeof fetch;
+    const got = await fetchCharge({ creds, chargeId: 'ch_1', fetchImpl });
+    expect(got.status).toBe('SUCCEEDED');
+    expect(got.referenceId).toBe('p1');
+    expect(got.amount).toBe(1900);
+    expect(JSON.parse(got.rawJson)).toMatchObject({ chargeId: 'ch_1' });
+    const [url, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://playground.api.beamcheckout.com/api/v1/charges/ch_1');
+    expect(init.method).toBe('GET');
+    expect((init.headers as Record<string, string>).Authorization).toBe(`Basic ${btoa('m1:k1')}`);
+  });
+
+  it('Beam ตอบไม่ใช่ 2xx → BeamError พร้อม status', async () => {
+    const fetchImpl = vi.fn(async () => new Response('', { status: 404 })) as unknown as typeof fetch;
+    await expect(fetchCharge({ creds, chargeId: 'nope', fetchImpl })).rejects.toMatchObject({ status: 404 });
+    await expect(fetchCharge({ creds, chargeId: 'nope', fetchImpl })).rejects.toBeInstanceOf(BeamError);
   });
 });

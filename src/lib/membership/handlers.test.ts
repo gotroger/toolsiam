@@ -336,6 +336,86 @@ describe('billing', () => {
     expect(d.store.payments.get('p1')?.status).toBe('expired');
   });
 
+  /** payment ที่ค้าง pending พร้อม charge id — สถานการณ์ "จ่ายแล้วแต่ webhook ไม่มา" */
+  async function pendingWithCharge(d: ReturnType<typeof setup>, userId: string) {
+    await d.store.createPayment({
+      id: 'p1',
+      userId,
+      amountSatang: 1900,
+      beamChargeId: 'ch_1',
+      qrExpiresAt: NOW + 900,
+      qrImage: 'q',
+      qrRaw: '',
+      createdAt: NOW,
+    });
+  }
+  const beamCharge = (body: unknown, status = 200) =>
+    vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+  const statusAt = async (d: ReturnType<typeof setup>, cookie: string, fetchImpl: typeof fetch, at: number) =>
+    (await (
+      await handleStatus(get('/api/billing/status?ref=p1', { cookie }), fullEnv(), {
+        ...d.deps,
+        fetchImpl,
+        now: () => at,
+      })
+    ).json()) as { status: string; premiumUntil: number | null };
+
+  it('status สำรอง: webhook ไม่มา แต่ Beam ยืนยันว่า SUCCEEDED → ให้สิทธิ์เหมือน webhook', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    const fetchImpl = beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 1900 });
+    const body = await statusAt(d, cookie, fetchImpl, NOW + 30);
+    expect(body.status).toBe('paid');
+    expect(body.premiumUntil).toBe(NOW + 30 + 30 * DAY);
+    expect(d.store.payments.get('p1')?.status).toBe('paid');
+  });
+
+  it('status สำรอง: ไม่ถาม Beam ใน 20 วินาทีแรก และถามไม่เกินครั้งเดียวต่อ 60 วินาที', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    const fetchImpl = beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'PENDING', amount: 1900 });
+    expect((await statusAt(d, cookie, fetchImpl, NOW + 5)).status).toBe('pending');
+    expect(fetchImpl).toHaveBeenCalledTimes(0);
+    expect((await statusAt(d, cookie, fetchImpl, NOW + 30)).status).toBe('pending');
+    expect((await statusAt(d, cookie, fetchImpl, NOW + 33)).status).toBe('pending');
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(d.kv.store.get('beamcheck:p1')?.ttl).toBe(60);
+  });
+
+  it('status สำรอง: Beam ล่ม หรือ charge ไม่ตรงกับรายการ → คง pending ไม่ให้สิทธิ์ และไม่ทำให้ API พัง', async () => {
+    for (const fetchImpl of [
+      beamCharge({}, 500),
+      beamCharge({ chargeId: 'ch_1', referenceId: 'someone-elses', status: 'SUCCEEDED', amount: 1900 }),
+      beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 100 }),
+    ]) {
+      const d = setup();
+      const { cookie, user } = await signedIn(d);
+      await pendingWithCharge(d, user.id);
+      const body = await statusAt(d, cookie, fetchImpl, NOW + 30);
+      expect(body).toEqual({ status: 'pending', premiumUntil: null });
+      expect(d.store.payments.get('p1')?.status).toBe('pending');
+    }
+  });
+
+  it('status สำรอง: Beam ไม่ส่ง referenceId/amount กลับมา → ยังให้สิทธิ์ (charge id เป็นของรายการนี้อยู่แล้ว)', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    const body = await statusAt(d, cookie, beamCharge({ chargeId: 'ch_1', status: 'SUCCEEDED' }), NOW + 30);
+    expect(body.status).toBe('paid');
+  });
+
+  it('status สำรอง: QR เลยเวลาแล้วแต่ Beam บอกว่าจ่ายสำเร็จ → ให้สิทธิ์ ไม่ปิดเป็น expired', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    const fetchImpl = beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 1900 });
+    const body = await statusAt(d, cookie, fetchImpl, NOW + 901);
+    expect(body.status).toBe('paid');
+  });
+
   async function webhook(
     d: ReturnType<typeof setup>,
     payload: unknown,

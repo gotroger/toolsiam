@@ -90,6 +90,40 @@ function parseChargeResponse(data: unknown): PromptPayCharge {
   return { chargeId, imageBase64, rawData };
 }
 
+export interface ChargeSnapshot {
+  /** `SUCCEEDED` | `FAILED` | `PENDING` ตามเอกสาร Beam — เก็บเป็น string เผื่อ Beam เพิ่มค่าใหม่ */
+  status: string | null;
+  referenceId: string | null;
+  /** สตางค์ */
+  amount: number | null;
+  rawJson: string;
+}
+
+/** `GET /api/v1/charges/{chargeId}` — ใช้ถามสถานะเองเมื่อ webhook ไม่มา ไม่ retry (ผู้เรียก poll ซ้ำอยู่แล้ว) */
+export async function fetchCharge(p: {
+  creds: BeamCredentials;
+  chargeId: string;
+  fetchImpl?: typeof fetch;
+}): Promise<ChargeSnapshot> {
+  const res = await (p.fetchImpl ?? fetch)(
+    `${p.creds.baseUrl.replace(/\/$/, '')}/api/v1/charges/${encodeURIComponent(p.chargeId)}`,
+    {
+      method: 'GET',
+      headers: { Authorization: `Basic ${btoa(`${p.creds.merchantId}:${p.creds.apiKey}`)}` },
+      signal: AbortSignal.timeout(5_000),
+    },
+  );
+  if (!res.ok) throw new BeamError(`Beam ตอบ ${res.status}`, res.status);
+  const rawJson = await res.text();
+  const d = JSON.parse(rawJson) as Record<string, unknown>;
+  return {
+    status: typeof d.status === 'string' ? d.status.toUpperCase() : null,
+    referenceId: typeof d.referenceId === 'string' ? d.referenceId : null,
+    amount: typeof d.amount === 'number' ? d.amount : null,
+    rawJson,
+  };
+}
+
 /** ตรวจ x-beam-signature = base64(HMAC-SHA256(raw body, base64decode(secret))) แบบ constant-time */
 export async function verifyWebhookSignature(
   rawBody: string,

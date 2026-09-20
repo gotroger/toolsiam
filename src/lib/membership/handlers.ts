@@ -1,6 +1,6 @@
 import { PREMIUM_DAYS, PREMIUM_PRICE_SATANG, QR_TTL_MINUTES } from '@/lib/plan-limits';
 import { getAccountUrl, getGoogleCallbackPath, getHomeUrl } from '@/lib/routes';
-import { createPromptPayCharge, extractCharge, verifyWebhookSignature } from './beam';
+import { createPromptPayCharge, extractCharge, fetchCharge, verifyWebhookSignature } from './beam';
 import { isBillingEnabled, isEnabled, type MembershipEnv } from './env';
 import {
   base64url,
@@ -239,11 +239,61 @@ export async function handleStatus(request: Request, env: MembershipEnv, deps: D
   if (!payment || payment.userId !== session.userId) return empty(404);
   const now = (deps.now ?? nowSec)();
   let status = payment.status;
+  if (status === 'pending' && (await confirmedByBeam(payment, env, deps, now))) status = 'paid';
   if (status === 'pending' && now > payment.qrExpiresAt) {
     await deps.store.expirePayment(payment.id);
     status = 'expired';
   }
   return json(200, { status, premiumUntil: await deps.store.getExpiresAt(session.userId) });
+}
+
+const BEAM_CHECK_AFTER = 20;
+const BEAM_CHECK_EVERY = 60;
+
+/**
+ * ทางสำรองเมื่อ webhook ไม่มา (Beam เลิก retry หลัง 10 ครั้ง) — ถาม Beam ตรง ๆ ว่ารายการนี้จ่ายแล้วหรือยัง
+ *
+ * หน้าบัญชี poll status ทุกไม่กี่วินาที จึงต้องคุมไม่ให้ยิง Beam ตาม: รอ 20 วินาทีแรกให้ webhook มาก่อน
+ * แล้วถามไม่เกินครั้งเดียวต่อ 60 วินาทีต่อรายการ (60 = TTL ต่ำสุดของ KV)
+ * ให้สิทธิ์ผ่าน settlePayment ตัวเดียวกับ webhook จึง idempotent — webhook มาทีหลังวันก็ไม่เพิ่ม
+ */
+async function confirmedByBeam(
+  payment: { id: string; beamChargeId: string | null; amountSatang: number; createdAt: number },
+  env: MembershipEnv,
+  deps: Deps & { store: MembershipStore; kv: KVNamespace },
+  now: number,
+): Promise<boolean> {
+  if (!payment.beamChargeId || now - payment.createdAt < BEAM_CHECK_AFTER) return false;
+  const throttleKey = `beamcheck:${payment.id}`;
+  if (await deps.kv.get(throttleKey)) return false;
+  await deps.kv.put(throttleKey, '1', { expirationTtl: BEAM_CHECK_EVERY });
+  try {
+    const charge = await fetchCharge({
+      creds: { baseUrl: env.BEAM_API_BASE_URL!, merchantId: env.BEAM_MERCHANT_ID!, apiKey: env.BEAM_API_KEY! },
+      chargeId: payment.beamChargeId,
+      fetchImpl: deps.fetchImpl,
+    });
+    if (charge.status !== 'SUCCEEDED') return false;
+    // ตรวจเฉพาะช่องที่ Beam ส่งมา — charge id ได้จากตอนเราสร้างรายการนี้เอง สองช่องนี้เป็นชั้นกันเสริม
+    const mismatch =
+      (charge.referenceId !== null && charge.referenceId !== payment.id) ||
+      (charge.amount !== null && charge.amount !== payment.amountSatang);
+    if (mismatch) {
+      console.warn('[membership] Beam ยืนยัน charge ที่ไม่ตรงกับรายการ:', payment.id);
+      return false;
+    }
+    console.warn('[membership] ให้สิทธิ์จากการถาม Beam เอง (webhook ไม่มา):', payment.id);
+    await deps.store.settlePayment(payment.id, {
+      beamChargeId: payment.beamChargeId,
+      rawWebhookJson: charge.rawJson,
+      now,
+      days: PREMIUM_DAYS,
+    });
+    return true;
+  } catch (e) {
+    console.warn('[membership] ถามสถานะจาก Beam ไม่สำเร็จ:', (e as Error).message);
+    return false;
+  }
 }
 
 /**
