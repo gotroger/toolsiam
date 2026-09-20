@@ -8,6 +8,10 @@
     "directory": "./dist/client",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
+    // ไม่มีบรรทัดนี้ การ "เปิดลิงก์" ในเบราว์เซอร์ (Sec-Fetch-Mode: navigate) จะถูกชั้น assets ตอบหน้า 404
+    // โดยไม่เรียก Worker เลย — fetch() กับ curl ไม่โดน จึงดูเหมือนปกติ แต่ /api/auth/google/start
+    // กับ callback ที่ Google redirect กลับมาเป็น navigation ทั้งคู่
+    "run_worker_first": ["/api/*"],
   },
   "routes": [
     { "pattern": "toolsiam.com", "custom_domain": true },
