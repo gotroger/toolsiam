@@ -44,7 +44,7 @@
     // ระบบสมาชิก (spec 2026-09-19) — kill switch ฝั่ง server ทุก API ตอบ 204 เมื่อไม่ใช่ "on"
     // เปิดหลังจากตั้ง secret ครบ: GOOGLE_CLIENT_SECRET, BEAM_API_KEY, BEAM_WEBHOOK_HMAC_SECRET (wrangler secret put)
     // และ build ด้วย repository variable PUBLIC_MEMBERSHIP=on เพื่อให้ HTML มีปุ่มเข้าสู่ระบบ
-    "MEMBERSHIP": "off",
+    "MEMBERSHIP": "on",
     "SITE_ORIGIN": "https://toolsiam.com",
     "GOOGLE_CLIENT_ID": "612274577369-vs8umknqr09h6s8jdt8ametdpajcb57d.apps.googleusercontent.com",
     // playground ก่อน — สลับเป็น https://api.beamcheckout.com เมื่อทดสอบ flow ครบและ rotate key แล้ว
