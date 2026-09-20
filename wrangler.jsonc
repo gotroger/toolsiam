@@ -18,33 +18,23 @@
 
   // LOTTERY: อ่านผลงวดล่าสุดที่ Worker cron (workers/lottery-cron/) เขียนไว้ — เว็บนี้อ่านอย่างเดียว ไม่เขียน
   //   JSON ก้อนเดียว ~2 KB ไม่มีข้อมูลผู้ใช้ (§28.2) ต้องเป็น namespace เดียวกับที่ workers/lottery-cron/ ใช้เขียน
-  "kv_namespaces": [{ "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" }],
-
-  /*
-   * ⚠️ binding ของระบบสมาชิก — ยังไม่เปิดใช้ ต้องสร้างของจริงก่อนถึงจะใส่ได้
-   *
-   * ห้ามใส่ id ปลอมทิ้งไว้: `wrangler deploy` ตรวจ id ของ KV/D1 กับ API จริงตอนอัปโหลด
-   * ถ้าใส่ค่าที่ไม่มีอยู่จริง **deploy ของทั้งเว็บจะพัง** ไม่ใช่แค่ระบบสมาชิก
-   * และ kill switch `MEMBERSHIP` ก็ช่วยไม่ได้เพราะ binding ถูกตรวจตั้งแต่ตอน deploy
-   *
-   * ไม่มี binding = `isEnabled()` เป็นเท็จ → ทุก API ของสมาชิกตอบ 204 เว็บทำงานเหมือนไม่มีระบบสมาชิก
-   * ซึ่งเป็นสถานะที่ตั้งใจให้ merge ได้โดยไม่กระทบใคร
-   *
-   * เปิดใช้เมื่อพร้อม (ทำตามลำดับนี้):
-   *   1. npx wrangler d1 create toolsiam            → ได้ database_id
-   *   2. npx wrangler kv namespace create MEMBER_SESSION → ได้ id
-   *      (ตั้งชื่อ MEMBER_SESSION ไม่ใช่ SESSION เพราะ @astrojs/cloudflare ยึด binding ชื่อนั้นไปใช้เอง)
-   *   3. ลบ comment ของบล็อกด้านล่างแล้วใส่ id จริงทั้งสองตัว
-   *   4. ตั้ง secret + var ตาม .env.example แล้วค่อยเปิด MEMBERSHIP / PUBLIC_MEMBERSHIP
-   *
-   * "kv_namespaces": [
-   *   { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" },
-   *   { "binding": "MEMBER_SESSION", "id": "<id ที่ได้จากข้อ 2>" }
-   * ],
-   * "d1_databases": [
-   *   { "binding": "DB", "database_name": "toolsiam", "database_id": "<id ที่ได้จากข้อ 1>", "migrations_dir": "migrations" }
-   * ],
-   */
+  //
+  // MEMBER_SESSION + DB: binding ของระบบสมาชิก (สร้างของจริงแล้ว 20 ก.ย. 2569)
+  //   ตั้งชื่อ MEMBER_SESSION ไม่ใช่ SESSION เพราะ @astrojs/cloudflare ยึด binding ชื่อนั้นไปใช้เอง
+  //   ห้ามแก้ id เป็นค่าที่ไม่มีอยู่จริง: `wrangler deploy` ตรวจ id กับ API ตอนอัปโหลด → deploy ของทั้งเว็บพัง
+  //   มี binding แล้วเว็บยังเหมือนเดิมจนกว่า `MEMBERSHIP` ด้านล่างจะเป็น "on"
+  "kv_namespaces": [
+    { "binding": "LOTTERY", "id": "7db79be051f54457855d292027cd5cb3" },
+    { "binding": "MEMBER_SESSION", "id": "759b3eeec6c5403499ebd9738f2efc0b" },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "toolsiam",
+      "database_id": "4bbcad68-d273-4774-b26c-e072ef601f4a",
+      "migrations_dir": "migrations",
+    },
+  ],
 
   "vars": {
     // kill switch — ต้องเป็น "on" เท่านั้นจึงจะเปิด /api/lottery/latest
