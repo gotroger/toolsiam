@@ -53,8 +53,10 @@
     "GOOGLE_CLIENT_ID": "612274577369-vs8umknqr09h6s8jdt8ametdpajcb57d.apps.googleusercontent.com",
     // playground ก่อน — สลับเป็น https://api.beamcheckout.com เมื่อทดสอบ flow ครบและ rotate key แล้ว
     "BEAM_API_BASE_URL": "https://playground.api.beamcheckout.com",
-    // ⚠️ ตอนนี้เป็น merchant ของ playground (ยืมของ Catper มาทดสอบ) — QR ที่ได้จ่ายจริงไม่ได้
-    // ก่อนรับเงินจริงต้องเปลี่ยนทั้ง 4 ค่า: BASE_URL, MERCHANT_ID, BEAM_API_KEY, BEAM_WEBHOOK_HMAC_SECRET
-    "BEAM_MERCHANT_ID": "catper-p83zhj",
+    // ว่าง = ระบบชำระเงินปิด (isBillingEnabled เป็นเท็จ) login ยังทำงานครบ
+    // ทดสอบครบวงกับ playground ผ่านแล้ว 20 ก.ย. 2569 (merchant ยืมของ Catper: catper-p83zhj) — รอ merchant จริงของ ToolSiam
+    // เปิดรับเงินจริง: เปลี่ยน BEAM_API_BASE_URL เป็น https://api.beamcheckout.com + ใส่ merchant id ใหม่ตรงนี้
+    //   + `wrangler secret put` ทับ BEAM_API_KEY และ BEAM_WEBHOOK_HMAC_SECRET ด้วยค่าของ production
+    "BEAM_MERCHANT_ID": "",
   },
 }
