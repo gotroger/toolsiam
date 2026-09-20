@@ -297,6 +297,11 @@ const current = Astro.url.pathname;
             }
             show(loginLinks, false);
             show(accountMenus, true);
+            // CTA นอก header ที่ชวนให้ล็อกอิน (เช่น /premium) — ล็อกอินแล้วให้พาไปปลายทางตรง ๆ ไม่วนผ่าน Google อีกรอบ
+            for (const cta of document.querySelectorAll<HTMLAnchorElement>('[data-signed-in-href]')) {
+              cta.href = cta.dataset.signedInHref ?? cta.href;
+              if (cta.dataset.signedInLabel) cta.textContent = cta.dataset.signedInLabel;
+            }
           } else if (res.status !== 401) {
             show(loginLinks, false);
           }

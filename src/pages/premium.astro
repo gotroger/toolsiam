@@ -82,6 +82,8 @@ const faq = [
       membershipOn ? (
         <a
           href={getLoginUrl(getAccountUrl())}
+          data-signed-in-href={getAccountUrl()}
+          data-signed-in-label="ไปที่บัญชีของฉันเพื่อสมัคร"
           class="product-button inline-flex shrink-0 items-center justify-center bg-action px-5 py-2.5 text-sm font-medium text-white hover:bg-action-hover"
         >
           เข้าสู่ระบบด้วย Google เพื่อสมัคร
