@@ -46,7 +46,7 @@
     // และ build ด้วย repository variable PUBLIC_MEMBERSHIP=on เพื่อให้ HTML มีปุ่มเข้าสู่ระบบ
     "MEMBERSHIP": "off",
     "SITE_ORIGIN": "https://toolsiam.com",
-    "GOOGLE_CLIENT_ID": "",
+    "GOOGLE_CLIENT_ID": "612274577369-vs8umknqr09h6s8jdt8ametdpajcb57d.apps.googleusercontent.com",
     // playground ก่อน — สลับเป็น https://api.beamcheckout.com เมื่อทดสอบ flow ครบและ rotate key แล้ว
     "BEAM_API_BASE_URL": "https://playground.api.beamcheckout.com",
     "BEAM_MERCHANT_ID": "",
