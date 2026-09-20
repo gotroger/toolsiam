@@ -2,9 +2,52 @@
 
 วันที่: 19 กันยายน 2569 · คู่กับ [ดีไซน์](2026-09-19-membership-premium-design.md)
 
-โค้ดครบทั้ง 4 เฟสแล้วและ CI เขียว แต่ **ยังไม่มีใครใช้ได้จริง** เพราะสวิตช์ปิดทั้งสองชั้น
-และยังไม่มี D1/KV/Google/Beam ของจริง เอกสารนี้คือลำดับเปิดใช้ทีละขั้น (ถอยกลับได้ทุกขั้น)
-กับรายการงานที่ตั้งใจเว้นไว้
+## สถานะ ณ 20 กันยายน 2569
+
+| ขั้น                        | สถานะ                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| B — merge + deploy          | ✅ เสร็จ                                                                           |
+| C — ล็อกอิน Google          | ✅ **เปิดใช้จริงแล้ว** ปุ่มเข้าสู่ระบบขึ้นทุกหน้า                                  |
+| D ข้อ 1–6 — Beam playground | ✅ ผ่านครบวง (ดู "ผลทดสอบ playground" ด้านล่าง)                                    |
+| D ข้อ 7 — รับเงินจริง       | ⏳ รอ Beam อนุมัติ merchant ใหม่ของ ToolSiam (สมัครแล้ว 20 ก.ย. ตรวจ 1–3 วันทำการ) |
+
+ระหว่างรอ ระบบชำระเงิน **ปิด** (`BEAM_MERCHANT_ID` ว่าง) — กดสมัครจะขึ้น "ระบบชำระเงินยังไม่เปิดให้บริการในขณะนี้"
+
+### เปิดรับเงินจริงเมื่อ Beam อนุมัติ
+
+1. Lighthouse ตัวจริง → นักพัฒนา → สร้าง API Key + Webhook Endpoint
+   `https://toolsiam.com/api/billing/webhook` (event `charge.succeeded`)
+2. `npx wrangler secret put BEAM_API_KEY` และ `BEAM_WEBHOOK_HMAC_SECRET` **ทับ** ค่าของ playground ที่ค้างอยู่
+3. `wrangler.jsonc`: `BEAM_API_BASE_URL` → `https://api.beamcheckout.com` · `BEAM_MERCHANT_ID` → id ใหม่ → push
+4. ซื้อจริง 19 บาทหนึ่งครั้ง → `/account` ต้องเป็นพรีเมียม · ดู `npx wrangler tail` ว่า webhook ตอบ 200
+5. ลบ API key `toolsiam-test` กับ webhook endpoint ของ toolsiam ใน **playground ของ Catper**
+
+### สิ่งที่รู้เพิ่มระหว่างเปิดใช้ (ไม่มีในแผนเดิม)
+
+- **`/api/*` ต้องมี `run_worker_first`** — ชั้น assets ของ Cloudflare ตอบหน้า 404 ให้ request ที่เป็น
+  navigation (`Sec-Fetch-Mode: navigate`) โดยไม่เรียก Worker · `curl` กับ `fetch()` ไม่โดน จึงต้องทดสอบ
+  endpoint ที่ผู้ใช้ "เปิดเป็นหน้า" ด้วย `curl -H 'Sec-Fetch-Mode: navigate'` เสมอ
+- **GCP ครบโควตาโปรเจกต์** — OAuth client อยู่ในโปรเจกต์เดิม `gen-lang-client-0298477351` ที่เปลี่ยนชื่อเป็น ToolSiam
+  ไม่ใส่โลโก้ใน consent screen เพราะจะถูกบังคับยื่น verification
+- **Beam ไม่ให้ใช้ merchant ร่วมกันข้ามเว็บ** — ต้องสมัครร้านค้าใหม่ด้วยอีเมลใหม่ต่อหนึ่งธุรกิจ
+- **token ของ CI** คือ User API Token ชื่อ "Edit Cloudflare Workers" เพิ่ม `Account · D1 · Edit` แล้ว
+
+### ผลทดสอบ playground
+
+เทียบ `src/lib/membership/beam.ts` กับ docs.beamcheckout.com แล้ว **ตรงทุก field ไม่ต้องแก้** และยืนยันด้วยรายการจริง:
+สร้าง charge ได้ `chargeId` + `encodedImage.{imageBase64Encoded,rawData}` · webhook `charge.succeeded` มาพร้อม
+`x-beam-signature`/`x-beam-event` ลายเซ็นผ่าน · payload แบน (`chargeId` `referenceId` `status` `merchantId` `amount` อยู่ชั้นบนสุด
+amount เป็นสตางค์) · `payments` → `paid` · `subscriptions` +30 วัน
+
+ใน playground ค่า `rawData` ของ QR คือ URL หน้า **Force Charge** (`…/charges/<id>/force`) — เปิดแล้วกด
+Mark as Succeeded แทนการจ่ายเงิน · playground สมัครเองได้ที่ `playground-lighthouse.beamcheckout.com`
+
+**ยังไม่ได้ยืนยันกับ API จริง:** รูปร่าง response ของ `GET /api/v1/charges/{id}` ที่ทางสำรองใช้ (เอกสารบอกแค่ว่ามี `status`)
+โค้ดจึงอ่านแบบยอมให้ `referenceId`/`amount` หายได้ — เช็ก log `[membership] ให้สิทธิ์จากการถาม Beam เอง` เมื่อเกิดขึ้นครั้งแรก
+
+---
+
+เอกสารด้านล่างคือแผนเดิม เก็บไว้เป็นลำดับอ้างอิงและวิธีถอยกลับ
 
 `isEnabled()` (ล็อกอิน) กับ `isBillingEnabled()` (ชำระเงิน) ใน `src/lib/membership/env.ts`
 **แยกจากกัน** จึงเปิดได้ทีละขั้น และถอยกลับได้ด้วยการแก้ var ตัวเดียวโดยไม่ต้อง deploy ใหม่
@@ -67,7 +110,7 @@ merge เข้า `main` → CI deploy โดย `MEMBERSHIP=off` และไ�
 | #   | งาน                                                                 | เมื่อไรถึงควรทำ                                                                                                                                                                            |
 | --- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | C1  | ซ่อนปุ่มซื้อเมื่อ billing ยังไม่เปิด (`/api/me` ส่ง `billingReady`) | ก่อนขั้น C ถ้าเว้นช่วงจาก Beam นาน                                                                                                                                                         |
-| C2  | `scripts/beam-check.mjs` ยิง playground ยืนยัน field                | **ก่อนขั้น D เสมอ**                                                                                                                                                                        |
+| C2  | ~~`scripts/beam-check.mjs`~~ ไม่ต้องทำแล้ว — ยืนยันด้วยรายการจริง   | —                                                                                                                                                                                          |
 | C3  | แพ็ก 3/12 เดือน                                                     | ทันทีที่เห็นว่าคนไม่กลับมาต่ออายุ                                                                                                                                                          |
 | C5  | ปุ่มลบบัญชีในหน้าบัญชี                                              | เมื่อมีคนขอลบเกิน 2–3 ราย                                                                                                                                                                  |
 | C6  | rate limit start/checkout ด้วย KV                                   | เมื่อเห็น row ขยะใน `payments`                                                                                                                                                             |
