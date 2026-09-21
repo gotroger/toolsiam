@@ -7,6 +7,7 @@ export type CategoryId =
   | 'date'
   | 'daily'
   | 'qr'
+  | 'random'
   | 'lottery'
   | 'dream'
   | 'horoscope'

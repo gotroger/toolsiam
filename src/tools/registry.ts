@@ -36,6 +36,12 @@ import { creditCardDebtMeta } from './loan/credit-card-debt/meta';
 import { flatEffectiveRateMeta } from './loan/flat-effective-rate/meta';
 import { electricityBillMeta } from './daily/electricity-bill/meta';
 import { shopProfitMeta } from './business/shop-profit/meta';
+import { randomPickerMeta } from './random/random-picker/meta';
+import { spinWheelMeta } from './random/spin-wheel/meta';
+import { randomNumberMeta } from './random/random-number/meta';
+import { randomGroupsMeta } from './random/random-groups/meta';
+import { passwordGeneratorMeta } from './random/password-generator/meta';
+import { luckyNumberMeta } from './random/lucky-number/meta';
 import { videoToolMetas } from './video/catalog';
 import { youtubeThumbnailMeta } from './video/youtube-thumbnail/meta';
 import { cleanShareLinkMeta } from './video/clean-share-link/meta';
@@ -80,6 +86,12 @@ export const tools: ToolMeta[] = [
   shopProfitMeta,
   electricityBillMeta,
   fuelCostMeta,
+  randomPickerMeta,
+  spinWheelMeta,
+  randomNumberMeta,
+  randomGroupsMeta,
+  passwordGeneratorMeta,
+  luckyNumberMeta,
   jsonFormatterMeta,
   ...videoToolMetas,
   youtubeThumbnailMeta,

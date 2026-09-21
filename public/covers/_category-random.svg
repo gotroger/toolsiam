@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="ภาพปกหมวด random">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf3fd"/>
+      <stop offset="1" stop-color="#e9c0ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <circle cx="210" cy="170" r="96" fill="#ffffff" opacity="0.35"/><circle cx="980" cy="210" r="130" fill="#ffffff" opacity="0.35"/><circle cx="330" cy="520" r="74" fill="#ffffff" opacity="0.35"/><circle cx="900" cy="540" r="60" fill="#ffffff" opacity="0.35"/>
+  <g transform="translate(470 207.5) scale(10.833333333333334)" fill="none" stroke="#0f172a" stroke-opacity="0.72" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15.5 3.5h5v5M3.5 20.5 20.5 3.5M15.5 20.5h5v-5M15 15l5.5 5.5M3.5 3.5 9 9"/>
+  </g>
+</svg>

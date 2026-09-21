@@ -102,6 +102,15 @@ export const categories: CategoryMeta[] = [
     nameEn: 'Video & Audio',
     description: 'ตัดคลิป แปลงวิดีโอเป็น MP3 หรือ GIF ลดขนาดวิดีโอ ดาวน์โหลดรูปปก YouTube และล้างลิงก์แชร์',
   },
+  {
+    id: 'random',
+    order: 14,
+    status: 'active',
+    gradient: ['#fbf3fd', '#e9c0ee'],
+    name: 'สุ่มและตัดสินใจ',
+    nameEn: 'Random & Decision',
+    description: 'สุ่มชื่อ จับฉลาก สุ่มตัวเลข แบ่งกลุ่ม หมุนวงล้อ และสุ่มรหัสผ่าน ตรวจสอบย้อนหลังได้ด้วย seed',
+  },
 
   /* --- vertical: มีบ้านหลักของตัวเอง ไม่มีหน้า /categories/ --- */
   {

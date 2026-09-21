@@ -57,4 +57,10 @@ export const toolLoaders: Record<string, ToolLoader> = {
   'video-compress': () => import('./video/video-compress/Tool'),
   'youtube-thumbnail': () => import('./video/youtube-thumbnail/Tool'),
   'clean-share-link': () => import('./video/clean-share-link/Tool'),
+  'random-picker': () => import('./random/random-picker/Tool'),
+  'spin-wheel': () => import('./random/spin-wheel/Tool'),
+  'random-number': () => import('./random/random-number/Tool'),
+  'random-groups': () => import('./random/random-groups/Tool'),
+  'password-generator': () => import('./random/password-generator/Tool'),
+  'lucky-number': () => import('./random/lucky-number/Tool'),
 };

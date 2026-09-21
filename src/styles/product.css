@@ -24,6 +24,7 @@
     --color-accent-cyan: #2f9cc6;
     --color-accent-purple: #a668c9;
     --color-accent-pink: #d066a6;
+    --color-accent-magenta: #b85cbd;
     --color-scrollbar: var(--color-slate-400);
     --color-scrollbar-track: var(--color-slate-100);
     scrollbar-gutter: stable;
@@ -619,6 +620,23 @@
   }
   [data-category='horoscope'] {
     --tile-accent: var(--color-accent-pink);
+  }
+  [data-category='random'] {
+    --tile-accent: var(--color-accent-magenta);
+  }
+  /* วงล้อสุ่ม — หมุนด้วย transition ตัวเดียว ไม่มี JS ต่อเฟรม จึงลื่นและไม่กินแรงเครื่อง */
+  .spin-wheel-dial {
+    /* ต้องเป็น 0 0 ไม่ใช่ 50% 50%: viewBox ของวงล้อเริ่มที่พิกัดติดลบ (-110 -118) เบราว์เซอร์จึง
+       แปลง 50% 50% เป็นจุด (110, 114) ใน user space ซึ่งอยู่นอกวงล้อ แล้วเหวี่ยงวงล้อหลุดจอไปเลย
+       วงล้อถูกวาดโดยมีจุดศูนย์กลางอยู่ที่ (0, 0) พอดี จุดหมุนจึงเป็น 0 0 ตรง ๆ
+       (มองไม่เห็นบั๊กนี้ตอน rotation = 0 เพราะ transform เป็น identity) */
+    transform-origin: 0 0;
+    /* ออกตัวเร็วแล้วหน่วงยาวตอนท้าย ให้รู้สึกเหมือนมีแรงเฉื่อยจริง */
+    transition: transform 3200ms cubic-bezier(0.12, 0.74, 0.04, 1);
+    will-change: transform;
+  }
+  .spin-wheel-dial[data-instant='true'] {
+    transition: none;
   }
   .tool-tile {
     position: relative;
