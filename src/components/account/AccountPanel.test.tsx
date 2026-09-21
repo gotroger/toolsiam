@@ -133,6 +133,46 @@ describe('AccountPanel', () => {
     vi.useRealTimers();
   });
 
+  it('จ่ายสำเร็จแล้ว → ประวัติโผล่รายการใหม่เองโดยไม่ต้องรีเฟรชหน้า', async () => {
+    __setPlanForTests({ status: 'signedIn', plan: 'free', user });
+    let paid = false;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/api/billing/history')
+        return new Response(
+          JSON.stringify({
+            payments: paid ? [{ createdAt: Date.UTC(2026, 8, 21) / 1000, amountSatang: 2900, status: 'paid' }] : [],
+          }),
+        );
+      if (url === '/api/billing/checkout')
+        return new Response(
+          JSON.stringify({
+            paymentId: 'p1',
+            imageBase64: 'AAAA',
+            rawData: '000201',
+            expiresAt: Math.floor(Date.now() / 1000) + 900,
+          }),
+        );
+      if (url.startsWith('/api/billing/status?ref=p1')) {
+        paid = true;
+        return new Response(JSON.stringify({ status: 'paid', premiumUntil: 1 }));
+      }
+      if (url === '/api/me')
+        return new Response(JSON.stringify({ user, plan: 'premium', premiumUntil: 1, expiringSoon: false }));
+      throw new Error(`ไม่คาดคิด: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    Object.defineProperty(document, 'cookie', { value: 'ts_m=1', configurable: true, writable: true });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<AccountPanel />);
+    await waitFor(() => expect(screen.queryByRole('table')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' }));
+    await screen.findByRole('img', { name: 'QR PromptPay สำหรับชำระเงิน' });
+    await vi.advanceTimersByTimeAsync(3100);
+    await waitFor(() => expect(screen.getByText('ชำระเงินสำเร็จ')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('29.00 บาท')).toBeInTheDocument());
+    vi.useRealTimers();
+  });
+
   it('checkout ล้มเหลว (502) → แสดงข้อความและกลับมากดใหม่ได้', async () => {
     __setPlanForTests({ status: 'signedIn', plan: 'free', user });
     vi.stubGlobal(

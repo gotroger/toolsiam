@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, CopyButton, DataTable, EmptyState, Stat } from '@/components/ui';
 import { __setPlanForTests, refreshPlan, usePlan, type PlanState } from '@/lib/plan-client';
 import { PREMIUM_DAYS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
@@ -101,6 +101,10 @@ function SignedIn({ state }: { state: PlanState }) {
   const untilIso = state.premiumUntil ? new Date(state.premiumUntil * 1000).toISOString().slice(0, 10) : null;
   // เวลาอ่านครั้งเดียวตอน mount — หน้านี้ไม่ต้องเดินนาฬิกาเอง (นับถอยหลังของ QR อยู่ใน BuyPremium)
   const [mountedAt] = useState(() => Math.floor(Date.now() / 1000));
+  // จ่ายเสร็จแล้วรายการใหม่ยังไม่อยู่ในประวัติที่โหลดไว้ตอนเปิดหน้า — เพิ่มตัวนับเพื่อสั่งโหลดใหม่
+  const [paidCount, setPaidCount] = useState(0);
+  // useCallback เพื่อให้ identity คงที่ — ไม่งั้น effect ที่ poll สถานะจะถูกรื้อทุกครั้งที่หน้า re-render
+  const handlePaid = useCallback(() => setPaidCount((n) => n + 1), []);
   const left = state.premiumUntil ? daysLeft(state.premiumUntil, mountedAt) : 0;
   return (
     <div className="space-y-6">
@@ -143,8 +147,8 @@ function SignedIn({ state }: { state: PlanState }) {
           }
         />
       </div>
-      <BuyPremium premium={premium} />
-      <PaymentHistory />
+      <BuyPremium premium={premium} onPaid={handlePaid} />
+      <PaymentHistory reloadKey={paidCount} />
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4 text-sm">
         <a className="text-brand-700 underline" href={getPremiumUrl()}>
           ดูสิทธิ์ของสมาชิกพรีเมียม
@@ -174,7 +178,7 @@ const POLL_FAST_MS = 3000;
 const POLL_SLOW_MS = 5000;
 const POLL_SLOW_AFTER_MS = 120_000;
 
-export function BuyPremium({ premium }: { premium: boolean }) {
+export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () => void }) {
   const [status, setStatus] = useState<BuyStatus>('idle');
   const [checkout, setCheckout] = useState<Checkout | null>(null);
   const [error, setError] = useState('');
@@ -233,6 +237,7 @@ export function BuyPremium({ premium }: { premium: boolean }) {
           const body = (await res.json()) as { status: 'pending' | 'paid' | 'expired' };
           if (body.status === 'paid') {
             setStatus('paid');
+            onPaid?.();
             await refreshPlan();
             return;
           }
@@ -251,7 +256,7 @@ export function BuyPremium({ premium }: { premium: boolean }) {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [status, checkout]);
+  }, [status, checkout, onPaid]);
 
   const secondsLeft = checkout ? Math.max(0, checkout.expiresAt - now) : 0;
   const countdown = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`;
@@ -325,7 +330,7 @@ const STATUS_LABEL: Record<HistoryRow['status'], string> = {
  * ยังไม่เคยจ่าย = ไม่แสดงอะไรเลย ไม่ใช่ตารางเปล่าที่กินที่โดยไม่ให้ข้อมูล
  * โหลดล้มเหลวก็เงียบ — ประวัติเป็นข้อมูลประกอบ ไม่ใช่สิ่งที่ขาดแล้วใช้หน้านี้ไม่ได้
  */
-export function PaymentHistory() {
+export function PaymentHistory({ reloadKey = 0 }: { reloadKey?: number }) {
   const [rows, setRows] = useState<HistoryRow[] | null>(null);
 
   useEffect(() => {
@@ -343,7 +348,7 @@ export function PaymentHistory() {
     return () => {
       stopped = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   if (!rows?.length) return null;
   return (
