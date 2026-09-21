@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Alert, Button, Checkbox, ErrorText, Field, ResultBox, Stat, Textarea } from '@/components/ui';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Alert, Button, Checkbox, ErrorText, Field, Stat, Textarea } from '@/components/ui';
 import { parseList } from '../shared/list';
 import { SeedRow } from '../shared/SeedRow';
 import { resolveDraw } from '@/lib/random';
+import { useReducedMotion } from '../shared/roll';
 import { LABEL_LIMIT, planSpin, WHEEL_MAX, WHEEL_MIN, WHEEL_RADIUS, wheelSegments } from './logic';
 
 /** ระยะเวลาแอนิเมชัน ต้องตรงกับ .spin-wheel-dial ใน product.css */
@@ -20,18 +21,6 @@ const SEGMENT_COLORS = [
   'var(--color-accent-gold)',
 ];
 
-function useReducedMotion(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-      query.addEventListener('change', onChange);
-      return () => query.removeEventListener('change', onChange);
-    },
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    () => false,
-  );
-}
-
 export default function SpinWheelTool() {
   const [text, setText] = useState('');
   const [seedInput, setSeedInput] = useState('');
@@ -40,7 +29,7 @@ export default function SpinWheelTool() {
   const [removeAfterSpin, setRemoveAfterSpin] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [winner, setWinner] = useState<string | null>(null);
+  const [winner, setWinner] = useState<{ name: string; index: number; runId: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<number | null>(null);
   const reduced = useReducedMotion();
@@ -65,7 +54,7 @@ export default function SpinWheelTool() {
 
   function reveal(index: number) {
     setSpinning(false);
-    setWinner(pool[index]);
+    setWinner((prev) => ({ name: pool[index], index, runId: (prev?.runId ?? 0) + 1 }));
     if (removeAfterSpin) setRemoved((prev) => [...prev, poolIndexes[index]]);
   }
 
@@ -138,6 +127,7 @@ export default function SpinWheelTool() {
                   <g key={segment.index}>
                     <path
                       d={segment.path}
+                      className={!spinning && winner?.index === segment.index ? 'wheel-winner' : undefined}
                       fill={SEGMENT_COLORS[segment.index % SEGMENT_COLORS.length]}
                       stroke="#fff"
                       strokeWidth="0.75"
@@ -197,7 +187,19 @@ export default function SpinWheelTool() {
         <ErrorText>ต้องมีอย่างน้อย {WHEEL_MIN} รายการจึงจะหมุนได้</ErrorText>
       )}
       {error && <ErrorText>{error}</ErrorText>}
-      {winner && <ResultBox label="ผลการหมุน">{winner}</ResultBox>}
+      {winner && (
+        <div className="result-box border border-brand-600/20" aria-live="polite">
+          <div key={winner.runId} className="roll-settle">
+            <div className="text-xs font-medium text-brand-700">ผลการหมุน</div>
+            <div
+              className="mt-1 break-words text-2xl font-semibold"
+              style={{ color: 'var(--tile-accent)' } as CSSProperties}
+            >
+              {winner.name}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

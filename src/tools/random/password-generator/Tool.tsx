@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Alert, Button, Checkbox, CopyButton, Disclaimer, ErrorText, NumberInput, Stat } from '@/components/ui';
-import { cryptoRng } from '@/lib/random';
-import { DEFAULT_PASSWORD_OPTIONS, estimateStrength, generatePassword, poolSize, type PasswordOptions } from './logic';
+import { cryptoRng, randomInt } from '@/lib/random';
+import { ROLL_STEPS, useRollSequence } from '../shared/roll';
+import {
+  activeSets,
+  DEFAULT_PASSWORD_OPTIONS,
+  estimateStrength,
+  generatePassword,
+  poolSize,
+  type PasswordOptions,
+} from './logic';
 
 const TOGGLES: { key: keyof PasswordOptions; label: string }[] = [
   { key: 'lower', label: 'ตัวพิมพ์เล็ก a-z' },
@@ -15,25 +23,37 @@ const TOGGLES: { key: keyof PasswordOptions; label: string }[] = [
  * เครื่องมือเดียวในหมวดที่ **ไม่มีโหมด seed**
  *
  * รหัสผ่านที่สร้างจาก seed ใครเห็น seed ก็สร้างซ้ำได้ จึงไม่ใช่ความลับอีกต่อไป
- * ที่นี่จึงใช้ cryptoRng() ตรง ๆ และไม่นำเข้า SeedRow หรือ useDraw ของหมวดเลย
+ * ที่นี่จึงใช้ cryptoRng() ตรง ๆ และไม่นำเข้าตัวจัดการ seed ของหมวดเลย
  * (มีเทสต์อ่านซอร์สไฟล์นี้คอยกันไว้ไม่ให้ใครเผลอเพิ่มกลับเข้ามา)
  */
 export default function PasswordGeneratorTool() {
   const [options, setOptions] = useState<PasswordOptions>(DEFAULT_PASSWORD_OPTIONS);
   const [length, setLength] = useState(String(DEFAULT_PASSWORD_OPTIONS.length));
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [runId, setRunId] = useState(0);
+  const sequence = useRollSequence<string>();
 
   const current: PasswordOptions = { ...options, length: Number(length) };
   const size = poolSize(current);
   const strength = estimateStrength(current.length, size);
+  const password = sequence.rolling ? null : sequence.shown;
 
   function generate() {
     try {
-      setPassword(generatePassword(current, cryptoRng()));
+      const final = generatePassword(current, cryptoRng());
       setError(null);
+      setRunId((n) => n + 1);
+
+      // อักขระถูกล็อกทีละตัวจากซ้ายไปขวา ตัวที่ยังไม่ล็อกยังรัวอยู่
+      const pool = activeSets(current).join('');
+      const decoy = cryptoRng();
+      sequence.play(final, (step) => {
+        const locked = Math.floor((final.length * (step + 1)) / ROLL_STEPS.length);
+        const rest = Array.from({ length: final.length - locked }, () => pool[randomInt(decoy, 0, pool.length - 1)]);
+        return final.slice(0, locked) + rest.join('');
+      });
     } catch (e) {
-      setPassword('');
+      sequence.clear();
       setError(e instanceof Error ? e.message : 'สร้างรหัสผ่านไม่สำเร็จ');
     }
   }
@@ -64,24 +84,35 @@ export default function PasswordGeneratorTool() {
         </div>
       </fieldset>
 
-      <Button onClick={generate}>สร้างรหัสผ่าน</Button>
+      <Button onClick={generate} disabled={sequence.rolling} aria-busy={sequence.rolling}>
+        {sequence.rolling ? 'กำลังสร้าง…' : 'สร้างรหัสผ่าน'}
+      </Button>
 
       {error && <ErrorText>{error}</ErrorText>}
 
-      {password && (
+      {sequence.shown && (
         <div className="space-y-3">
           <div className="result-box border border-brand-600/20" aria-live="polite">
-            <div className="text-xs font-medium text-brand-700">รหัสผ่านที่ได้</div>
-            <div className="mt-1 break-all font-mono text-lg font-semibold">{password}</div>
+            <div key={runId} className={sequence.rolling ? undefined : 'roll-settle'}>
+              <div className="text-xs font-medium text-brand-700">
+                {sequence.rolling ? 'กำลังสร้าง…' : 'รหัสผ่านที่ได้'}
+              </div>
+              <div
+                className="roll-figure mt-1 break-all font-mono text-lg font-semibold"
+                style={{ color: 'var(--tile-accent)' } as CSSProperties}
+              >
+                {sequence.shown}
+              </div>
+            </div>
           </div>
-          <CopyButton text={password} label="คัดลอกรหัสผ่าน" />
+          {password && <CopyButton text={password} label="คัดลอกรหัสผ่าน" />}
         </div>
       )}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="ความแข็งแรง" value={strength.label} />
-        <Stat label="ความยากในการเดา" value={`${strength.bits} บิต`} />
-        <Stat label="อักขระที่เลือกได้" value={`${size} ตัว`} />
+        <Stat label="ความยากในการเดา" value={<span className="roll-figure">{strength.bits} บิต</span>} />
+        <Stat label="อักขระที่เลือกได้" value={<span className="roll-figure">{size} ตัว</span>} />
       </div>
 
       <Alert tone="note">

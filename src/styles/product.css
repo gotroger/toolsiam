@@ -638,6 +638,82 @@
   .spin-wheel-dial[data-instant='true'] {
     transition: none;
   }
+
+  /* จังหวะลุ้นของหมวดสุ่ม — ค่าหลอกวิ่งระหว่างรอ แล้วผลจริงเด้งเข้าพร้อมเรืองสีหมวด
+     โหมดลดการเคลื่อนไหวไม่ต้องดักที่นี่ กฎรวมใน global.css ตัด animation/transition ทิ้งให้แล้ว */
+  .roll-figure {
+    /* ตัวเลขความกว้างเท่ากัน ไม่งั้นค่าที่วิ่งจะทำให้กล่องขยับซ้ายขวาตลอดเวลา */
+    font-variant-numeric: tabular-nums;
+  }
+  .roll-live {
+    opacity: 0.7;
+    filter: blur(0.4px);
+  }
+  .roll-settle {
+    animation:
+      roll-settle var(--motion-enter) var(--ease-product),
+      roll-glow 900ms var(--ease-product);
+  }
+  @keyframes roll-settle {
+    0% {
+      transform: scale(0.94);
+    }
+    55% {
+      transform: scale(1.025);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes roll-glow {
+    from {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--tile-accent) 45%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 16px transparent;
+    }
+  }
+  /* ไล่โผล่ทีละชิ้น — ตั้ง --roll-i เป็นลำดับของรายการนั้น */
+  .roll-in {
+    animation: roll-in var(--motion-enter) var(--ease-product) backwards;
+    animation-delay: calc(var(--roll-i, 0) * 70ms);
+  }
+  @keyframes roll-in {
+    from {
+      opacity: 0;
+      transform: translateY(7px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .dice-rolling {
+    animation: dice-rolling 200ms linear infinite;
+  }
+  @keyframes dice-rolling {
+    0%,
+    100% {
+      transform: rotate(-5deg);
+    }
+    50% {
+      transform: rotate(5deg);
+    }
+  }
+  /* ช่องที่ชนะเต้นสองจังหวะ — ใช้ filter ไม่ใช่ transform เพราะจุดหมุนของ SVG
+     ใน viewBox ที่เริ่มพิกัดติดลบเชื่อถือไม่ได้ (ดูคอมเมนต์ของ .spin-wheel-dial) */
+  .wheel-winner {
+    animation: wheel-winner 620ms var(--ease-product) 2;
+  }
+  @keyframes wheel-winner {
+    0%,
+    100% {
+      filter: none;
+    }
+    50% {
+      filter: brightness(1.32) saturate(1.15);
+    }
+  }
   .tool-tile {
     position: relative;
     display: flex;

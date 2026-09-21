@@ -1,16 +1,10 @@
-import { useState } from 'react';
-import {
-  Button,
-  Checkbox,
-  CopyButton,
-  ErrorText,
-  NumberInput,
-  ResultBox,
-  SegmentedControl,
-  Stat,
-} from '@/components/ui';
+import { useState, type CSSProperties } from 'react';
+import { Button, Checkbox, CopyButton, cx, ErrorText, NumberInput, SegmentedControl, Stat } from '@/components/ui';
+import type { Rng } from '@/lib/random';
+import { ROLL_LIMIT } from '../shared/roll';
 import { SeedRow } from '../shared/SeedRow';
 import { useDraw } from '../shared/useDraw';
+import { Coin, Die } from './Dice';
 import { drawNumbers, flipCoins, rollDice, type CoinSide, type NumberMode } from './logic';
 
 const MODES = [
@@ -36,15 +30,19 @@ export default function RandomNumberTool() {
   const draw = useDraw<Result>();
 
   function run() {
-    draw.draw((rng): Result => {
+    const options = { min: Number(min), max: Number(max), count: Number(count), unique };
+    const roll = (rng: Rng): Result => {
       if (mode === 'dice') return { kind: 'dice', ...rollDice(Number(diceCount), Number(sides), rng) };
       if (mode === 'coin') return { kind: 'coin', sides: flipCoins(Number(flips), rng) };
-      return {
-        kind: 'numbers',
-        values: drawNumbers({ min: Number(min), max: Number(max), count: Number(count), unique }, rng),
-      };
-    });
+      return { kind: 'numbers', values: drawNumbers(options, rng) };
+    };
+    // ค่าหลอกใช้เงื่อนไขชุดเดียวกับผลจริง ซึ่งผ่านการตรวจมาแล้ว จึงไม่พังกลางจังหวะ
+    const wanted = mode === 'dice' ? Number(diceCount) : mode === 'coin' ? Number(flips) : options.count;
+    draw.draw(roll, wanted <= ROLL_LIMIT ? roll : undefined);
   }
+
+  const shown = draw.shown;
+  const accent = { color: 'var(--tile-accent)' } as CSSProperties;
 
   return (
     <div className="space-y-5">
@@ -112,35 +110,102 @@ export default function RandomNumberTool() {
 
       <SeedRow id="number" value={draw.seedInput} onChange={draw.setSeedInput} usedSeed={draw.usedSeed} />
 
-      <Button onClick={run}>{mode === 'dice' ? 'ทอยลูกเต๋า' : mode === 'coin' ? 'โยนเหรียญ' : 'สุ่มเลย'}</Button>
+      <Button onClick={run} disabled={draw.rolling} aria-busy={draw.rolling}>
+        {draw.rolling
+          ? mode === 'dice'
+            ? 'กำลังทอย…'
+            : mode === 'coin'
+              ? 'กำลังโยน…'
+              : 'กำลังสุ่ม…'
+          : mode === 'dice'
+            ? 'ทอยลูกเต๋า'
+            : mode === 'coin'
+              ? 'โยนเหรียญ'
+              : 'สุ่มเลย'}
+      </Button>
 
       {draw.error && <ErrorText>{draw.error}</ErrorText>}
 
-      {draw.result?.kind === 'numbers' && (
+      {shown?.kind === 'numbers' && (
         <div className="space-y-3">
-          <ResultBox label={draw.result.values.length === 1 ? 'ได้เลข' : `ได้ ${draw.result.values.length} เลข`}>
-            {draw.result.values.join(', ')}
-          </ResultBox>
-          <CopyButton text={draw.result.values.join(', ')} label="คัดลอกตัวเลข" />
+          <div className="result-box border border-brand-600/20" aria-live="polite">
+            <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
+              <div className="text-xs font-medium text-brand-700">
+                {draw.rolling ? 'กำลังสุ่ม…' : shown.values.length === 1 ? 'ได้เลข' : `ได้ ${shown.values.length} เลข`}
+              </div>
+              <div
+                className={cx(
+                  'roll-figure mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-semibold',
+                  shown.values.length === 1 ? 'text-5xl' : 'text-2xl',
+                  draw.rolling && 'roll-live',
+                )}
+                style={accent}
+              >
+                {shown.values.map((value, i) => (
+                  <span key={`${draw.drawId}-${i}`}>{value}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+          {draw.result?.kind === 'numbers' && <CopyButton text={draw.result.values.join(', ')} label="คัดลอกตัวเลข" />}
         </div>
       )}
 
-      {draw.result?.kind === 'dice' && (
+      {shown?.kind === 'dice' && (
         <div className="space-y-3">
-          <ResultBox label="ผลที่ทอยได้">{draw.result.rolls.join(' · ')}</ResultBox>
+          <div className="result-box border border-brand-600/20" aria-live="polite">
+            <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
+              <div className="text-xs font-medium text-brand-700">{draw.rolling ? 'กำลังทอย…' : 'ผลที่ทอยได้'}</div>
+              <div className="mt-2 flex flex-wrap gap-3" style={accent}>
+                {shown.rolls.map((value, i) => (
+                  <span
+                    key={`${draw.drawId}-${i}`}
+                    className={draw.rolling ? undefined : 'roll-in'}
+                    style={{ '--roll-i': i } as CSSProperties}
+                  >
+                    <Die value={value} rolling={draw.rolling} />
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Stat label="ผลรวม" value={draw.result.total} />
-            <Stat label="จำนวนลูก" value={draw.result.rolls.length} />
+            <Stat label="ผลรวม" value={<span className="roll-figure">{shown.total}</span>} />
+            <Stat label="จำนวนลูก" value={shown.rolls.length} />
           </div>
         </div>
       )}
 
-      {draw.result?.kind === 'coin' && (
+      {shown?.kind === 'coin' && (
         <div className="space-y-3">
-          <ResultBox label="ผลการโยน">{draw.result.sides.join(' · ')}</ResultBox>
+          <div className="result-box border border-brand-600/20" aria-live="polite">
+            <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
+              <div className="text-xs font-medium text-brand-700">{draw.rolling ? 'กำลังโยน…' : 'ผลการโยน'}</div>
+              <div className="mt-2 flex flex-wrap items-center gap-3" style={accent}>
+                {shown.sides.slice(0, 24).map((side, i) => (
+                  <span
+                    key={`${draw.drawId}-${i}`}
+                    className={draw.rolling ? undefined : 'roll-in'}
+                    style={{ '--roll-i': i } as CSSProperties}
+                  >
+                    <Coin side={side} flipping={draw.rolling} />
+                  </span>
+                ))}
+                {shown.sides.length > 24 && (
+                  <span className="text-sm text-slate-600">และอีก {shown.sides.length - 24} ครั้ง</span>
+                )}
+              </div>
+            </div>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Stat label="หัว" value={draw.result.sides.filter((s) => s === 'หัว').length} />
-            <Stat label="ก้อย" value={draw.result.sides.filter((s) => s === 'ก้อย').length} />
+            <Stat
+              label="หัว"
+              value={<span className="roll-figure">{shown.sides.filter((s) => s === 'หัว').length}</span>}
+            />
+            <Stat
+              label="ก้อย"
+              value={<span className="roll-figure">{shown.sides.filter((s) => s === 'ก้อย').length}</span>}
+            />
           </div>
         </div>
       )}
