@@ -51,12 +51,9 @@
     "MEMBERSHIP": "on",
     "SITE_ORIGIN": "https://toolsiam.com",
     "GOOGLE_CLIENT_ID": "612274577369-vs8umknqr09h6s8jdt8ametdpajcb57d.apps.googleusercontent.com",
-    // playground ก่อน — สลับเป็น https://api.beamcheckout.com เมื่อทดสอบ flow ครบและ rotate key แล้ว
-    "BEAM_API_BASE_URL": "https://playground.api.beamcheckout.com",
-    // ว่าง = ระบบชำระเงินปิด (isBillingEnabled เป็นเท็จ) login ยังทำงานครบ
-    // ทดสอบครบวงกับ playground ผ่านแล้ว 20 ก.ย. 2569 (merchant ยืมของ Catper: catper-p83zhj) — รอ merchant จริงของ ToolSiam
-    // เปิดรับเงินจริง: เปลี่ยน BEAM_API_BASE_URL เป็น https://api.beamcheckout.com + ใส่ merchant id ใหม่ตรงนี้
-    //   + `wrangler secret put` ทับ BEAM_API_KEY และ BEAM_WEBHOOK_HMAC_SECRET ด้วยค่าของ production
-    "BEAM_MERCHANT_ID": "",
+    "BEAM_API_BASE_URL": "https://api.beamcheckout.com",
+    // merchant จริงของ ToolSiam (Beam Lighthouse) — เงินเข้าบัญชีจริง
+    // ปิดรับเงินชั่วคราว: ตั้งค่านี้เป็น "" แล้ว push → /api/billing/* ตอบ 204 · login ไม่กระทบ
+    "BEAM_MERCHANT_ID": "toolsiam-93nuzw",
   },
 }
