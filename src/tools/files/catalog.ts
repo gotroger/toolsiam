@@ -1,5 +1,5 @@
 import type { FileClass } from '@/lib/plan-limits';
-import { PLAN_LIMITS } from '@/lib/plan-limits';
+import { PLAN_LIMITS, PREMIUM_DAYS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
 import type { ToolMeta } from '../types';
 
 /** ตัวเลขในคำอธิบายมาจากแพลนฟรีเสมอ — ไม่พิมพ์มือ จะได้ตรงกับที่ FileTool บังคับจริง */
@@ -182,7 +182,7 @@ export const fileToolMetas: ToolMeta[] = Object.entries(fileTools).map(([slug, t
     { q: 'เครื่องมือนี้มีข้อจำกัดอะไรบ้าง?', a: tool.detail },
     {
       q: 'สมาชิกพรีเมียมได้อะไรเพิ่ม?',
-      a: `ขีดจำกัดสูงขึ้น: ไฟล์ละไม่เกิน ${PLAN_LIMITS.premium.perFileMb[tool.fileClass]} MB สูงสุด ${PLAN_LIMITS.premium.maxFiles} ไฟล์ รวม ${PLAN_LIMITS.premium.totalMb} MB และ PDF ${PLAN_LIMITS.premium.pages} หน้า ในราคา 19 บาทต่อ 30 วัน ส่วนแบบฟรียังใช้ได้ไม่ต้องสมัคร`,
+      a: `ขีดจำกัดสูงขึ้น: ไฟล์ละไม่เกิน ${PLAN_LIMITS.premium.perFileMb[tool.fileClass]} MB สูงสุด ${PLAN_LIMITS.premium.maxFiles} ไฟล์ รวม ${PLAN_LIMITS.premium.totalMb} MB และ PDF ${PLAN_LIMITS.premium.pages} หน้า ในราคา ${PREMIUM_PRICE_BAHT} บาทต่อ ${PREMIUM_DAYS} วัน ส่วนแบบฟรียังใช้ได้ไม่ต้องสมัคร`,
     },
     ...(slug.startsWith('pdf-')
       ? [

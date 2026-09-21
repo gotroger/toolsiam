@@ -54,7 +54,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 };
 
 /** ราคาพรีเมียม (สตางค์) — Beam รับ amount เป็นสตางค์ */
-export const PREMIUM_PRICE_SATANG = 1900;
+export const PREMIUM_PRICE_SATANG = 2900;
 /** ราคาพรีเมียม (บาท) สำหรับแสดงผล */
 export const PREMIUM_PRICE_BAHT = PREMIUM_PRICE_SATANG / 100;
 /** จำนวนวันที่ได้ต่อการชำระหนึ่งครั้ง */

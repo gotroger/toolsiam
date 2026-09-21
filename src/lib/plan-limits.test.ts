@@ -41,9 +41,9 @@ describe('plan-limits', () => {
     expect(limitsFor('premium')).toBe(PLAN_LIMITS.premium);
   });
 
-  it('ราคาและระยะเวลาตามที่ตกลง: 19 บาท / 30 วัน', () => {
-    expect(PREMIUM_PRICE_SATANG).toBe(1900);
-    expect(PREMIUM_PRICE_BAHT).toBe(19);
+  it('ราคาและระยะเวลาตามที่ตกลง: 29 บาท / 30 วัน', () => {
+    expect(PREMIUM_PRICE_SATANG).toBe(2900);
+    expect(PREMIUM_PRICE_BAHT).toBe(29);
     expect(PREMIUM_DAYS).toBe(30);
     expect(EXPIRING_SOON_DAYS).toBeLessThan(PREMIUM_DAYS);
     expect(QR_TTL_MINUTES).toBeGreaterThan(0);

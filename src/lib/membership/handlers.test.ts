@@ -260,7 +260,7 @@ describe('billing', () => {
         ),
     ) as unknown as typeof fetch;
 
-  it('checkout: ต้อง login + Origin · สร้าง payment 1,900 สตางค์ อายุ QR 15 นาที · กดซ้ำได้ QR เดิมโดยไม่เรียก Beam อีก', async () => {
+  it('checkout: ต้อง login + Origin · สร้าง payment ตามราคาปัจจุบัน อายุ QR 15 นาที · กดซ้ำได้ QR เดิมโดยไม่เรียก Beam อีก', async () => {
     const d = setup();
     expect((await handleCheckout(post('/api/billing/checkout', { origin: SITE }), fullEnv(), d.deps)).status).toBe(401);
     const { cookie } = await signedIn(d);

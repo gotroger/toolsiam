@@ -103,7 +103,7 @@ describe('ขีดจำกัดตามแพลนและข้อเส�
     });
     render(<FileTool id="pdf-merge" />);
     upload([sized('big.pdf', mb(free.perFileMb.pdf) + 1)]);
-    expect(screen.getByRole('link', { name: 'สมัครพรีเมียม 19 บาท' })).toHaveAttribute('href', '/account');
+    expect(screen.getByRole('link', { name: 'สมัครพรีเมียม 29 บาท' })).toHaveAttribute('href', '/account');
   });
 
   it('เกินพรีเมียมด้วย → ข้อความผิดพลาดธรรมดา ไม่มีข้อเสนอ (ทุกแพลน)', () => {

@@ -49,7 +49,7 @@ describe('AccountPanel', () => {
     render(<AccountPanel />);
     expect(screen.getByText('สมชาย')).toBeInTheDocument();
     expect(screen.getByText('ฟรี')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'สมัคร 30 วัน · 19 บาท' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' })).toBeInTheDocument();
     const logout = screen.getByRole('button', { name: 'ออกจากระบบ' }).closest('form')!;
     expect(logout).toHaveAttribute('method', 'post');
     expect(logout).toHaveAttribute('action', '/api/auth/logout');
@@ -61,7 +61,7 @@ describe('AccountPanel', () => {
     render(<AccountPanel />);
     expect(screen.getByText(/พรีเมียมจะหมดอายุใน 2 วัน/)).toBeInTheDocument();
     expect(screen.getByText('สมาชิกพรีเมียม')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'ต่ออายุอีก 30 วัน · 19 บาท' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ต่ออายุอีก 30 วัน · 29 บาท' })).toBeInTheDocument();
   });
 
   it('เคยจ่ายแล้ว → แสดงตารางประวัติพร้อมวันที่ จำนวนเงิน และสถานะภาษาไทย', async () => {
@@ -121,7 +121,7 @@ describe('AccountPanel', () => {
     Object.defineProperty(document, 'cookie', { value: 'ts_m=1', configurable: true, writable: true });
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<AccountPanel />);
-    fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 19 บาท' }));
+    fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' }));
     expect(await screen.findByRole('img', { name: 'QR PromptPay สำหรับชำระเงิน' })).toHaveAttribute(
       'src',
       'data:image/png;base64,AAAA',
@@ -142,8 +142,8 @@ describe('AccountPanel', () => {
       ),
     );
     render(<AccountPanel />);
-    fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 19 บาท' }));
+    fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('สร้าง QR ไม่สำเร็จ');
-    expect(screen.getByRole('button', { name: 'สมัคร 30 วัน · 19 บาท' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' })).toBeEnabled();
   });
 });
