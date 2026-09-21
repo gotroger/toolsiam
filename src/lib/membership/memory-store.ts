@@ -71,7 +71,7 @@ export function memoryStore(): MembershipStore & {
       const current = expiry.get(payment.userId) ?? null;
       // รวม expired ด้วย ตามเหตุผลของ SETTLEABLE ใน store.ts — เงินที่โอนแล้วต้องได้สิทธิ์เสมอ
       if (payment.status === 'paid') return { applied: false, expiresAt: current };
-      const next = extendExpiry(current, p.now, p.days);
+      const next = extendExpiry(current, p.now, payment.days);
       expiry.set(payment.userId, next);
       payments.set(id, { ...payment, status: 'paid', beamChargeId: p.beamChargeId, paidAt: p.now });
       return { applied: true, expiresAt: next };

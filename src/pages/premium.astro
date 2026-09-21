@@ -6,7 +6,7 @@ import DataTable from '@/components/DataTable.astro';
 import Section from '@/components/Section.astro';
 import { faqJsonLd } from '@/lib/seo';
 import { getAccountUrl, getHomeUrl, getLoginUrl, getPremiumUrl, getToolUrl, getToolsUrl } from '@/lib/routes';
-import { PLAN_LIMITS, PREMIUM_DAYS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
+import { PLAN_LIMITS, PREMIUM_DAYS, PREMIUM_PACKS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
 
 /**
  * หน้าขายพรีเมียม — static และ index ได้
@@ -45,7 +45,7 @@ const faq = [
   },
   {
     q: 'จ่ายอย่างไร และต่ออายุอัตโนมัติหรือไม่?',
-    a: `ชำระผ่านการสแกน QR PromptPay ครั้งละ ${PREMIUM_PRICE_BAHT} บาท ได้สิทธิ์ ${PREMIUM_DAYS} วัน ไม่มีการตัดเงินอัตโนมัติ เมื่อใกล้หมดอายุระบบจะแจ้งเตือนในหน้าบัญชี ต่ออายุเมื่อไรวันที่เหลือจะถูกบวกเพิ่มไม่หายไป`,
+    a: `ชำระผ่านการสแกน QR PromptPay ครั้งเดียวจบ เลือกได้ ${PREMIUM_PACKS.map((p) => `${p.label} ${p.priceSatang / 100} บาท`).join(' · ')} ไม่มีการตัดเงินอัตโนมัติ เมื่อใกล้หมดอายุระบบจะแจ้งเตือนในหน้าบัญชี ต่ออายุเมื่อไรวันที่เหลือจะถูกบวกเพิ่มไม่หายไป`,
   },
   {
     q: 'ไฟล์ของฉันถูกส่งขึ้นเซิร์ฟเวอร์หรือไม่?',
@@ -74,8 +74,17 @@ const faq = [
     <div>
       <p class="text-sm text-slate-600">ราคา</p>
       <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-900">
-        {PREMIUM_PRICE_BAHT} บาท <span class="text-base font-normal text-slate-600">/ {PREMIUM_DAYS} วัน</span>
+        เริ่ม {PREMIUM_PRICE_BAHT} บาท <span class="text-base font-normal text-slate-600">/ {PREMIUM_DAYS} วัน</span>
       </p>
+      <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+        {
+          PREMIUM_PACKS.map((pack) => (
+            <li>
+              <span class="font-medium text-slate-900">{pack.label}</span> {pack.priceSatang / 100} บาท
+            </li>
+          ))
+        }
+      </ul>
       <p class="mt-1 text-sm text-slate-600">สแกน QR PromptPay · ไม่ตัดเงินอัตโนมัติ · เข้าสู่ระบบด้วย Google</p>
     </div>
     {

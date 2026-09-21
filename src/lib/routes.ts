@@ -28,7 +28,8 @@ export const getGoogleCallbackPath = () => '/api/auth/google/callback';
 /** ออกจากระบบต้องเป็น POST (ฟอร์ม) — GET ธรรมดาจะโดน Origin check ปฏิเสธ */
 export const getLogoutUrl = () => '/api/auth/logout';
 export const getMeApiUrl = () => '/api/me';
-export const getCheckoutApiUrl = () => '/api/billing/checkout';
+export const getCheckoutApiUrl = (pack?: string) =>
+  pack ? `/api/billing/checkout?pack=${encodeURIComponent(pack)}` : '/api/billing/checkout';
 export const getBillingStatusUrl = (ref: string) => `/api/billing/status?ref=${encodeURIComponent(ref)}`;
 export const getBillingHistoryUrl = () => '/api/billing/history';
 export const getBillingWebhookPath = () => '/api/billing/webhook';

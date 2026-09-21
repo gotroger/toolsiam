@@ -78,6 +78,7 @@ describe('d1Store', () => {
       id: 'p1',
       user_id: 'u1',
       amount_satang: 1900,
+      days: 30,
       status: 'pending',
       beam_charge_id: null,
       qr_expires_at: 0,
@@ -91,7 +92,6 @@ describe('d1Store', () => {
       beamChargeId: 'ch',
       rawWebhookJson: '{}',
       now: 1000,
-      days: 30,
     });
     expect(result).toEqual({ applied: true, expiresAt: 1000 + 35 * DAY });
     expect(db.batch).toHaveBeenCalledTimes(1);
@@ -106,11 +106,17 @@ describe('d1Store', () => {
   });
 
   it('settlePayment ที่ UPDATE ไม่เปลี่ยนแถว = จ่ายไปแล้ว → applied false และวันหมดอายุเดิม', async () => {
-    const paid = { id: 'p1', user_id: 'u1', status: 'paid', amount_satang: 1900, qr_expires_at: 0, created_at: 0 };
+    const paid = {
+      id: 'p1',
+      user_id: 'u1',
+      status: 'paid',
+      amount_satang: 1900,
+      days: 30,
+      qr_expires_at: 0,
+      created_at: 0,
+    };
     const db = fakeD1([paid, { expires_at: 999 }], 0);
-    expect(
-      await d1Store(db).settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '{}', now: 1000, days: 30 }),
-    ).toEqual({
+    expect(await d1Store(db).settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '{}', now: 1000 })).toEqual({
       applied: false,
       expiresAt: 999,
     });
@@ -126,6 +132,7 @@ describe('จ่ายหลัง QR หมดอายุ', () => {
       id: 'p1',
       userId: 'u1',
       amountSatang: 1900,
+      days: 30,
       beamChargeId: null,
       qrExpiresAt: 500,
       qrImage: null,
@@ -134,9 +141,9 @@ describe('จ่ายหลัง QR หมดอายุ', () => {
     });
     await store.expirePayment('p1');
     expect(await store.getPayment('p1')).toMatchObject({ status: 'expired' });
-    const settled = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 1000, days: 30 });
+    const settled = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 1000 });
     expect(settled).toEqual({ applied: true, expiresAt: 1000 + 30 * DAY });
-    const again = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 2000, days: 30 });
+    const again = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 2000 });
     expect(again.applied).toBe(false);
     expect(await store.getExpiresAt('u1')).toBe(1000 + 30 * DAY);
   });
@@ -154,6 +161,7 @@ describe('memoryStore — semantics เดียวกับ D1', () => {
       id: 'p1',
       userId: user.id,
       amountSatang: 1900,
+      days: 30,
       beamChargeId: null,
       qrExpiresAt: 900,
       qrImage: null,
@@ -162,8 +170,8 @@ describe('memoryStore — semantics เดียวกับ D1', () => {
     });
     expect(await store.latestPendingPayment('u1', 899)).toMatchObject({ id: 'p1' });
     expect(await store.latestPendingPayment('u1', 900)).toBeNull();
-    const first = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 1000, days: 30 });
-    const again = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 2000, days: 30 });
+    const first = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 1000 });
+    const again = await store.settlePayment('p1', { beamChargeId: 'ch', rawWebhookJson: '', now: 2000 });
     expect(first).toEqual({ applied: true, expiresAt: 1000 + 30 * DAY });
     expect(again).toEqual({ applied: false, expiresAt: 1000 + 30 * DAY });
     expect(await store.findPaymentByChargeId('ch')).toMatchObject({ status: 'paid' });
@@ -175,5 +183,31 @@ describe('memoryStore — semantics เดียวกับ D1', () => {
     );
     expect(same.id).toBe('u1');
     expect(same.email).toBe('e2');
+  });
+});
+
+describe('จำนวนวันผูกกับรายการ ไม่ใช่ค่าคงที่ตอน settle', () => {
+  it('แพ็กยาวที่ซื้อไว้ก่อนได้วันตามแพ็กนั้น แม้ราคา/แพ็กเริ่มต้นจะเปลี่ยนไปแล้ว', async () => {
+    const store = memoryStore();
+    await store.upsertUserFromGoogle(
+      { googleSub: 'g1', email: 'a@b.c', displayName: 'A', avatarUrl: null },
+      0,
+      () => 'u1',
+    );
+    await store.createPayment({
+      id: 'p-year',
+      userId: 'u1',
+      amountSatang: 26_900,
+      days: 365,
+      beamChargeId: null,
+      qrExpiresAt: 1000,
+      qrImage: 'q',
+      qrRaw: '',
+      createdAt: 0,
+    });
+    const res = await store.settlePayment('p-year', { beamChargeId: 'ch', rawWebhookJson: '{}', now: 100 });
+    expect(res.applied).toBe(true);
+    expect(res.expiresAt).toBe(100 + 365 * 86_400);
+    expect((await store.getPayment('p-year'))?.days).toBe(365);
   });
 });

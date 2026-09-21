@@ -53,12 +53,37 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   },
 };
 
-/** ราคาพรีเมียม (สตางค์) — Beam รับ amount เป็นสตางค์ */
-export const PREMIUM_PRICE_SATANG = 2900;
-/** ราคาพรีเมียม (บาท) สำหรับแสดงผล */
+/** แพ็กพรีเมียมที่ขาย — เรียงจากสั้นไปยาว ตัวแรกคือแพ็กเริ่มต้นที่ใช้โชว์ราคาเข้าเว็บ */
+export interface PremiumPack {
+  id: string;
+  /** จำนวนวันที่ได้เมื่อชำระ */
+  days: number;
+  /** ราคาเป็นสตางค์ — Beam รับ amount เป็นสตางค์ */
+  priceSatang: number;
+  label: string;
+}
+
+export const PREMIUM_PACKS: readonly PremiumPack[] = [
+  { id: 'm1', days: 30, priceSatang: 2900, label: '1 เดือน' },
+  { id: 'm3', days: 90, priceSatang: 7900, label: '3 เดือน' },
+  { id: 'm12', days: 365, priceSatang: 26900, label: '12 เดือน' },
+];
+
+/**
+ * แปลง id ที่รับมาจากฝั่งผู้ใช้เป็นแพ็กจริง — ไม่รู้จักก็ตกมาที่แพ็กเริ่มต้น
+ *
+ * ราคาและจำนวนวันต้องมาจากตารางนี้เท่านั้น ห้ามรับจาก request เพราะผู้ใช้แก้ค่าที่ส่งมาได้
+ */
+export function packById(id: string | null | undefined): PremiumPack {
+  return PREMIUM_PACKS.find((p) => p.id === id) ?? PREMIUM_PACKS[0];
+}
+
+/** ราคาแพ็กเริ่มต้น (สตางค์) */
+export const PREMIUM_PRICE_SATANG = PREMIUM_PACKS[0].priceSatang;
+/** ราคาแพ็กเริ่มต้น (บาท) สำหรับแสดงผล */
 export const PREMIUM_PRICE_BAHT = PREMIUM_PRICE_SATANG / 100;
-/** จำนวนวันที่ได้ต่อการชำระหนึ่งครั้ง */
-export const PREMIUM_DAYS = 30;
+/** จำนวนวันของแพ็กเริ่มต้น */
+export const PREMIUM_DAYS = PREMIUM_PACKS[0].days;
 /** เหลือกี่วันจึงเริ่มเตือนว่าใกล้หมดอายุ */
 export const EXPIRING_SOON_DAYS = 3;
 /** QR PromptPay มีอายุกี่นาที */

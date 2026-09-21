@@ -21,6 +21,8 @@ export interface Payment {
   id: string;
   userId: string;
   amountSatang: number;
+  /** จำนวนวันที่จะได้เมื่อจ่ายสำเร็จ — เก็บตั้งแต่สร้างรายการ ราคา/แพ็กเปลี่ยนทีหลังจึงไม่กระทบของเก่า */
+  days: number;
   status: PaymentStatus;
   beamChargeId: string | null;
   /** QR หมดอายุเมื่อไร — เลยแล้วยังไม่จ่าย = expired (ตรวจแบบ lazy ตอน poll) */
@@ -72,12 +74,12 @@ export interface MembershipStore {
   listPayments(userId: string, limit: number): Promise<Payment[]>;
   expirePayment(id: string): Promise<void>;
   /**
-   * atomic: payments → paid และ subscriptions.expires_at = max(now, เดิม) + days
+   * atomic: payments → paid และ subscriptions.expires_at = max(now, เดิม) + payments.days
    * ทำงานกับ status ใน SETTLEABLE (pending หรือ expired) — เรียกซ้ำกี่ครั้งก็บวกวันครั้งเดียว
    */
   settlePayment(
     id: string,
-    p: { beamChargeId: string | null; rawWebhookJson: string; now: number; days: number },
+    p: { beamChargeId: string | null; rawWebhookJson: string; now: number },
   ): Promise<SettleResult>;
 }
 
@@ -92,6 +94,7 @@ interface PaymentRow {
   id: string;
   user_id: string;
   amount_satang: number;
+  days: number;
   status: PaymentStatus;
   beam_charge_id: string | null;
   qr_expires_at: number;
@@ -112,6 +115,7 @@ const toPayment = (r: PaymentRow): Payment => ({
   id: r.id,
   userId: r.user_id,
   amountSatang: r.amount_satang,
+  days: r.days,
   status: r.status,
   beamChargeId: r.beam_charge_id,
   qrExpiresAt: r.qr_expires_at,
@@ -123,7 +127,7 @@ const toPayment = (r: PaymentRow): Payment => ({
 
 const USER_COLS = 'id, google_sub, email, display_name, avatar_url';
 const PAYMENT_COLS =
-  'id, user_id, amount_satang, status, beam_charge_id, qr_expires_at, qr_image, qr_raw, created_at, paid_at';
+  'id, user_id, amount_satang, days, status, beam_charge_id, qr_expires_at, qr_image, qr_raw, created_at, paid_at';
 
 export function d1Store(db: D1Database): MembershipStore {
   return {
@@ -163,10 +167,10 @@ export function d1Store(db: D1Database): MembershipStore {
     async createPayment(p) {
       await db
         .prepare(
-          `INSERT INTO payments (id, user_id, amount_satang, status, beam_charge_id, qr_expires_at, qr_image, qr_raw, created_at)
-           VALUES (?1, ?2, ?3, 'pending', ?4, ?5, ?6, ?7, ?8)`,
+          `INSERT INTO payments (id, user_id, amount_satang, days, status, beam_charge_id, qr_expires_at, qr_image, qr_raw, created_at)
+           VALUES (?1, ?2, ?3, ?4, 'pending', ?5, ?6, ?7, ?8, ?9)`,
         )
-        .bind(p.id, p.userId, p.amountSatang, p.beamChargeId, p.qrExpiresAt, p.qrImage, p.qrRaw, p.createdAt)
+        .bind(p.id, p.userId, p.amountSatang, p.days, p.beamChargeId, p.qrExpiresAt, p.qrImage, p.qrRaw, p.createdAt)
         .run();
     },
 
@@ -220,7 +224,7 @@ export function d1Store(db: D1Database): MembershipStore {
       const payment = await this.getPayment(id);
       if (!payment) return { applied: false, expiresAt: null };
       const current = await this.getExpiresAt(payment.userId);
-      const next = extendExpiry(current, p.now, p.days);
+      const next = extendExpiry(current, p.now, payment.days);
       // batch = transaction เดียว · ทั้งสอง statement ใช้เงื่อนไข SETTLEABLE ชุดเดียวกัน
       // webhook ซ้ำที่มาพร้อมกันจึงบวกวันได้แค่ครั้งเดียว ไม่ว่าจะอ่าน current ไปพร้อมกันหรือไม่
       const results = await db.batch([

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, CopyButton, DataTable, EmptyState, Stat } from '@/components/ui';
 import { __setPlanForTests, refreshPlan, usePlan, type PlanState } from '@/lib/plan-client';
-import { PREMIUM_DAYS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
+import { PREMIUM_DAYS, PREMIUM_PACKS, PREMIUM_PRICE_BAHT } from '@/lib/plan-limits';
 import { daysLeft } from '@/lib/membership/plan';
 import {
   getAccountUrl,
@@ -170,6 +170,8 @@ interface Checkout {
   rawData: string;
   /** unix seconds */
   expiresAt: number;
+  /** ยอดที่ Beam เรียกเก็บจริงของ QR ใบนี้ (สตางค์) */
+  amountSatang: number;
 }
 type BuyStatus = 'idle' | 'creating' | 'pending' | 'paid' | 'expired';
 
@@ -180,6 +182,8 @@ const POLL_SLOW_AFTER_MS = 120_000;
 
 export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () => void }) {
   const [status, setStatus] = useState<BuyStatus>('idle');
+  const [packId, setPackId] = useState(PREMIUM_PACKS[0].id);
+  const pack = PREMIUM_PACKS.find((p) => p.id === packId) ?? PREMIUM_PACKS[0];
   const [checkout, setCheckout] = useState<Checkout | null>(null);
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
@@ -188,7 +192,11 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
     setError('');
     setStatus('creating');
     try {
-      const res = await fetch(getCheckoutApiUrl(), { method: 'POST', credentials: 'same-origin', cache: 'no-store' });
+      const res = await fetch(getCheckoutApiUrl(packId), {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
       if (res.status === 204) throw new Error('ระบบชำระเงินยังไม่เปิดให้บริการในขณะนี้');
       if (res.status === 401) {
         await refreshPlan();
@@ -260,9 +268,10 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
 
   const secondsLeft = checkout ? Math.max(0, checkout.expiresAt - now) : 0;
   const countdown = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`;
-  const label = premium
-    ? `ต่ออายุอีก ${PREMIUM_DAYS} วัน · ${PREMIUM_PRICE_BAHT} บาท`
-    : `สมัคร ${PREMIUM_DAYS} วัน · ${PREMIUM_PRICE_BAHT} บาท`;
+  const packBaht = pack.priceSatang / 100;
+  const label = premium ? `ต่ออายุอีก ${pack.days} วัน · ${packBaht} บาท` : `สมัคร ${pack.days} วัน · ${packBaht} บาท`;
+  // ราคาที่ Beam เรียกเก็บจริงมาจาก response ของ checkout — ระหว่างรอจ่ายจึงยึดค่านั้น ไม่ใช่แพ็กที่เลือกค้างไว้
+  const chargedBaht = (checkout?.amountSatang ?? pack.priceSatang) / 100;
 
   return (
     <section aria-label="ชำระเงิน" className="space-y-4 rounded-xl border border-brand-600/20 bg-brand-50 p-4">
@@ -287,7 +296,7 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
             className="mx-auto h-56 w-56 rounded-lg border border-slate-200 bg-white p-2"
           />
           <div className="space-y-3 text-sm">
-            <p className="font-medium text-slate-900">สแกนด้วยแอปธนาคารเพื่อชำระ {PREMIUM_PRICE_BAHT} บาท</p>
+            <p className="font-medium text-slate-900">สแกนด้วยแอปธนาคารเพื่อชำระ {chargedBaht} บาท</p>
             <p role="status" aria-live="polite" className="text-slate-600">
               QR หมดอายุใน <span className="tabular-nums font-medium">{countdown}</span> · กำลังรอการชำระเงิน…
             </p>
@@ -300,11 +309,48 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
           </div>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button onClick={() => void start()} disabled={status === 'creating'} aria-busy={status === 'creating'}>
-            {status === 'creating' ? 'กำลังสร้าง QR…' : label}
-          </Button>
-          <p className="text-sm text-slate-600">สแกน QR PromptPay · ไม่ตัดเงินอัตโนมัติ</p>
+        <div className="space-y-4">
+          <fieldset>
+            <legend className="text-sm font-medium text-slate-900">เลือกระยะเวลา</legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {PREMIUM_PACKS.map((p) => {
+                const baht = p.priceSatang / 100;
+                const saved = Math.round(
+                  (PREMIUM_PACKS[0].priceSatang * (p.days / PREMIUM_PACKS[0].days) - p.priceSatang) / 100,
+                );
+                return (
+                  <label
+                    key={p.id}
+                    className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition-colors ${
+                      p.id === packId
+                        ? 'border-brand-600 bg-white shadow-[0_0_0_1px_var(--color-brand-600)]'
+                        : 'border-slate-200 bg-white/60 hover:border-slate-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="premium-pack"
+                      value={p.id}
+                      checked={p.id === packId}
+                      onChange={() => setPackId(p.id)}
+                      className="mt-0.5 accent-brand-600"
+                    />
+                    <span className="min-w-0">
+                      <span className="block font-medium text-slate-900">{p.label}</span>
+                      <span className="block text-slate-600">{baht} บาท</span>
+                      {saved > 0 && <span className="block text-xs text-brand-700">ถูกกว่ารายเดือน {saved} บาท</span>}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button onClick={() => void start()} disabled={status === 'creating'} aria-busy={status === 'creating'}>
+              {status === 'creating' ? 'กำลังสร้าง QR…' : label}
+            </Button>
+            <p className="text-sm text-slate-600">สแกน QR PromptPay · ไม่ตัดเงินอัตโนมัติ</p>
+          </div>
         </div>
       )}
     </section>

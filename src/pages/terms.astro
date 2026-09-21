@@ -3,7 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Breadcrumb from '@/components/Breadcrumb.astro';
 import Section from '@/components/Section.astro';
 import { getHomeUrl, getPrivacyUrl, getTermsUrl } from '@/lib/routes';
-import { PREMIUM_DAYS, PREMIUM_PRICE_BAHT, QR_TTL_MINUTES } from '@/lib/plan-limits';
+import { PREMIUM_DAYS, PREMIUM_PACKS, PREMIUM_PRICE_BAHT, QR_TTL_MINUTES } from '@/lib/plan-limits';
 
 /** ข้อกำหนดการใช้งาน — จำเป็นสำหรับหน้าขอความยินยอมของ Google OAuth และเงื่อนไขการชำระเงิน */
 const title = 'ข้อกำหนดการใช้งาน';
@@ -33,7 +33,8 @@ const ul = 'mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-7
   <Section title="สมาชิกพรีเมียม" class="mt-8">
     <ul class={ul}>
       <li>
-        ราคา {PREMIUM_PRICE_BAHT} บาท ได้สิทธิ์ {PREMIUM_DAYS} วัน นับจากวันที่ชำระ หรือต่อจากวันหมดอายุเดิมหากยังไม่หมด
+        มีให้เลือกหลายระยะเวลา ({PREMIUM_PACKS.map((p) => `${p.label} ${p.priceSatang / 100} บาท`).join(' · ')})
+        นับจากวันที่ชำระ หรือต่อจากวันหมดอายุเดิมหากยังไม่หมด
       </li>
       <li>
         ชำระด้วยการสแกน QR PromptPay ซึ่งมีอายุ {QR_TTL_MINUTES} นาที หากไม่ชำระภายในเวลา สร้าง QR ใหม่ได้โดยไม่มีค่าใช้จ่าย

@@ -306,6 +306,7 @@ describe('billing', () => {
       id: 'p1',
       userId: user.id,
       amountSatang: 1900,
+      days: 30,
       beamChargeId: null,
       qrExpiresAt: NOW + 10,
       qrImage: 'q',
@@ -316,6 +317,7 @@ describe('billing', () => {
       id: 'p2',
       userId: 'someone-else',
       amountSatang: 1900,
+      days: 30,
       beamChargeId: null,
       qrExpiresAt: NOW + 10,
       qrImage: 'q',
@@ -342,6 +344,7 @@ describe('billing', () => {
       id: 'p1',
       userId,
       amountSatang: 1900,
+      days: 30,
       beamChargeId: 'ch_1',
       qrExpiresAt: NOW + 900,
       qrImage: 'q',
@@ -359,6 +362,70 @@ describe('billing', () => {
         now: () => at,
       })
     ).json()) as { status: string; premiumUntil: number | null };
+
+  it('checkout: เลือกแพ็กได้ · ราคาและจำนวนวันมาจากตารางฝั่งเรา ไม่ใช่ค่าที่ส่งมา', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    const fetchImpl = beamOk();
+    const buy = (query: string) =>
+      handleCheckout(post(`/api/billing/checkout${query}`, { cookie, origin: SITE }), fullEnv(), {
+        ...d.deps,
+        fetchImpl,
+      });
+
+    const year = (await (await buy('?pack=m12')).json()) as { paymentId: string; amountSatang: number };
+    expect(year.amountSatang).toBe(26_900);
+    expect(d.store.payments.get(year.paymentId)).toMatchObject({ amountSatang: 26_900, days: 365 });
+
+    // แพ็กปลอมต้องตกมาที่แพ็กเริ่มต้น ไม่ใช่ error และห้ามหลุดราคาที่ผู้ใช้กำหนดเอง
+    await d.store.expirePayment(year.paymentId);
+    const fake = (await (await buy('?pack=ของปลอม&amountSatang=1')).json()) as {
+      paymentId: string;
+      amountSatang: number;
+    };
+    expect(fake.amountSatang).toBe(PREMIUM_PRICE_SATANG);
+    expect(d.store.payments.get(fake.paymentId)?.days).toBe(30);
+  });
+
+  it('checkout: มี QR ค้างอยู่ของอีกแพ็ก → ออก QR ใหม่ตามแพ็กที่เพิ่งเลือก ไม่ยัดของเดิมให้', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    const fetchImpl = beamOk();
+    const buy = (query: string) =>
+      handleCheckout(post(`/api/billing/checkout${query}`, { cookie, origin: SITE }), fullEnv(), {
+        ...d.deps,
+        fetchImpl,
+      });
+    const first = (await (await buy('?pack=m1')).json()) as { paymentId: string };
+    const second = (await (await buy('?pack=m3')).json()) as { paymentId: string; amountSatang: number };
+    expect(second.paymentId).not.toBe(first.paymentId);
+    expect(second.amountSatang).toBe(7900);
+    expect(d.store.payments.get(second.paymentId)?.days).toBe(90);
+    // ของเดิมต้องไม่ค้างเป็น pending ให้ถูกหยิบมาใช้ซ้ำ
+    expect(d.store.payments.get(first.paymentId)?.status).toBe('expired');
+    // แพ็กเดิมซ้ำ → ใช้ QR เดิม ไม่เรียก Beam เพิ่ม
+    const again = (await (await buy('?pack=m3')).json()) as { paymentId: string };
+    expect(again.paymentId).toBe(second.paymentId);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('settle: ได้วันตามแพ็กของรายการนั้น ไม่ใช่ตามแพ็กเริ่มต้น', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    const fetchImpl = beamOk();
+    const body = (await (
+      await handleCheckout(post('/api/billing/checkout?pack=m12', { cookie, origin: SITE }), fullEnv(), {
+        ...d.deps,
+        fetchImpl,
+      })
+    ).json()) as { paymentId: string };
+    await webhook(
+      d,
+      { chargeId: 'ch_1', referenceId: body.paymentId, status: 'SUCCEEDED' },
+      { event: 'charge.succeeded' },
+    );
+    expect(await d.store.getExpiresAt(user.id)).toBe(NOW + 365 * DAY);
+  });
 
   it('status สำรอง: webhook ไม่มา แต่ Beam ยืนยันว่า SUCCEEDED → ให้สิทธิ์เหมือน webhook', async () => {
     const d = setup();
@@ -446,6 +513,7 @@ describe('billing', () => {
         id: `p${i}`,
         userId: owner,
         amountSatang: 1900,
+        days: 30,
         beamChargeId: `ch${i}`,
         qrExpiresAt: NOW,
         qrImage: 'ความลับ',
@@ -474,6 +542,7 @@ describe('billing', () => {
         id: `p${i}`,
         userId: user.id,
         amountSatang: 1900,
+        days: 30,
         beamChargeId: null,
         qrExpiresAt: NOW,
         qrImage: null,

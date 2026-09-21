@@ -3,6 +3,8 @@ import {
   EXPIRING_SOON_DAYS,
   PLAN_LIMITS,
   PREMIUM_DAYS,
+  packById,
+  PREMIUM_PACKS,
   PREMIUM_PRICE_BAHT,
   PREMIUM_PRICE_SATANG,
   QR_TTL_MINUTES,
@@ -39,6 +41,25 @@ describe('plan-limits', () => {
     expect(limitsFor('anonymous')).toBe(PLAN_LIMITS.free);
     expect(limitsFor('free')).toBe(PLAN_LIMITS.free);
     expect(limitsFor('premium')).toBe(PLAN_LIMITS.premium);
+  });
+
+  it('แพ็ก 3 แบบเรียงจากสั้นไปยาว ยิ่งยาวยิ่งถูกต่อเดือน และ id ไม่ซ้ำ', () => {
+    expect(PREMIUM_PACKS.map((p) => [p.id, p.days, p.priceSatang])).toEqual([
+      ['m1', 30, 2900],
+      ['m3', 90, 7900],
+      ['m12', 365, 26900],
+    ]);
+    const perDay = PREMIUM_PACKS.map((p) => p.priceSatang / p.days);
+    expect(perDay).toEqual([...perDay].sort((a, b) => b - a));
+    expect(new Set(PREMIUM_PACKS.map((p) => p.id)).size).toBe(PREMIUM_PACKS.length);
+  });
+
+  it('packById: ไม่รู้จัก/ไม่ส่งมา → แพ็กเริ่มต้นเดือนเดียว (ค่าจากผู้ใช้เชื่อไม่ได้)', () => {
+    expect(packById('m12').days).toBe(365);
+    expect(packById(null).id).toBe('m1');
+    expect(packById('ของปลอม').id).toBe('m1');
+    expect(packById('m1').priceSatang).toBe(PREMIUM_PRICE_SATANG);
+    expect(packById('m1').days).toBe(PREMIUM_DAYS);
   });
 
   it('ราคาและระยะเวลาตามที่ตกลง: 29 บาท / 30 วัน', () => {

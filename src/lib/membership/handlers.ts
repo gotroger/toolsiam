@@ -1,4 +1,4 @@
-import { PREMIUM_DAYS, PREMIUM_PRICE_SATANG, QR_TTL_MINUTES } from '@/lib/plan-limits';
+import { packById, QR_TTL_MINUTES } from '@/lib/plan-limits';
 import { getAccountUrl, getGoogleCallbackPath, getHomeUrl } from '@/lib/routes';
 import { createPromptPayCharge, extractCharge, fetchCharge, verifyWebhookSignature } from './beam';
 import { isBillingEnabled, isEnabled, type MembershipEnv } from './env';
@@ -168,15 +168,24 @@ export async function handleCheckout(request: Request, env: MembershipEnv, deps:
   if (!session) return empty(401);
   const now = (deps.now ?? nowSec)();
 
+  // แพ็กมาจากตารางฝั่งเราเสมอ — id ที่ไม่รู้จักตกมาที่แพ็กเริ่มต้น ไม่เชื่อราคา/จำนวนวันที่ส่งมากับ request
+  const pack = packById(new URL(request.url).searchParams.get('pack'));
+
   const existing = await deps.store.latestPendingPayment(session.userId, now);
-  if (existing?.qrImage) return json(200, present(existing));
+  if (existing?.qrImage) {
+    // แพ็กเดิม = ใช้ QR เดิม ไม่ต้องรบกวน Beam · คนละแพ็ก = ปิดของเดิมแล้วออกใหม่ตามที่เพิ่งเลือก
+    // (ถ้าเขาเผลอจ่าย QR เก่าที่ปิดไปแล้ว webhook ยังให้สิทธิ์ตามแพ็กของรายการนั้น — ดู SETTLEABLE)
+    if (existing.days === pack.days) return json(200, present(existing));
+    await deps.store.expirePayment(existing.id);
+  }
 
   const paymentId = (deps.newId ?? (() => randomToken(16, deps.random)))();
   const qrExpiresAt = now + QR_TTL_MINUTES * 60;
   await deps.store.createPayment({
     id: paymentId,
     userId: session.userId,
-    amountSatang: PREMIUM_PRICE_SATANG,
+    amountSatang: pack.priceSatang,
+    days: pack.days,
     beamChargeId: null,
     qrExpiresAt,
     qrImage: null,
@@ -187,7 +196,7 @@ export async function handleCheckout(request: Request, env: MembershipEnv, deps:
     const charge = await createPromptPayCharge({
       creds: { baseUrl: env.BEAM_API_BASE_URL!, merchantId: env.BEAM_MERCHANT_ID!, apiKey: env.BEAM_API_KEY! },
       paymentId,
-      amountSatang: PREMIUM_PRICE_SATANG,
+      amountSatang: pack.priceSatang,
       expiryTime: new Date(qrExpiresAt * 1000).toISOString(),
       returnUrl: siteOrigin(env, request) + getAccountUrl(),
       fetchImpl: deps.fetchImpl,
@@ -203,7 +212,7 @@ export async function handleCheckout(request: Request, env: MembershipEnv, deps:
       imageBase64: charge.imageBase64,
       rawData: charge.rawData,
       expiresAt: qrExpiresAt,
-      amountSatang: PREMIUM_PRICE_SATANG,
+      amountSatang: pack.priceSatang,
     });
   } catch (e) {
     console.error('[membership] beam checkout ล้มเหลว:', (e as Error).message);
@@ -287,7 +296,6 @@ async function confirmedByBeam(
       beamChargeId: payment.beamChargeId,
       rawWebhookJson: charge.rawJson,
       now,
-      days: PREMIUM_DAYS,
     });
     return true;
   } catch (e) {
@@ -355,7 +363,6 @@ export async function handleWebhook(request: Request, env: MembershipEnv, deps: 
     beamChargeId: charge.id ?? payment.beamChargeId,
     rawWebhookJson: rawBody,
     now: (deps.now ?? nowSec)(),
-    days: PREMIUM_DAYS,
   });
   return json(200, { ok: true, applied: result.applied });
 }

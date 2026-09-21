@@ -99,7 +99,7 @@ describe('AccountPanel', () => {
   it('กดสมัคร → POST checkout → แสดง QR และ poll จน paid', async () => {
     __setPlanForTests({ status: 'signedIn', plan: 'free', user });
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-      if (url === '/api/billing/checkout') {
+      if (url.startsWith('/api/billing/checkout')) {
         expect(init?.method).toBe('POST');
         return new Response(
           JSON.stringify({
@@ -143,7 +143,7 @@ describe('AccountPanel', () => {
             payments: paid ? [{ createdAt: Date.UTC(2026, 8, 21) / 1000, amountSatang: 2900, status: 'paid' }] : [],
           }),
         );
-      if (url === '/api/billing/checkout')
+      if (url.startsWith('/api/billing/checkout'))
         return new Response(
           JSON.stringify({
             paymentId: 'p1',
@@ -171,6 +171,34 @@ describe('AccountPanel', () => {
     await waitFor(() => expect(screen.getByText('ชำระเงินสำเร็จ')).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText('29.00 บาท')).toBeInTheDocument());
     vi.useRealTimers();
+  });
+
+  it('เลือกแพ็ก 12 เดือนแล้วกดซื้อ → checkout ส่ง pack ที่เลือกไป และปุ่มบอกราคาของแพ็กนั้น', async () => {
+    __setPlanForTests({ status: 'signedIn', plan: 'free', user });
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/api/billing/history') return new Response(JSON.stringify({ payments: [] }));
+      if (url.startsWith('/api/billing/checkout'))
+        return new Response(
+          JSON.stringify({
+            paymentId: 'p1',
+            imageBase64: 'AAAA',
+            rawData: '000201',
+            expiresAt: Math.floor(Date.now() / 1000) + 900,
+            amountSatang: 26_900,
+          }),
+        );
+      throw new Error(`ไม่คาดคิด: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<AccountPanel />);
+
+    expect(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /12 เดือน/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'สมัคร 365 วัน · 269 บาท' }));
+
+    await screen.findByRole('img', { name: 'QR PromptPay สำหรับชำระเงิน' });
+    expect(fetchMock.mock.calls.some(([u]) => u === '/api/billing/checkout?pack=m12')).toBe(true);
+    expect(screen.getByText(/สแกนด้วยแอปธนาคารเพื่อชำระ 269 บาท/)).toBeInTheDocument();
   });
 
   it('checkout ล้มเหลว (502) → แสดงข้อความและกลับมากดใหม่ได้', async () => {
