@@ -140,8 +140,12 @@ interface NumberInputProps extends Omit<
   label: string;
   value: string;
   onValueChange: (value: string) => void;
-  /** บังคับให้เลือก: decimal สำหรับเงิน/ทศนิยม · numeric สำหรับจำนวนเต็ม (A7) */
-  mode: 'decimal' | 'numeric';
+  /**
+   * บังคับให้เลือก: decimal สำหรับเงิน/ทศนิยม · numeric สำหรับจำนวนเต็ม (A7)
+   * · signed สำหรับจำนวนเต็มที่ติดลบได้ — แป้นตัวเลขของ iOS (numeric/decimal) ไม่มีปุ่มลบ
+   *   จึงเปิดแป้นข้อความ (ผู้ใช้กดไปหน้าตัวเลขที่มีเครื่องหมายลบได้) พร้อม pattern บอกรูปแบบที่ถูก
+   */
+  mode: 'decimal' | 'numeric' | 'signed';
   hint?: string;
   error?: string;
   /** หน่วยที่แสดงชิดขวาในช่อง เช่น "บาท" "%" "ปี" */
@@ -173,8 +177,10 @@ export function NumberInput({
           {...props}
           id={id}
           type="text"
-          inputMode={mode}
+          inputMode={mode === 'signed' ? 'text' : mode}
+          pattern={mode === 'signed' ? '-?[0-9,]*' : props.pattern}
           autoComplete="off"
+          spellCheck={mode === 'signed' ? false : props.spellCheck}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
           aria-invalid={error ? true : undefined}

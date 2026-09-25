@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import { Button, Checkbox, CopyButton, cx, ErrorText, NumberInput, SegmentedControl, Stat } from '@/components/ui';
 import type { Rng } from '@/lib/random';
 import { ROLL_LIMIT } from '../shared/roll';
+import { ResultAnnouncer } from '../shared/Announcer';
 import { SeedRow } from '../shared/SeedRow';
 import { useDraw } from '../shared/useDraw';
 import { Coin, Die } from './Dice';
@@ -18,6 +19,19 @@ type Result =
   | { kind: 'dice'; rolls: number[]; total: number }
   | { kind: 'coin'; sides: CoinSide[] };
 
+/** ข้อความที่ screen reader อ่านเมื่อผลลงตัว — ไม่อ่านค่าหลอกระหว่างลุ้น */
+function announce(result: Result | null): string {
+  if (!result) return '';
+  if (result.kind === 'numbers') return `ได้เลข ${result.values.join(', ')}`;
+  if (result.kind === 'dice') return `ทอยได้ ${result.rolls.join(', ')} ผลรวม ${result.total}`;
+  const heads = result.sides.filter((s) => s === 'หัว').length;
+  if (result.sides.length === 1) return `ได้${result.sides[0]}`;
+  return `ได้หัว ${heads} ครั้ง ก้อย ${result.sides.length - heads} ครั้ง`;
+}
+
+/** รับคอมมาและเครื่องหมายลบแบบยูนิโค้ดที่แป้นบางเครื่องพิมพ์ออกมา */
+const toNumber = (raw: string) => Number(raw.replace(/,/g, '').replace(/[−–]/g, '-').trim() || Number.NaN);
+
 export default function RandomNumberTool() {
   const [mode, setMode] = useState<NumberMode>('range');
   const [min, setMin] = useState('1');
@@ -30,7 +44,7 @@ export default function RandomNumberTool() {
   const draw = useDraw<Result>();
 
   function run() {
-    const options = { min: Number(min), max: Number(max), count: Number(count), unique };
+    const options = { min: toNumber(min), max: toNumber(max), count: Number(count), unique };
     const roll = (rng: Rng): Result => {
       if (mode === 'dice') return { kind: 'dice', ...rollDice(Number(diceCount), Number(sides), rng) };
       if (mode === 'coin') return { kind: 'coin', sides: flipCoins(Number(flips), rng) };
@@ -60,8 +74,8 @@ export default function RandomNumberTool() {
       {mode === 'range' && (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
-            <NumberInput id="min" label="ค่าต่ำสุด" mode="numeric" value={min} onValueChange={setMin} />
-            <NumberInput id="max" label="ค่าสูงสุด" mode="numeric" value={max} onValueChange={setMax} />
+            <NumberInput id="min" label="ค่าต่ำสุด" mode="signed" value={min} onValueChange={setMin} />
+            <NumberInput id="max" label="ค่าสูงสุด" mode="signed" value={max} onValueChange={setMax} />
             <NumberInput
               id="count"
               label="สุ่มกี่ตัว"
@@ -125,10 +139,11 @@ export default function RandomNumberTool() {
       </Button>
 
       {draw.error && <ErrorText>{draw.error}</ErrorText>}
+      <ResultAnnouncer message={announce(draw.result)} runId={draw.drawId} />
 
       {shown?.kind === 'numbers' && (
         <div className="space-y-3">
-          <div className="result-box border border-brand-600/20" aria-live="polite">
+          <div className="result-box border border-brand-600/20" aria-busy={draw.rolling}>
             <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
               <div className="text-xs font-medium text-brand-700">
                 {draw.rolling ? 'กำลังสุ่ม…' : shown.values.length === 1 ? 'ได้เลข' : `ได้ ${shown.values.length} เลข`}
@@ -153,7 +168,7 @@ export default function RandomNumberTool() {
 
       {shown?.kind === 'dice' && (
         <div className="space-y-3">
-          <div className="result-box border border-brand-600/20" aria-live="polite">
+          <div className="result-box border border-brand-600/20" aria-busy={draw.rolling}>
             <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
               <div className="text-xs font-medium text-brand-700">{draw.rolling ? 'กำลังทอย…' : 'ผลที่ทอยได้'}</div>
               <div className="mt-2 flex flex-wrap gap-3" style={accent}>
@@ -178,7 +193,7 @@ export default function RandomNumberTool() {
 
       {shown?.kind === 'coin' && (
         <div className="space-y-3">
-          <div className="result-box border border-brand-600/20" aria-live="polite">
+          <div className="result-box border border-brand-600/20" aria-busy={draw.rolling}>
             <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
               <div className="text-xs font-medium text-brand-700">{draw.rolling ? 'กำลังโยน…' : 'ผลการโยน'}</div>
               <div className="mt-2 flex flex-wrap items-center gap-3" style={accent}>

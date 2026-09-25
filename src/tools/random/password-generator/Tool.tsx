@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { Alert, Button, Checkbox, CopyButton, Disclaimer, ErrorText, NumberInput, Stat } from '@/components/ui';
 import { cryptoRng, randomInt } from '@/lib/random';
+import { ResultAnnouncer } from '../shared/Announcer';
 import { ROLL_STEPS, useRollSequence } from '../shared/roll';
 import {
   activeSets,
@@ -89,10 +90,12 @@ export default function PasswordGeneratorTool() {
       </Button>
 
       {error && <ErrorText>{error}</ErrorText>}
+      {/* ประกาศแค่ว่าสร้างเสร็จ ไม่อ่านรหัสออกเสียง — คนข้าง ๆ อาจได้ยิน และผู้ใช้อ่านเองได้จากกล่องผล */}
+      <ResultAnnouncer message={password ? `สร้างรหัสผ่านแล้ว ยาว ${password.length} ตัว` : ''} runId={runId} />
 
       {sequence.shown && (
         <div className="space-y-3">
-          <div className="result-box border border-brand-600/20" aria-live="polite">
+          <div className="result-box border border-brand-600/20" aria-busy={sequence.rolling}>
             <div key={runId} className={sequence.rolling ? undefined : 'roll-settle'}>
               <div className="text-xs font-medium text-brand-700">
                 {sequence.rolling ? 'กำลังสร้าง…' : 'รหัสผ่านที่ได้'}

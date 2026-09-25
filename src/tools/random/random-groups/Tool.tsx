@@ -13,6 +13,7 @@ import {
 import type { Rng } from '@/lib/random';
 import { parseList } from '../shared/list';
 import { GROUP_ROLL_LIMIT } from '../shared/roll';
+import { ResultAnnouncer } from '../shared/Announcer';
 import { SeedRow } from '../shared/SeedRow';
 import { useDraw } from '../shared/useDraw';
 import { makeGroups, type GroupMode } from './logic';
@@ -74,7 +75,9 @@ export default function RandomGroupsTool() {
         onValueChange={setValue}
         suffix={mode === 'byCount' ? 'กลุ่ม' : 'คน'}
         hint={
-          mode === 'byCount' ? 'เศษที่เหลือจะถูกแจกให้กลุ่มแรก ๆ กลุ่มละคน' : 'กลุ่มสุดท้ายอาจมีคนน้อยกว่ากลุ่มอื่น'
+          mode === 'byCount'
+            ? 'เศษที่เหลือจะถูกแจกให้กลุ่มแรก ๆ กลุ่มละคน'
+            : 'ถ้าหารไม่ลงตัว จะเกลี่ยให้ทุกกลุ่มต่างกันไม่เกิน 1 คน และไม่มีกลุ่มไหนเกินจำนวนนี้'
         }
       />
 
@@ -88,9 +91,17 @@ export default function RandomGroupsTool() {
       </div>
 
       {draw.error && <ErrorText>{draw.error}</ErrorText>}
+      <ResultAnnouncer
+        message={
+          draw.result
+            ? `แบ่งได้ ${draw.result.length} กลุ่ม ${draw.result.map((g, i) => `กลุ่มที่ ${i + 1}: ${g.join(', ')}`).join(' · ')}`
+            : ''
+        }
+        runId={draw.drawId}
+      />
 
       {draw.shown && (
-        <div className="space-y-3" aria-live="polite">
+        <div className="space-y-3" aria-busy={draw.rolling}>
           <div key={draw.drawId} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {draw.shown.map((group, i) => (
               <div

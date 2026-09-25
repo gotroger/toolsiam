@@ -3,6 +3,7 @@ import { Button, Checkbox, CopyButton, cx, ErrorText, Field, NumberInput, Stat, 
 import type { Rng } from '@/lib/random';
 import { parseList } from '../shared/list';
 import { ROLL_LIMIT } from '../shared/roll';
+import { ResultAnnouncer } from '../shared/Announcer';
 import { SeedRow } from '../shared/SeedRow';
 import { useDraw } from '../shared/useDraw';
 import { pickWinners } from './logic';
@@ -72,9 +73,13 @@ export default function RandomPickerTool() {
       </div>
 
       {draw.error && <ErrorText>{draw.error}</ErrorText>}
+      <ResultAnnouncer
+        message={draw.result ? `ผู้โชคดี ${draw.result.map((name, i) => `${i + 1}. ${name}`).join(' ')}` : ''}
+        runId={draw.drawId}
+      />
 
       {draw.shown && (
-        <div className="result-box border border-brand-600/20" aria-live="polite">
+        <div className="result-box border border-brand-600/20" aria-busy={draw.rolling}>
           <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
             <div className="text-xs font-medium text-brand-700">
               {draw.rolling

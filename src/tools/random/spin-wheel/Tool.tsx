@@ -4,6 +4,7 @@ import { parseList } from '../shared/list';
 import { SeedRow } from '../shared/SeedRow';
 import { resolveDraw } from '@/lib/random';
 import { useReducedMotion } from '../shared/roll';
+import { ResultAnnouncer } from '../shared/Announcer';
 import { LABEL_LIMIT, planSpin, WHEEL_MAX, WHEEL_MIN, WHEEL_RADIUS, wheelSegments } from './logic';
 
 /** ระยะเวลาแอนิเมชัน ต้องตรงกับ .spin-wheel-dial ใน product.css */
@@ -37,10 +38,13 @@ export default function SpinWheelTool() {
   useEffect(() => () => window.clearTimeout(timer.current ?? undefined), []);
 
   const all = parseList(text);
-  const pool = all.filter((_, i) => !removed.includes(i));
-  const poolIndexes = all.map((_, i) => i).filter((i) => !removed.includes(i));
-  const tooMany = pool.length > WHEEL_MAX;
-  const segments = pool.length > 0 ? wheelSegments(pool.slice(0, WHEEL_MAX)) : [];
+  const remaining = all.map((_, i) => i).filter((i) => !removed.includes(i));
+  const tooMany = remaining.length > WHEEL_MAX;
+  // สุ่มจากช่องที่เห็นบนวงล้อเท่านั้น (20 รายการแรก) ให้ตรงกับที่แจ้งผู้ใช้ไว้ — รายการที่ไม่ได้อยู่บนวงล้อ
+  // จะชนะได้อย่างไรในเมื่อเข็มชี้ไปหามันไม่ได้ ส่วนที่เกินจะเลื่อนขึ้นมาเมื่อลบรายการที่ออกแล้ว
+  const poolIndexes = remaining.slice(0, WHEEL_MAX);
+  const pool = poolIndexes.map((i) => all[i]);
+  const segments = pool.length > 0 ? wheelSegments(pool) : [];
   const fontSize = Math.max(4.5, 10 - segments.length * 0.28);
 
   function resetAll(next: string) {
@@ -99,8 +103,8 @@ export default function SpinWheelTool() {
 
       {tooMany && (
         <Alert tone="note">
-          มี {pool.length} รายการ วงล้อจึงแสดงเฉพาะ {WHEEL_MAX} รายการแรก เพราะมากกว่านี้ป้ายชื่ออ่านไม่ออก
-          ถ้าต้องการสุ่มจากรายการยาว ๆ ให้ใช้เครื่องมือสุ่มชื่อ จับฉลาก แทน
+          มี {remaining.length} รายการ วงล้อจึงแสดงและสุ่มจากเฉพาะ {WHEEL_MAX} รายการแรก
+          เพราะมากกว่านี้ป้ายชื่ออ่านไม่ออก ถ้าต้องการสุ่มจากรายการยาว ๆ ให้ใช้เครื่องมือสุ่มชื่อ จับฉลาก แทน
         </Alert>
       )}
 
@@ -165,7 +169,7 @@ export default function SpinWheelTool() {
           checked={removeAfterSpin}
           onChange={(e) => setRemoveAfterSpin(e.target.checked)}
         />
-        <Stat label="เหลือในวงล้อ" value={pool.length} />
+        <Stat label="เหลือในวงล้อ" value={remaining.length} />
         {removed.length > 0 && (
           <Button
             variant="secondary"
@@ -179,16 +183,14 @@ export default function SpinWheelTool() {
         )}
       </div>
 
-      <p role="status" className="sr-only">
-        {spinning ? 'กำลังหมุนวงล้อ' : ''}
-      </p>
+      <ResultAnnouncer message={winner ? `ผลการหมุน ${winner.name}` : ''} runId={winner?.runId ?? 0} />
 
       {pool.length > 0 && pool.length < WHEEL_MIN && (
         <ErrorText>ต้องมีอย่างน้อย {WHEEL_MIN} รายการจึงจะหมุนได้</ErrorText>
       )}
       {error && <ErrorText>{error}</ErrorText>}
       {winner && (
-        <div className="result-box border border-brand-600/20" aria-live="polite">
+        <div className="result-box border border-brand-600/20">
           <div key={winner.runId} className="roll-settle">
             <div className="text-xs font-medium text-brand-700">ผลการหมุน</div>
             <div

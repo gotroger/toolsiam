@@ -29,6 +29,14 @@ describe('NumberInput', () => {
     expect(input).toHaveAttribute('inputmode', 'decimal');
   });
 
+  it('mode="signed" เปิดแป้นข้อความ เพราะแป้นตัวเลขของ iOS ไม่มีเครื่องหมายลบ', () => {
+    render(<NumberInput id="min" label="ค่าต่ำสุด" mode="signed" value="-5" onValueChange={() => {}} />);
+    const input = screen.getByLabelText('ค่าต่ำสุด');
+    expect(input).toHaveAttribute('inputmode', 'text');
+    expect(input).toHaveAttribute('pattern');
+    expect(input).toHaveValue('-5');
+  });
+
   it('ผูก hint และ error เข้า aria-describedby ให้เอง และตั้ง aria-invalid เมื่อมี error', () => {
     render(<Harness hint="กรอกเป็นบาท" error="ต้องเป็นตัวเลข" />);
     const input = screen.getByLabelText('จำนวนเงิน');

@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { Button, CopyButton, cx, Disclaimer, ErrorText, NumberInput, SegmentedControl } from '@/components/ui';
 import { ROLL_STEPS } from '../shared/roll';
+import { ResultAnnouncer } from '../shared/Announcer';
 import { SeedRow } from '../shared/SeedRow';
 import { useDraw } from '../shared/useDraw';
 import { drawLuckyNumbers, type LuckyDigits } from './logic';
@@ -57,10 +58,11 @@ export default function LuckyNumberTool() {
       </Button>
 
       {draw.error && <ErrorText>{draw.error}</ErrorText>}
+      <ResultAnnouncer message={draw.result ? `เลขที่สุ่มได้ ${draw.result.join(' ')}` : ''} runId={draw.drawId} />
 
       {draw.shown && (
         <div className="space-y-3">
-          <div className="result-box border border-brand-600/20" aria-live="polite">
+          <div className="result-box border border-brand-600/20" aria-busy={draw.rolling}>
             <div key={draw.drawId} className={draw.rolling ? undefined : 'roll-settle'}>
               <div className="text-xs font-medium text-brand-700">{draw.rolling ? 'กำลังสุ่ม…' : 'เลขที่สุ่มได้'}</div>
               <div className="mt-2 flex flex-wrap gap-2">
