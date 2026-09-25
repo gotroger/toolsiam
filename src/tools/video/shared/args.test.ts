@@ -55,6 +55,8 @@ describe('buildJob', () => {
       'in.webm',
       '-t',
       '1',
+      '-vf',
+      'scale=trunc(iw/2)*2:trunc(ih/2)*2',
       '-c:v',
       'libx264',
       '-preset',
@@ -72,6 +74,20 @@ describe('buildJob', () => {
       'out.mp4',
     ]);
     expect(job.output).toBe('a-trim.mp4');
+  });
+
+  it('ทุกทางที่เข้ารหัส H.264 ใหม่บังคับขนาดภาพเป็นเลขคู่ (libx264 + yuv420p ไม่รับด้านคี่)', () => {
+    const jobs = [
+      buildJob('video-trim', 'a.mp4', opts({ start: 0, end: 1, precise: true })),
+      buildJob('video-trim', 'a.webm', opts({ start: 0, end: 1 })),
+      buildJob('video-compress', 'a.mp4', opts({ preset: 480 })),
+    ];
+    for (const job of jobs) {
+      const filter = job.args[job.args.indexOf('-vf') + 1] ?? '';
+      // ทุกด้านที่ไม่ใช่ -2 ต้องผ่าน trunc(.../2)*2
+      expect(filter).toMatch(/trunc\(/);
+      expect(filter).not.toMatch(/[^/]min\(\d+,i[wh]\)[,')]/);
+    }
   });
 
   it('mp3 ตามบิตเรต และไม่รู้ระยะทั้งคลิป', () => {
@@ -108,7 +124,7 @@ describe('buildJob', () => {
       '-i',
       'in.mov',
       '-vf',
-      "scale='if(gt(iw,ih),min(1280,iw),-2)':'if(gt(iw,ih),-2,min(1280,ih))'",
+      "scale='if(gt(iw,ih),trunc(min(1280,iw)/2)*2,-2)':'if(gt(iw,ih),-2,trunc(min(1280,ih)/2)*2)'",
       '-c:v',
       'libx264',
       '-preset',

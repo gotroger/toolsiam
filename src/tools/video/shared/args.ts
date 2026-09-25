@@ -36,6 +36,8 @@ export interface VideoJobSpec {
 
 const LONG_SIDE: Record<VideoOptions['preset'], number> = { 480: 854, 720: 1280, 1080: 1920 };
 const H264 = ['-c:v', 'libx264', '-preset', 'veryfast'];
+/** libx264 + yuv420p ต้องการกว้าง/สูงเป็นเลขคู่ — คลิปจากบางแอปเป็น 853×480 หรือ 1079×1920 ตัดทิ้งหนึ่งพิกเซล */
+const EVEN = 'scale=trunc(iw/2)*2:trunc(ih/2)*2';
 /** yuv420p เพื่อให้ MP4 เปิดได้บน iPhone/LINE — บางแอปส่งคลิป 4:4:4 มา */
 const fmt = (n: number) => String(Math.round(n * 1000) / 1000);
 
@@ -74,6 +76,8 @@ export function buildJob(id: VideoToolId, fileName: string, options: VideoOption
             input,
             '-t',
             fmt(duration),
+            '-vf',
+            EVEN,
             ...H264,
             '-crf',
             '23',
@@ -149,7 +153,9 @@ export function buildJob(id: VideoToolId, fileName: string, options: VideoOption
     case 'video-compress': {
       const side = LONG_SIDE[options.preset];
       // จำกัดด้านยาว (แนวตั้ง/แนวนอน) โดยไม่ขยายคลิปที่เล็กกว่า preset · -2 คงสัดส่วนและหารสองลงตัว
-      const scale = `scale='if(gt(iw,ih),min(${side},iw),-2)':'if(gt(iw,ih),-2,min(${side},ih))'`;
+      // ด้านยาวที่เล็กกว่า preset ใช้ขนาดเดิม ซึ่งอาจเป็นเลขคี่ → trunc(/2)*2 ให้เป็นเลขคู่เสมอ
+      const long = (dim: string) => `trunc(min(${side},${dim})/2)*2`;
+      const scale = `scale='if(gt(iw,ih),${long('iw')},-2)':'if(gt(iw,ih),-2,${long('ih')})'`;
       return {
         args: [
           '-i',
