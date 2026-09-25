@@ -43,6 +43,44 @@ describe('cleanLink', () => {
     expect(cleanLink('https://v.douyin.com/abc/').note).toMatch(/ลิงก์สั้น/);
   });
 
+  it('youtube.com/results เก็บคำค้น search_query ไว้', () => {
+    const r = cleanLink('https://www.youtube.com/results?search_query=%E0%B8%82%E0%B9%88%E0%B8%B2%E0%B8%A7+ไทย&si=x');
+    expect(r.cleaned).toBe('https://www.youtube.com/results?search_query=%E0%B8%82%E0%B9%88%E0%B8%B2%E0%B8%A7+ไทย');
+    expect(r.removed).toEqual(['si']);
+  });
+
+  it('youtube.com/embed เก็บ start/end และค่าของ player ไว้ ตัดแค่ตัวติดตาม', () => {
+    const r = cleanLink('https://www.youtube.com/embed/abc?start=30&end=60&autoplay=1&si=q');
+    expect(r.cleaned).toBe('https://www.youtube.com/embed/abc?start=30&end=60&autoplay=1');
+    expect(r.removed).toEqual(['si']);
+  });
+
+  it('youtu.be เก็บ list ไว้ด้วย', () =>
+    expect(cleanLink('https://youtu.be/abc?list=PL1&si=q').cleaned).toBe(
+      'https://www.youtube.com/watch?v=abc&list=PL1',
+    ));
+
+  it('ดึงลิงก์ออกจากข้อความแชร์ที่มีข้อความนำหน้า (TikTok / LINE)', () => {
+    const r = cleanLink('ดูคลิปนี้สิ https://www.tiktok.com/@u/video/7000?is_from_webapp=1 สนุกมาก');
+    expect(r).toMatchObject({ ok: true, cleaned: 'https://www.tiktok.com/@u/video/7000' });
+    expect(cleanLink('ลองเปิด https://example.com/p?id=5&fbclid=abc.').cleaned).toBe('https://example.com/p?id=5');
+  });
+
+  it('ไม่เข้ารหัสค่าที่เก็บไว้ใหม่ (%20 ไม่กลายเป็น +)', () => {
+    expect(cleanLink('https://example.com/s?q=a%20b&x=%E0%B8%81&utm_source=line').cleaned).toBe(
+      'https://example.com/s?q=a%20b&x=%E0%B8%81',
+    );
+  });
+
+  it('ตัดตัวติดตามของ Shopee และ Lazada', () => {
+    const shopee = cleanLink('https://shopee.co.th/product/1/2?sp_atk=abc&xptdk=def&uls_trackid=g');
+    expect(shopee.cleaned).toBe('https://shopee.co.th/product/1/2');
+    const lazada = cleanLink(
+      'https://www.lazada.co.th/products/i1.html?spm=a2o4m&clickTrackInfo=x&laz_trackid=y&sku=5',
+    );
+    expect(lazada.cleaned).toBe('https://www.lazada.co.th/products/i1.html?sku=5');
+  });
+
   it('ไม่ใช่ http/https → ok=false', () => {
     expect(cleanLink('สวัสดี')).toMatchObject({ ok: false, cleaned: 'สวัสดี' });
     expect(cleanLink('ftp://x.y/z')).toMatchObject({ ok: false });
