@@ -232,6 +232,74 @@ describe('Google OAuth', () => {
     expect(d.kv.store.size).toBe(0);
   });
 
+  it('เริ่มจาก www แล้ว Google พากลับมาที่ apex → cookie oauth ต้องตั้ง Domain ให้ apex อ่านได้', async () => {
+    // redirect_uri ใช้ SITE_ORIGIN (apex) เสมอ — cookie ที่ไม่มี Domain จะติดอยู่กับ www และ callback ไม่เห็น
+    const d = setup();
+    const res = await handleStart(
+      new Request('https://www.toolsiam.com/api/auth/google/start?next=%2Faccount'),
+      fullEnv(),
+      d.deps,
+    );
+    expect(new URL(res.headers.get('location')!).searchParams.get('redirect_uri')).toBe(
+      `${SITE}/api/auth/google/callback`,
+    );
+    const setCookie = res.headers.getSetCookie()[0];
+    expect(setCookie).toContain('Domain=toolsiam.com');
+    expect(setCookie).toContain('Path=/api/auth');
+
+    const cookie = setCookie.split(';')[0];
+    const state = new URL(res.headers.get('location')!).searchParams.get('state')!;
+    const fetchImpl = (async () => new Response(JSON.stringify({ id_token: idToken() }))) as unknown as typeof fetch;
+    const done = await handleCallback(get(`/api/auth/google/callback?code=c1&state=${state}`, { cookie }), fullEnv(), {
+      ...d.deps,
+      fetchImpl,
+    });
+    expect(done.status).toBe(303);
+    expect(done.headers.get('location')).toBe('/account');
+    // ล้าง cookie ด้วย Domain เดียวกับตอนตั้ง ไม่งั้นเบราว์เซอร์ไม่ลบให้
+    const clears = done.headers.getSetCookie().filter((c) => c.startsWith('oauth='));
+    expect(clears.some((c) => c.includes('Domain=toolsiam.com') && c.includes('Max-Age=0'))).toBe(true);
+  });
+
+  it('localhost: cookie oauth ไม่ตั้ง Domain (เบราว์เซอร์ปฏิเสธ Domain=localhost)', async () => {
+    const { deps } = setup();
+    const res = await handleStart(
+      new Request('http://localhost:4321/api/auth/google/start'),
+      fullEnv({ SITE_ORIGIN: undefined }),
+      deps,
+    );
+    expect(res.headers.getSetCookie()[0]).not.toContain('Domain=');
+  });
+
+  it('callback: ผู้ใช้กดยกเลิกที่หน้า Google (?error=access_denied) → 303 ไป /account?error=google และล้าง cookie oauth', async () => {
+    const d = setup();
+    const { cookie, state } = await startThen(d);
+    const res = await handleCallback(
+      get(`/api/auth/google/callback?error=access_denied&state=${state}`, { cookie }),
+      fullEnv(),
+      d.deps,
+    );
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('/account?error=google');
+    expect(res.headers.getSetCookie().some((c) => c.startsWith('oauth=') && c.includes('Max-Age=0'))).toBe(true);
+    expect(d.store.users.size).toBe(0);
+  });
+
+  it('callback: ล็อกอินใหม่ทับ session เดิม → ลบ session เดิมใน KV ไม่ปล่อยค้าง 30 วัน', async () => {
+    const d = setup();
+    const old = await signedIn(d);
+    const { cookie, state } = await startThen(d);
+    const fetchImpl = (async () => new Response(JSON.stringify({ id_token: idToken() }))) as unknown as typeof fetch;
+    const res = await handleCallback(
+      get(`/api/auth/google/callback?code=c1&state=${state}`, { cookie: `${cookie}; ${old.cookie}` }),
+      fullEnv(),
+      { ...d.deps, fetchImpl },
+    );
+    expect(res.status).toBe(303);
+    expect(d.kv.store.has(`SESSION:${old.sid}`)).toBe(false);
+    expect(d.kv.store.size).toBe(1);
+  });
+
   it('logout: ต้องมี Origin ที่เชื่อถือได้ · ลบ session ใน KV · ทำงานแม้ระบบปิดอยู่', async () => {
     const d = setup();
     const { cookie } = await signedIn(d);
@@ -483,6 +551,39 @@ describe('billing', () => {
     expect(body.status).toBe('paid');
   });
 
+  it('status สำรอง: จ่ายนาทีสุดท้าย webhook หาย และรายการถูกปิดเป็น expired ไปแล้ว → poll ถัดไปยังถาม Beam และให้สิทธิ์', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    // ถาม Beam ก่อน QR หมดไม่กี่วินาที — ยังไม่จ่าย และติด throttle 60 วินาที
+    const pending = beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'PENDING', amount: 1900 });
+    expect((await statusAt(d, cookie, pending, NOW + 890)).status).toBe('pending');
+    // QR หมดอายุระหว่างติด throttle → ปิดเป็น expired โดยไม่ได้ถาม Beam
+    expect((await statusAt(d, cookie, pending, NOW + 901)).status).toBe('expired');
+    expect(pending).toHaveBeenCalledTimes(1);
+    expect(d.store.payments.get('p1')?.status).toBe('expired');
+
+    // throttle หมดอายุ (fakeKv ไม่นับ TTL เอง) → ผู้ใช้จ่ายไปแล้วจริง Beam ยืนยัน
+    d.kv.store.delete('beamcheck:p1');
+    const paid = beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 1900 });
+    const body = await statusAt(d, cookie, paid, NOW + 965);
+    expect(body).toEqual({ status: 'paid', premiumUntil: NOW + 965 + 30 * DAY });
+    expect(d.store.payments.get('p1')?.status).toBe('paid');
+  });
+
+  it('status สำรอง: รายการ expired ที่เลยช่วงผ่อนผันแล้ว → ไม่ถาม Beam อีก', async () => {
+    const d = setup();
+    const { cookie, user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    await d.store.expirePayment('p1');
+    const fetchImpl = beamCharge({ chargeId: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 1900 });
+    expect((await statusAt(d, cookie, fetchImpl, NOW + 900 + 2 * 3600)).status).toBe('expired');
+    expect(fetchImpl).toHaveBeenCalledTimes(0);
+    // ยังอยู่ในช่วงผ่อนผัน → ถาม (throttle ยังคุมเหมือนเดิม)
+    expect((await statusAt(d, cookie, fetchImpl, NOW + 900 + 600)).status).toBe('paid');
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
   async function webhook(
     d: ReturnType<typeof setup>,
     payload: unknown,
@@ -603,5 +704,113 @@ describe('billing', () => {
     // หลังจ่าย status endpoint และ /api/me เห็นผลทันที
     const status = await (await handleStatus(get('/api/billing/status?ref=id1', { cookie }), fullEnv(), d.deps)).json();
     expect(status).toEqual({ status: 'paid', premiumUntil: NOW + 35 * DAY });
+  });
+
+  it('webhook: ยอดหรือสกุลเงินไม่ตรงกับรายการ → log เตือนไว้ให้คนมาดู แต่ยังให้สิทธิ์ (ลายเซ็นถูก = เงินเข้าแล้ว)', async () => {
+    const d = setup();
+    const { user } = await signedIn(d);
+    await pendingWithCharge(d, user.id);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const res = await webhook(
+        d,
+        { data: { id: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 100, currency: 'USD' } },
+        { event: 'charge.succeeded' },
+      );
+      expect(await res.json()).toEqual({ ok: true, applied: true });
+      expect(warn.mock.calls.some((c) => String(c[0]).includes('ไม่ตรงกับรายการ'))).toBe(true);
+
+      // ยอดตรง → ไม่มีเสียงเตือนรบกวน
+      warn.mockClear();
+      const d2 = setup();
+      const u2 = await signedIn(d2);
+      await pendingWithCharge(d2, u2.user.id);
+      await webhook(d2, {
+        data: { id: 'ch_1', referenceId: 'p1', status: 'SUCCEEDED', amount: 1900, currency: 'THB' },
+      });
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+});
+
+describe('D1/KV ล่ม', () => {
+  /** store ที่ทุกเมธอดโยน error — จำลอง D1 ล่มกลางทาง */
+  function brokenStore() {
+    return new Proxy(memoryStore(), {
+      get: () => async () => {
+        throw new Error('D1_ERROR: network');
+      },
+    });
+  }
+
+  it('me / checkout / status / history / webhook → 503 JSON ภาษาไทย ไม่ใช่ 500 เปล่า', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    const deps = { ...d.deps, store: brokenStore(), fetchImpl: (async () => new Response('{}')) as typeof fetch };
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const raw = JSON.stringify({ data: { id: 'ch_1', status: 'SUCCEEDED' } });
+      const responses = [
+        await handleMe(get('/api/me', { cookie }), fullEnv(), deps),
+        await handleCheckout(post('/api/billing/checkout', { cookie, origin: SITE }), fullEnv(), deps),
+        await handleStatus(get('/api/billing/status?ref=p1', { cookie }), fullEnv(), deps),
+        await handleHistory(get('/api/billing/history', { cookie }), fullEnv(), deps),
+        // webhook ได้ 503 = Beam จะ retry ให้เอง ไม่ใช่ 200 ที่ทำเงินหาย
+        await handleWebhook(
+          post('/api/billing/webhook', { 'x-beam-signature': await signWebhook(raw, SECRET) }, raw),
+          fullEnv(),
+          deps,
+        ),
+      ];
+      for (const res of responses) {
+        expect(res.status).toBe(503);
+        expect(res.headers.get('content-type')).toContain('application/json');
+        expect(res.headers.get('cache-control')).toBe('private, no-store');
+        expect(((await res.json()) as { error: string }).error).toMatch(/ขัดข้อง/);
+      }
+      expect(error).toHaveBeenCalled();
+    } finally {
+      error.mockRestore();
+    }
+  });
+
+  it('KV ล่มตอน logout → ยังล้าง cookie และพากลับหน้าแรก', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    const kv = {
+      get: async () => {
+        throw new Error('KV down');
+      },
+    } as unknown as KVNamespace;
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const res = await handleLogout(post('/api/auth/logout', { cookie, origin: SITE }), fullEnv(), { ...d.deps, kv });
+      expect(res.status).toBe(303);
+      expect(res.headers.getSetCookie().every((c) => c.includes('Max-Age=0'))).toBe(true);
+    } finally {
+      error.mockRestore();
+    }
+  });
+
+  it('checkout: Beam ล่มแล้ว D1 ปิดรายการไม่สำเร็จด้วย → ยังตอบ 502 พร้อมข้อความเดิม', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    const store = d.store;
+    store.expirePayment = async () => {
+      throw new Error('D1_ERROR');
+    };
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const res = await handleCheckout(post('/api/billing/checkout', { cookie, origin: SITE }), fullEnv(), {
+        ...d.deps,
+        fetchImpl: (async () => new Response('', { status: 400 })) as unknown as typeof fetch,
+      });
+      expect(res.status).toBe(502);
+      expect(await res.json()).toEqual({ error: 'สร้าง QR ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง' });
+    } finally {
+      error.mockRestore();
+    }
   });
 });

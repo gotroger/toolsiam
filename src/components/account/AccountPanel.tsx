@@ -14,6 +14,7 @@ import {
 } from '@/lib/routes';
 import { formatBaht } from '@/lib/format';
 import { formatThaiDate } from '@/lib/thai-date';
+import { todayInBangkok } from '@/lib/today';
 
 export { __setPlanForTests };
 
@@ -21,7 +22,7 @@ export { __setPlanForTests };
  * หน้าบัญชี — island เดียวที่ถือ state ของสมาชิกทั้งหมด
  *
  * โปรไฟล์และแพลนมาจาก usePlan() (module store ตัวเดียวกับ FileTool)
- * ส่วนซื้อ 30 วันอยู่ใน BuyPremium ด้านล่าง: POST checkout → QR → poll status → refreshPlan()
+ * ส่วนซื้ออยู่ใน BuyPremium ด้านล่าง (เลือกแพ็กจาก PREMIUM_PACKS): POST checkout?pack= → QR → poll status → refreshPlan()
  */
 export default function AccountPanel() {
   const state = usePlan();
@@ -59,7 +60,7 @@ export default function AccountPanel() {
       <div className="space-y-4">
         {loginError && (
           <Alert tone="danger" title="เข้าสู่ระบบไม่สำเร็จ">
-            Google ไม่ยืนยันบัญชีนี้ หรือการเชื่อมต่อขัดข้อง กรุณาลองใหม่อีกครั้ง
+            การเข้าสู่ระบบถูกยกเลิก Google ไม่ยืนยันบัญชีนี้ หรือการเชื่อมต่อขัดข้อง กรุณาลองใหม่อีกครั้ง
           </Alert>
         )}
         <EmptyState
@@ -68,6 +69,7 @@ export default function AccountPanel() {
           action={
             <a
               href={getLoginUrl(getAccountUrl())}
+              rel="nofollow"
               className="product-button inline-flex bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action-hover"
             >
               เข้าสู่ระบบด้วย Google
@@ -81,7 +83,7 @@ export default function AccountPanel() {
 }
 
 /**
- * `?error=google` มาจาก callback เมื่อ Google ไม่ยืนยันบัญชี — อ่านตอน mount เท่านั้น
+ * `?error=google` มาจาก callback เมื่อผู้ใช้กดยกเลิกที่หน้า Google หรือ Google ไม่ยืนยันบัญชี — อ่านตอน mount เท่านั้น
  * ไม่ทำให้ hydration ไม่ตรง เพราะเฟรมแรก status ยังเป็น unknown ซึ่งไม่ render ค่านี้
  */
 function useLoginErrorFlag(): boolean {
@@ -95,10 +97,15 @@ function useLoginErrorFlag(): boolean {
   return flag;
 }
 
+/** unix seconds → YYYY-MM-DD ตามเวลาไทย — toISOString() เป็น UTC ช่วง 00:00–07:00 น. จะได้วันก่อนหน้า */
+function bangkokIso(sec: number): string {
+  return todayInBangkok(new Date(sec * 1000));
+}
+
 function SignedIn({ state }: { state: PlanState }) {
   const user = state.user!;
   const premium = state.plan === 'premium' && state.premiumUntil != null;
-  const untilIso = state.premiumUntil ? new Date(state.premiumUntil * 1000).toISOString().slice(0, 10) : null;
+  const untilIso = state.premiumUntil ? bangkokIso(state.premiumUntil) : null;
   // เวลาอ่านครั้งเดียวตอน mount — หน้านี้ไม่ต้องเดินนาฬิกาเอง (นับถอยหลังของ QR อยู่ใน BuyPremium)
   const [mountedAt] = useState(() => Math.floor(Date.now() / 1000));
   // จ่ายเสร็จแล้วรายการใหม่ยังไม่อยู่ในประวัติที่โหลดไว้ตอนเปิดหน้า — เพิ่มตัวนับเพื่อสั่งโหลดใหม่
@@ -179,6 +186,12 @@ type BuyStatus = 'idle' | 'creating' | 'pending' | 'paid' | 'expired';
 const POLL_FAST_MS = 3000;
 const POLL_SLOW_MS = 5000;
 const POLL_SLOW_AFTER_MS = 120_000;
+/**
+ * หลัง QR หมดอายุยังถามต่ออีกพักหนึ่ง — คนที่สแกนจ่ายนาทีสุดท้ายอาจถูกปิดรายการก่อนเงินยืนยัน
+ * server ถาม Beam ได้ไม่เกินครั้งละ 60 วินาทีต่อรายการ จึงต้องครอบคลุมอย่างน้อยสองรอบของ throttle
+ */
+const LATE_CHECK_MS = 20_000;
+const LATE_CHECK_FOR_MS = 180_000;
 
 export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () => void }) {
   const [status, setStatus] = useState<BuyStatus>('idle');
@@ -224,12 +237,15 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
   }, [status]);
 
   // poll สถานะ — DB ฝั่ง server เป็นความจริง (webhook ของ Beam อัปเดตให้)
+  // expired = โหมดตรวจซ้ำช่วงท้าย: ถามห่าง ๆ แบบเงียบ ๆ จนครบ LATE_CHECK_FOR_MS หรือจนผู้ใช้สร้าง QR ใหม่
   useEffect(() => {
-    if (status !== 'pending' || !checkout) return;
+    if (!checkout || (status !== 'pending' && status !== 'expired')) return;
+    const late = status === 'expired';
     const startedAt = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
     let stopped = false;
     const tick = async () => {
+      if (late && Date.now() - startedAt > LATE_CHECK_FOR_MS) return;
       try {
         const res = await fetch(getBillingStatusUrl(checkout.paymentId), {
           credentials: 'same-origin',
@@ -238,7 +254,7 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
         if (stopped) return;
         if (res.status === 401) {
           await refreshPlan();
-          setStatus('idle');
+          if (!late) setStatus('idle');
           return;
         }
         if (res.ok) {
@@ -249,7 +265,7 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
             await refreshPlan();
             return;
           }
-          if (body.status === 'expired') {
+          if (body.status === 'expired' && !late) {
             setStatus('expired');
             return;
           }
@@ -257,9 +273,11 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
       } catch {
         /* เครือข่ายสะดุด — รอบหน้าลองใหม่ */
       }
-      if (!stopped) timer = setTimeout(tick, Date.now() - startedAt > POLL_SLOW_AFTER_MS ? POLL_SLOW_MS : POLL_FAST_MS);
+      if (stopped) return;
+      const delay = late ? LATE_CHECK_MS : Date.now() - startedAt > POLL_SLOW_AFTER_MS ? POLL_SLOW_MS : POLL_FAST_MS;
+      timer = setTimeout(tick, delay);
     };
-    timer = setTimeout(tick, POLL_FAST_MS);
+    timer = setTimeout(tick, late ? LATE_CHECK_MS : POLL_FAST_MS);
     return () => {
       stopped = true;
       clearTimeout(timer);
@@ -282,7 +300,8 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
       )}
       {status === 'expired' && (
         <Alert tone="note" title="QR หมดอายุแล้ว">
-          ยังไม่มีการชำระเงิน สร้าง QR ใหม่ได้โดยไม่มีค่าใช้จ่าย
+          ยังไม่พบการชำระเงิน สร้าง QR ใหม่ได้โดยไม่มีค่าใช้จ่าย ถ้าเพิ่งสแกนจ่ายไปก่อน QR หมดอายุ
+          ระบบจะตรวจซ้ำและอัปเดตหน้านี้ให้เองภายในไม่กี่นาที
         </Alert>
       )}
       {error && <Alert tone="danger">{error}</Alert>}
@@ -408,8 +427,7 @@ export function PaymentHistory({ reloadKey = 0 }: { reloadKey?: number }) {
           {
             key: 'date',
             header: 'วันที่',
-            render: (row) =>
-              formatThaiDate(new Date(row.createdAt * 1000).toISOString().slice(0, 10), { style: 'medium' }),
+            render: (row) => formatThaiDate(bangkokIso(row.createdAt), { style: 'medium' }),
           },
           {
             key: 'amount',

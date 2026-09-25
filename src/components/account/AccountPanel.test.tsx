@@ -89,6 +89,116 @@ describe('AccountPanel', () => {
     expect(screen.getByText(/19 กันยายน 2569/)).toBeInTheDocument();
   });
 
+  it('วันที่ในประวัติและวันหมดอายุเป็นเวลาไทย ไม่ใช่ UTC (หลัง 17:00 UTC = วันถัดไปที่กรุงเทพฯ)', async () => {
+    // 1 ก.พ. 2570 เวลา 00:30 น. ที่กรุงเทพฯ = 31 ม.ค. 17:30 UTC
+    const until = Date.UTC(2027, 0, 31, 17, 30) / 1000;
+    __setPlanForTests({ status: 'signedIn', plan: 'premium', premiumUntil: until, expiringSoon: false, user });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url === '/api/billing/history')
+          return new Response(
+            JSON.stringify({
+              // 19 ก.ย. 2569 เวลา 01:00 น. ที่กรุงเทพฯ
+              payments: [{ createdAt: Date.UTC(2026, 8, 18, 18) / 1000, amountSatang: 2900, status: 'paid' }],
+            }),
+          );
+        throw new Error(`ไม่คาดคิด: ${url}`);
+      }),
+    );
+    render(<AccountPanel />);
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+    expect(screen.getByText(/19 กันยายน 2569/)).toBeInTheDocument();
+    expect(screen.queryByText(/18 กันยายน 2569/)).not.toBeInTheDocument();
+    expect(screen.getByText(/1 กุมภาพันธ์ 2570/)).toBeInTheDocument();
+  });
+
+  it('QR หมดอายุ → ยังตรวจซ้ำอีกช่วงหนึ่ง ถ้าเงินที่จ่ายนาทีสุดท้ายเพิ่งยืนยัน ก็เปลี่ยนเป็นชำระสำเร็จเอง', async () => {
+    __setPlanForTests({ status: 'signedIn', plan: 'free', user });
+    let polls = 0;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/api/billing/history') return new Response(JSON.stringify({ payments: [] }));
+      if (url.startsWith('/api/billing/checkout'))
+        return new Response(
+          JSON.stringify({
+            paymentId: 'p1',
+            imageBase64: 'AAAA',
+            rawData: '000201',
+            expiresAt: Math.floor(Date.now() / 1000) + 900,
+          }),
+        );
+      if (url.startsWith('/api/billing/status?ref=p1')) {
+        polls += 1;
+        // ครั้งแรกโดนปิดเป็น expired · ครั้งถัดไป server ถาม Beam แล้วพบว่าจ่ายแล้ว
+        return new Response(JSON.stringify({ status: polls === 1 ? 'expired' : 'paid', premiumUntil: 1 }));
+      }
+      if (url === '/api/me')
+        return new Response(JSON.stringify({ user, plan: 'premium', premiumUntil: 1, expiringSoon: false }));
+      throw new Error(`ไม่คาดคิด: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    Object.defineProperty(document, 'cookie', { value: 'ts_m=1', configurable: true, writable: true });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      render(<AccountPanel />);
+      fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' }));
+      await screen.findByRole('img', { name: 'QR PromptPay สำหรับชำระเงิน' });
+      await vi.advanceTimersByTimeAsync(3100);
+      await waitFor(() => expect(screen.getByText('QR หมดอายุแล้ว')).toBeInTheDocument());
+      await vi.advanceTimersByTimeAsync(30_000);
+      await waitFor(() => expect(screen.getByText('ชำระเงินสำเร็จ')).toBeInTheDocument());
+      expect(screen.queryByText('QR หมดอายุแล้ว')).not.toBeInTheDocument();
+      // จ่ายแล้วหยุดถาม
+      const after = polls;
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(polls).toBe(after);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('QR หมดอายุแล้วผู้ใช้กดสร้าง QR ใหม่ → เลิกตรวจรายการเก่า', async () => {
+    __setPlanForTests({ status: 'signedIn', plan: 'free', user });
+    const statusCalls: string[] = [];
+    let n = 0;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/api/billing/history') return new Response(JSON.stringify({ payments: [] }));
+      if (url.startsWith('/api/billing/checkout')) {
+        n += 1;
+        return new Response(
+          JSON.stringify({
+            paymentId: `p${n}`,
+            imageBase64: 'AAAA',
+            rawData: '000201',
+            expiresAt: Math.floor(Date.now() / 1000) + 900,
+          }),
+        );
+      }
+      if (url.startsWith('/api/billing/status')) {
+        statusCalls.push(url);
+        return new Response(JSON.stringify({ status: url.endsWith('p1') ? 'expired' : 'pending', premiumUntil: null }));
+      }
+      throw new Error(`ไม่คาดคิด: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      render(<AccountPanel />);
+      fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' }));
+      await screen.findByRole('img', { name: 'QR PromptPay สำหรับชำระเงิน' });
+      await vi.advanceTimersByTimeAsync(3100);
+      await waitFor(() => expect(screen.getByText('QR หมดอายุแล้ว')).toBeInTheDocument());
+      fireEvent.click(screen.getByRole('button', { name: 'สมัคร 30 วัน · 29 บาท' }));
+      await screen.findByRole('img', { name: 'QR PromptPay สำหรับชำระเงิน' });
+      statusCalls.length = 0;
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(statusCalls.length).toBeGreaterThan(0);
+      expect(statusCalls.every((u) => u.endsWith('ref=p2'))).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('ยังไม่เคยจ่าย → ไม่มีตารางประวัติให้รกหน้า', async () => {
     __setPlanForTests({ status: 'signedIn', plan: 'free', user });
     render(<AccountPanel />);

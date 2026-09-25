@@ -162,6 +162,9 @@ export interface WebhookCharge {
   id: string | null;
   referenceId: string | null;
   status: string | null;
+  /** ยอดเป็นสตางค์ (หน่วยเดียวกับที่เราส่งตอนสร้าง charge) — null = Beam ไม่ได้ส่งมา */
+  amount: number | null;
+  currency: string | null;
 }
 
 /** payload ของ Beam มาได้หลายทรง (`data` / `charge` / `object` / ตรง ๆ) — ดึง charge ออกมาให้ได้ก่อน */
@@ -174,10 +177,16 @@ export function extractCharge(payload: unknown): WebhookCharge {
     const id = typeof c.chargeId === 'string' ? c.chargeId : typeof c.id === 'string' ? c.id : null;
     const referenceId = typeof c.referenceId === 'string' ? c.referenceId : null;
     if (id || referenceId) {
-      return { id, referenceId, status: typeof c.status === 'string' ? c.status : null };
+      return {
+        id,
+        referenceId,
+        status: typeof c.status === 'string' ? c.status : null,
+        amount: typeof c.amount === 'number' ? c.amount : null,
+        currency: typeof c.currency === 'string' ? c.currency : null,
+      };
     }
   }
-  return { id: null, referenceId: null, status: null };
+  return { id: null, referenceId: null, status: null, amount: null, currency: null };
 }
 
 /** คืน Uint8Array บน ArrayBuffer จริง — Web Crypto รับ BufferSource ไม่รับ ArrayBufferLike */

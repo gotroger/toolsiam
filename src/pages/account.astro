@@ -9,7 +9,7 @@ import { getAccountUrl, getHomeUrl } from '@/lib/routes';
  * หน้าบัญชี — HTML เป็น static (noindex ผ่านรายการกลางใน src/lib/noindex.ts)
  * เนื้อหาที่ขึ้นกับผู้ใช้ทั้งหมดมาจาก island หลัง hydrate ผ่าน /api/me
  *
- * `?error=google` มาจาก callback เมื่อ Google ไม่ยืนยันบัญชี — island อ่านเองตอน mount เพราะหน้าเป็น static
+ * `?error=google` มาจาก callback เมื่อผู้ใช้ยกเลิกที่หน้า Google หรือ Google ไม่ยืนยันบัญชี — island อ่านเองตอน mount เพราะหน้าเป็น static
  */
 const title = 'บัญชีของฉัน';
 const crumbs = [

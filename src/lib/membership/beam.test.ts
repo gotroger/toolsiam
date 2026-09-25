@@ -93,15 +93,39 @@ describe('verifyWebhookSignature', () => {
 
 describe('extractCharge', () => {
   it('รองรับ wrapper data / charge / object และแบบตรง ๆ', () => {
+    const none = { amount: null, currency: null };
     expect(extractCharge({ data: { id: 'a', referenceId: 'r', status: 'SUCCEEDED' } })).toEqual({
       id: 'a',
       referenceId: 'r',
       status: 'SUCCEEDED',
+      ...none,
     });
-    expect(extractCharge({ charge: { chargeId: 'b' } })).toEqual({ id: 'b', referenceId: null, status: null });
-    expect(extractCharge({ object: { referenceId: 'c' } })).toEqual({ id: null, referenceId: 'c', status: null });
-    expect(extractCharge({ id: 'd', status: 'FAILED' })).toEqual({ id: 'd', referenceId: null, status: 'FAILED' });
-    expect(extractCharge(null)).toEqual({ id: null, referenceId: null, status: null });
+    expect(extractCharge({ charge: { chargeId: 'b' } })).toEqual({ id: 'b', referenceId: null, status: null, ...none });
+    expect(extractCharge({ object: { referenceId: 'c' } })).toEqual({
+      id: null,
+      referenceId: 'c',
+      status: null,
+      ...none,
+    });
+    expect(extractCharge({ id: 'd', status: 'FAILED' })).toEqual({
+      id: 'd',
+      referenceId: null,
+      status: 'FAILED',
+      ...none,
+    });
+    expect(extractCharge(null)).toEqual({ id: null, referenceId: null, status: null, ...none });
+  });
+
+  it('ดึงยอด (สตางค์) และสกุลเงินมาด้วยเมื่อ Beam ส่งมา — ใช้เทียบกับรายการฝั่งเรา', () => {
+    expect(extractCharge({ data: { id: 'a', amount: 2900, currency: 'THB' } })).toMatchObject({
+      amount: 2900,
+      currency: 'THB',
+    });
+    // ชนิดผิดถือว่าไม่ได้ส่งมา ไม่ใช่ 0 หรือสตริงว่าง
+    expect(extractCharge({ data: { id: 'a', amount: '2900', currency: 1 } })).toMatchObject({
+      amount: null,
+      currency: null,
+    });
   });
 });
 

@@ -54,8 +54,26 @@ function siteOrigin(env: MembershipEnv, request: Request): string {
   return env.SITE_ORIGIN?.replace(/\/$/, '') || new URL(request.url).origin;
 }
 
+type Handler = (request: Request, env: MembershipEnv, deps: Deps) => Promise<Response>;
+
+/**
+ * ด่านสุดท้ายของทุก handler — D1/KV โยน error ได้ทุกเมื่อ (network, quota, deploy ระหว่างทาง)
+ * ถ้าปล่อยหลุด Worker ตอบ 500 เปล่าที่หน้าบัญชีอ่านไม่ออก จึงแปลงเป็น 503 JSON ภาษาไทยที่เดียวตรงนี้
+ * webhook ได้ 503 ก็ดี: Beam retry ให้เอง ไม่ใช่ 200 ที่ทำให้เงินที่เข้าแล้วไม่ได้สิทธิ์
+ */
+function guarded(name: string, handler: Handler): Handler {
+  return async (request, env, deps) => {
+    try {
+      return await handler(request, env, deps);
+    } catch (e) {
+      console.error(`[membership] ${name} ล้มเหลว:`, (e as Error).message);
+      return json(503, { error: 'ระบบสมาชิกขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง' });
+    }
+  };
+}
+
 /** `GET /api/me` */
-export async function handleMe(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+export const handleMe = guarded('me', async (request, env, deps) => {
   if (!ready(env, deps)) return empty(204);
   const now = (deps.now ?? nowSec)();
   const session = await readSession(deps.kv, request.headers.get('cookie'));
@@ -70,7 +88,7 @@ export async function handleMe(request: Request, env: MembershipEnv, deps: Deps)
     premiumUntil: expiresAt,
     expiringSoon: expiringSoon(expiresAt, now),
   });
-}
+});
 
 /** 401 พร้อมลบ cookie ค้าง — hint `ts_m` ที่เหลืออยู่จะทำให้ทุกหน้ายิง /api/me ฟรี ๆ */
 function signedOut(request: Request, domain?: string): Response {
@@ -81,7 +99,7 @@ function signedOut(request: Request, domain?: string): Response {
 }
 
 /** `GET /api/auth/google/start?next=` */
-export async function handleStart(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+export const handleStart = guarded('google start', async (request, env, deps) => {
   if (!ready(env, deps)) return empty(204);
   const url = new URL(request.url);
   const next = safeNext(url.searchParams.get('next'));
@@ -94,16 +112,38 @@ export async function handleStart(request: Request, env: MembershipEnv, deps: De
     codeChallenge: challenge,
   });
   // state + verifier + next อยู่ใน cookie ไม่ใช่ KV — KV อาจยังไม่ propagate ตอน Google redirect กลับมา
+  // Domain จำเป็น: redirect_uri ชี้ SITE_ORIGIN (apex) เสมอ คนที่เริ่มจาก www จะได้ cookie ที่ callback อ่านได้
   const payload = base64url.encodeText(JSON.stringify({ state, verifier, next }));
-  const cookie = serializeCookie(OAUTH_COOKIE, payload, { maxAge: OAUTH_TTL, httpOnly: true, path: '/api/auth' });
+  const cookie = serializeCookie(OAUTH_COOKIE, payload, {
+    maxAge: OAUTH_TTL,
+    httpOnly: true,
+    path: '/api/auth',
+    domain: cookieDomain(request.url),
+  });
   return redirect(302, authUrl, [cookie]);
+});
+
+/**
+ * Set-Cookie ที่ลบ cookie oauth — ลบทั้งแบบมี Domain และแบบ host-only
+ * (cookie ที่ตั้งก่อนแก้เรื่อง Domain ยังค้างได้อีกไม่เกิน OAUTH_TTL และเบราว์เซอร์ลบให้เฉพาะตัวที่ Domain ตรงกัน)
+ */
+function clearOauthCookies(domain: string | undefined): string[] {
+  const clear = (d?: string) =>
+    serializeCookie(OAUTH_COOKIE, '', { maxAge: 0, httpOnly: true, path: '/api/auth', domain: d });
+  return domain ? [clear(domain), clear()] : [clear()];
 }
 
 /** `GET /api/auth/google/callback?code&state` */
-export async function handleCallback(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+export const handleCallback = guarded('google callback', async (request, env, deps) => {
   if (!ready(env, deps)) return empty(204);
   const url = new URL(request.url);
-  const clearOauth = serializeCookie(OAUTH_COOKIE, '', { maxAge: 0, httpOnly: true, path: '/api/auth' });
+  const domain = cookieDomain(request.url);
+  const clearOauth = clearOauthCookies(domain);
+  // ผู้ใช้กดยกเลิกที่หน้า Google (error=access_denied) หรือ Google ปฏิเสธเอง — พากลับหน้าบัญชีพร้อมข้อความ
+  // ไม่ใช่ข้อความ 400 ดิบ ๆ ที่ดูเหมือนเว็บพัง
+  if (url.searchParams.has('error')) {
+    return redirect(303, `${getAccountUrl()}?error=google`, clearOauth);
+  }
   const raw = parseCookies(request.headers.get('cookie'))[OAUTH_COOKIE];
   let saved: OauthCookie | null = null;
   try {
@@ -114,14 +154,12 @@ export async function handleCallback(request: Request, env: MembershipEnv, deps:
   const state = url.searchParams.get('state');
   const code = url.searchParams.get('code');
   if (!saved || !state || !code || saved.state !== state || typeof saved.verifier !== 'string') {
-    return new Response('การเข้าสู่ระบบไม่ถูกต้องหรือหมดเวลา กรุณาลองใหม่', {
-      status: 400,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Set-Cookie': clearOauth },
-    });
+    const headers = new Headers({ 'Content-Type': 'text/plain; charset=utf-8' });
+    for (const c of clearOauth) headers.append('Set-Cookie', c);
+    return new Response('การเข้าสู่ระบบไม่ถูกต้องหรือหมดเวลา กรุณาลองใหม่', { status: 400, headers });
   }
   const next = safeNext(typeof saved.next === 'string' ? saved.next : null);
   const now = (deps.now ?? nowSec)();
-  const domain = cookieDomain(request.url);
   try {
     const idToken = await exchangeCode({
       code,
@@ -138,10 +176,24 @@ export async function handleCallback(request: Request, env: MembershipEnv, deps:
       deps.newId ?? (() => randomToken(16, deps.random)),
     );
     const sid = await createSession(deps.kv, user.id, now, deps.random);
-    return redirect(303, next, [...sessionCookies(sid, domain), clearOauth]);
+    await dropPreviousSession(request, deps.kv);
+    return redirect(303, next, [...sessionCookies(sid, domain), ...clearOauth]);
   } catch (e) {
     console.error('[membership] google callback ล้มเหลว:', (e as Error).message);
-    return redirect(303, `${getAccountUrl()}?error=google`, [clearOauth]);
+    return redirect(303, `${getAccountUrl()}?error=google`, clearOauth);
+  }
+});
+
+/**
+ * ล็อกอินทับ session เดิม (เช่นสลับบัญชี Google) — cookie ถูกแทนแล้ว แต่ key เดิมใน KV จะค้างอีก 30 วัน
+ * ลบทิ้งเลย · ลบไม่สำเร็จไม่เป็นไร ปล่อยให้ TTL จัดการ ห้ามทำให้การล็อกอินล้ม
+ */
+async function dropPreviousSession(request: Request, kv: KVNamespace): Promise<void> {
+  try {
+    const previous = await readSession(kv, request.headers.get('cookie'));
+    if (previous) await deleteSession(kv, previous.sid);
+  } catch (e) {
+    console.warn('[membership] ลบ session เดิมไม่สำเร็จ:', (e as Error).message);
   }
 }
 
@@ -150,8 +202,13 @@ export async function handleLogout(request: Request, env: MembershipEnv, deps: D
   if (!isTrustedOrigin(request.headers.get('origin'), env.SITE_ORIGIN)) return empty(403);
   const domain = cookieDomain(request.url);
   if (deps.kv) {
-    const session = await readSession(deps.kv, request.headers.get('cookie'));
-    if (session) await deleteSession(deps.kv, session.sid);
+    // KV ล่มก็ยังต้องออกจากระบบได้ — ล้าง cookie ให้แล้ว key ใน KV หมดอายุเองตาม TTL
+    try {
+      const session = await readSession(deps.kv, request.headers.get('cookie'));
+      if (session) await deleteSession(deps.kv, session.sid);
+    } catch (e) {
+      console.error('[membership] ลบ session ตอน logout ไม่สำเร็จ:', (e as Error).message);
+    }
   }
   return redirect(303, getHomeUrl(), sessionCookies(null, domain));
 }
@@ -161,7 +218,7 @@ async function requireSession(request: Request, deps: Deps & { kv: KVNamespace }
 }
 
 /** `POST /api/billing/checkout` — สร้าง (หรือใช้ซ้ำ) รายการ pending แล้วคืน QR */
-export async function handleCheckout(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+export const handleCheckout = guarded('checkout', async (request, env, deps) => {
   if (!ready(env, deps) || !isBillingEnabled(env)) return empty(204);
   if (!isTrustedOrigin(request.headers.get('origin'), env.SITE_ORIGIN)) return empty(403);
   const session = await requireSession(request, deps);
@@ -217,10 +274,13 @@ export async function handleCheckout(request: Request, env: MembershipEnv, deps:
   } catch (e) {
     console.error('[membership] beam checkout ล้มเหลว:', (e as Error).message);
     // รายการที่สร้าง QR ไม่สำเร็จไม่ควรค้างเป็น pending ให้ถูกหยิบมาใช้ซ้ำ
-    await deps.store.expirePayment(paymentId);
+    // (ไม่มี qrImage อยู่แล้วจึงไม่ถูกหยิบไปแสดง — D1 ล่มตรงนี้ก็ยังตอบ 502 ข้อความเดิมได้)
+    await deps.store.expirePayment(paymentId).catch((err: Error) => {
+      console.error('[membership] ปิดรายการที่สร้าง QR ไม่สำเร็จไม่ได้:', paymentId, err.message);
+    });
     return json(502, { error: 'สร้าง QR ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง' });
   }
-}
+});
 
 function present(p: {
   id: string;
@@ -238,8 +298,13 @@ function present(p: {
   };
 }
 
-/** `GET /api/billing/status?ref=` — DB เป็นความจริง; QR ที่เลยเวลาถูกปิดตรงนี้ (Beam ไม่ส่ง event เมื่อหมดอายุ) */
-export async function handleStatus(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+/**
+ * `GET /api/billing/status?ref=` — DB เป็นความจริง; QR ที่เลยเวลาถูกปิดตรงนี้ (Beam ไม่ส่ง event เมื่อหมดอายุ)
+ *
+ * รายการที่ปิดเป็น expired แล้วยังถาม Beam ได้อีก BEAM_EXPIRED_GRACE วินาที: คนที่สแกนจ่ายนาทีสุดท้าย
+ * อาจโดนปิดรายการระหว่างที่ throttle ยังไม่ให้ถาม Beam ถ้า webhook หายด้วย จะไม่มีทางได้สิทธิ์เลย
+ */
+export const handleStatus = guarded('status', async (request, env, deps) => {
   if (!ready(env, deps) || !isBillingEnabled(env)) return empty(204);
   const session = await requireSession(request, deps);
   if (!session) return empty(401);
@@ -248,16 +313,19 @@ export async function handleStatus(request: Request, env: MembershipEnv, deps: D
   if (!payment || payment.userId !== session.userId) return empty(404);
   const now = (deps.now ?? nowSec)();
   let status = payment.status;
-  if (status === 'pending' && (await confirmedByBeam(payment, env, deps, now))) status = 'paid';
+  const askBeam = status === 'pending' || (status === 'expired' && now <= payment.qrExpiresAt + BEAM_EXPIRED_GRACE);
+  if (askBeam && (await confirmedByBeam(payment, env, deps, now))) status = 'paid';
   if (status === 'pending' && now > payment.qrExpiresAt) {
     await deps.store.expirePayment(payment.id);
     status = 'expired';
   }
   return json(200, { status, premiumUntil: await deps.store.getExpiresAt(session.userId) });
-}
+});
 
 const BEAM_CHECK_AFTER = 20;
 const BEAM_CHECK_EVERY = 60;
+/** ถาม Beam ต่อได้อีกนานเท่าไรหลัง QR หมดอายุ — เผื่อธนาคารตัดเงินช้าและ webhook หาย */
+const BEAM_EXPIRED_GRACE = 3600;
 
 /**
  * ทางสำรองเมื่อ webhook ไม่มา (Beam เลิก retry หลัง 10 ครั้ง) — ถาม Beam ตรง ๆ ว่ารายการนี้จ่ายแล้วหรือยัง
@@ -312,7 +380,7 @@ async function confirmedByBeam(
  */
 export const HISTORY_LIMIT = 10;
 
-export async function handleHistory(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+export const handleHistory = guarded('history', async (request, env, deps) => {
   if (!ready(env, deps)) return empty(204);
   const session = await requireSession(request, deps);
   if (!session) return empty(401);
@@ -320,10 +388,10 @@ export async function handleHistory(request: Request, env: MembershipEnv, deps: 
   return json(200, {
     payments: payments.map((p) => ({ createdAt: p.createdAt, amountSatang: p.amountSatang, status: p.status })),
   });
-}
+});
 
 /** `POST /api/billing/webhook` — ไม่มี cookie ไม่มี Origin ใช้ HMAC เท่านั้น */
-export async function handleWebhook(request: Request, env: MembershipEnv, deps: Deps): Promise<Response> {
+export const handleWebhook = guarded('webhook', async (request, env, deps) => {
   if (!ready(env, deps) || !isBillingEnabled(env)) return empty(204);
   const rawBody = await readBody(request, WEBHOOK_MAX_BYTES);
   if (rawBody === null) return empty(413);
@@ -358,6 +426,19 @@ export async function handleWebhook(request: Request, env: MembershipEnv, deps: 
   if (payment.status === 'expired') {
     console.warn('[membership] เงินมาถึงหลังปิดรายการ ยังให้สิทธิ์ตามปกติ:', payment.id);
   }
+  // ยอด/สกุลเงินไม่ตรง — ไม่ปฏิเสธ (ลายเซ็นถูก = Beam เก็บเงินได้จริง ปฏิเสธแล้วคนจ่ายไม่ได้สิทธิ์)
+  // แต่ต้องมีคนมาดู: อาจเป็นแพ็ก/ราคาที่เปลี่ยนกลางทาง หรือ Beam เปลี่ยนรูปแบบ payload
+  if (
+    (charge.amount !== null && charge.amount !== payment.amountSatang) ||
+    (charge.currency !== null && charge.currency.toUpperCase() !== 'THB')
+  ) {
+    console.warn('[membership] webhook ยอดไม่ตรงกับรายการ ยังให้สิทธิ์ตามปกติ:', {
+      paymentId: payment.id,
+      expectedSatang: payment.amountSatang,
+      amount: charge.amount,
+      currency: charge.currency,
+    });
+  }
   const result = await deps.store.settlePayment(payment.id, {
     // null ไม่ใช่ '' — beam_charge_id มี UNIQUE index รายการที่ไม่รู้ charge id สองรายการจึงชนกันไม่ได้
     beamChargeId: charge.id ?? payment.beamChargeId,
@@ -365,4 +446,4 @@ export async function handleWebhook(request: Request, env: MembershipEnv, deps: 
     now: (deps.now ?? nowSec)(),
   });
   return json(200, { ok: true, applied: result.applied });
-}
+});
