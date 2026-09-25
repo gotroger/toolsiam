@@ -68,3 +68,31 @@ describe('bahtText', () => {
     expect(() => bahtText('')).toThrow('รูปแบบตัวเลขไม่ถูกต้อง');
   });
 });
+
+describe('ตัวเลขชนิด number ใช้เส้นทางเดียวกับข้อความ', () => {
+  it('1.005 ได้ผลเท่ากับ "1.005" (ไม่ปัดตาม float 1.00499…)', () => {
+    expect(bahtText(1.005)).toBe(bahtText('1.005'));
+    expect(bahtText(1.005)).toBe('หนึ่งบาทหนึ่งสตางค์');
+  });
+
+  it('ค่าที่ปกติยังได้ผลเดิม', () => {
+    expect(bahtText(1234.5)).toBe('หนึ่งพันสองร้อยสามสิบสี่บาทห้าสิบสตางค์');
+    expect(bahtText(0)).toBe('ศูนย์บาทถ้วน');
+    expect(bahtText(-21)).toBe('ลบยี่สิบเอ็ดบาทถ้วน');
+  });
+
+  it('ตัวเลขใหญ่ตั้งแต่ 1e21 (รูปเลขยกกำลัง) ไม่ throw', () => {
+    expect(bahtText(1e21)).toBe(bahtText('1000000000000000000000'));
+    expect(bahtText(1.5e22)).toBe(bahtText('15000000000000000000000'));
+  });
+
+  it('ตัวเลขเล็กมากรูปเลขยกกำลังอ่านเป็นศูนย์บาทถ้วน', () => {
+    expect(bahtText(1e-7)).toBe('ศูนย์บาทถ้วน');
+    expect(bahtText(5e-3)).toBe('หนึ่งสตางค์');
+  });
+
+  it('NaN และ Infinity แจ้งข้อผิดพลาดภาษาไทย', () => {
+    expect(() => bahtText(Number.NaN)).toThrow('ตัวเลข');
+    expect(() => bahtText(Infinity)).toThrow('ตัวเลข');
+  });
+});

@@ -36,9 +36,31 @@ export function readInteger(digits: string): string {
 
 const NUMBER_RE = /^(-)?(\d+)(?:\.(\d+))?$/;
 
+/**
+ * number → สตริงทศนิยมธรรมดา (ไม่มีรูปเลขยกกำลัง) เพื่อให้ผ่านเส้นทางเดียวกับข้อความที่ผู้ใช้พิมพ์
+ *
+ * ไม่ใช้ toFixed(2) เพราะปัดตามค่า float จริง (1.005 เก็บเป็น 1.00499… จึงได้ "1.00")
+ * ขณะที่ String(n) ให้ตัวเลขสั้นที่สุดที่แทนค่านั้น ("1.005") ตรงกับที่คนพิมพ์
+ * และ toFixed ใช้กับค่าตั้งแต่ 1e21 ไม่ได้ ส่วน String() ให้รูป "1e+21" จึงต้องกางออกเอง
+ */
+function numberToDecimalString(n: number): string {
+  if (!Number.isFinite(n)) throw new Error('รูปแบบตัวเลขไม่ถูกต้อง');
+  const str = String(n);
+  const m = /^(-)?(\d+)(?:\.(\d+))?e([+-]\d+)$/.exec(str);
+  if (!m) return str;
+  const [, sign = '', intPart, fracPart = '', expText] = m;
+  const exp = Number(expText);
+  const digits = intPart + fracPart;
+  // ตำแหน่งจุดทศนิยมใหม่นับจากซ้ายของ digits
+  const point = intPart.length + exp;
+  if (point <= 0) return `${sign}0.${'0'.repeat(-point)}${digits}`;
+  if (point >= digits.length) return sign + digits + '0'.repeat(point - digits.length);
+  return `${sign}${digits.slice(0, point)}.${digits.slice(point)}`;
+}
+
 /** แปลงจำนวนเงินเป็นคำอ่านภาษาไทย เช่น 1234.5 → หนึ่งพันสองร้อยสามสิบสี่บาทห้าสิบสตางค์ */
 export function bahtText(input: number | string): string {
-  const raw = typeof input === 'number' ? input.toFixed(2) : input.replace(/[,\s]/g, '');
+  const raw = typeof input === 'number' ? numberToDecimalString(input) : input.replace(/[,\s]/g, '');
   const m = NUMBER_RE.exec(raw);
   if (!m) throw new Error('รูปแบบตัวเลขไม่ถูกต้อง');
   const [, sign, intPart, decPart = ''] = m;
