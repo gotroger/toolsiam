@@ -2,7 +2,8 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
 import { useDateInput } from '@/lib/use-today';
 import { describeDate, formatThaiDate, toBuddhistYear, toChristianYear } from '@/lib/thai-date';
-import { CopyButton, ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
+import { Alert, CopyButton, ErrorText, Field, Input, ResultBox, Stat } from '@/components/ui';
+import { historicBuddhistYear, isBeforeThaiNewYearReform } from './logic';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
@@ -86,6 +87,13 @@ export default function ThaiYearConvertTool() {
 
       {yearError && <ErrorText>{yearError}</ErrorText>}
 
+      {/^\d+$/.test(year.ce) && isBeforeThaiNewYearReform(Number(year.ce)) && (
+        <Alert title="ปีก่อน พ.ศ. 2484 (ค.ศ. 1941)">
+          สมัยนั้นปีไทยขึ้นปีใหม่วันที่ 1 เมษายน วันที่ในเดือนมกราคม–มีนาคมจึงเขียนเป็น พ.ศ. น้อยกว่าสูตร 543 อยู่ 1 ปี
+          เช่น 1 กุมภาพันธ์ ค.ศ. 1930 ในเอกสารยุคนั้นคือ พ.ศ. 2472 ไม่ใช่ 2473 — ช่องด้านบนแปลงด้วยสูตรมาตรฐานปัจจุบัน
+        </Alert>
+      )}
+
       <Field label="เลือกวันที่เพื่อดูรายละเอียด" htmlFor="date">
         <DatePicker id="date" min={MIN_DATE} max={MAX_DATE} value={date} onValueChange={setDate} />
       </Field>
@@ -101,6 +109,12 @@ export default function ThaiYearConvertTool() {
             <Stat label="วันที่ของปี" value={`${info.dayOfYear} / ${info.isLeapYear ? 366 : 365}`} />
             <Stat label="แบบสั้น" value={info.shortThai} />
           </div>
+          {historicBuddhistYear(info.iso) !== info.beYear && (
+            <Alert>
+              วันที่เลือกอยู่ก่อนปีใหม่ 1 เมษายนตามปฏิทินไทยสมัยนั้น เอกสารยุคนั้นจะเขียนเป็น พ.ศ.{' '}
+              {historicBuddhistYear(info.iso)} ไม่ใช่ {info.beYear}
+            </Alert>
+          )}
           <div className="flex flex-wrap gap-2">
             <CopyButton text={info.fullThai} label="คัดลอกแบบเต็ม" />
             <CopyButton text={formatThaiDate(info.iso, { style: 'short' })} label="คัดลอกแบบสั้น" />

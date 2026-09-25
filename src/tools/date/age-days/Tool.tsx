@@ -5,6 +5,7 @@ import { useDateInput } from '@/lib/use-today';
 import { calculateAge } from './logic';
 import { ErrorText, Field, Stat } from '@/components/ui';
 import { getToolUrl } from '@/lib/routes';
+import { formatThaiDate } from '@/lib/thai-date';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
@@ -61,7 +62,7 @@ export default function AgeDaysTool() {
             <Stat label="คิดเป็นสัปดาห์" value={`${formatNumber(age.totalWeeks)} สัปดาห์`} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Stat label="วันเกิดครั้งถัดไป" value={age.nextBirthday} />
+            <Stat label="วันเกิดครั้งถัดไป" value={formatThaiDate(age.nextBirthday)} />
             <Stat
               label="อีกกี่วันถึงวันเกิด"
               value={age.daysToNextBirthday === 0 ? 'วันนี้คือวันเกิด' : `${age.daysToNextBirthday} วัน`}

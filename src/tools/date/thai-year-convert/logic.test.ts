@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   BE_OFFSET, THAI_MONTHS, THAI_WEEKDAYS, THAI_DAY_COLORS,
   toBuddhistYear, toChristianYear, describeDate, formatThaiDate,
+  historicBuddhistYear, isBeforeThaiNewYearReform,
 } from './logic';
 
 describe('แปลงปี', () => {
@@ -89,3 +90,23 @@ describe('formatThaiDate', () => {
     expect(formatThaiDate('2026-09-08', { style: 'medium' })).toBe('8 กันยายน 2569');
   });
 });
+
+describe('historicBuddhistYear (ปีใหม่ไทย 1 เมษายน ก่อน พ.ศ. 2484)', () => {
+  it('ม.ค.–มี.ค. ก่อนปี ค.ศ. 1941 ยังเป็นปี พ.ศ. ก่อนหน้า', () => {
+    expect(historicBuddhistYear('1930-02-01')).toBe(2472);
+    expect(historicBuddhistYear('1940-03-31')).toBe(2482);
+  });
+
+  it('เม.ย.–ธ.ค. ก่อนปี 1941 และทุกวันตั้งแต่ปี 1941 ใช้สูตร 543 ตามปกติ', () => {
+    expect(historicBuddhistYear('1930-04-01')).toBe(2473);
+    expect(historicBuddhistYear('1940-12-31')).toBe(2483);
+    expect(historicBuddhistYear('1941-01-01')).toBe(2484);
+    expect(historicBuddhistYear('2026-02-01')).toBe(2569);
+  });
+
+  it('isBeforeThaiNewYearReform บอกว่าปีไหนต้องมีหมายเหตุ', () => {
+    expect(isBeforeThaiNewYearReform(1940)).toBe(true);
+    expect(isBeforeThaiNewYearReform(1941)).toBe(false);
+  });
+});
+
