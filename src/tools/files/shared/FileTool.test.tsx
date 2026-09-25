@@ -137,6 +137,45 @@ describe('ขีดจำกัดตามแพลนและข้อเส�
     expect(screen.queryByText(/เกินขีดจำกัดแบบฟรี/)).not.toBeInTheDocument();
   });
 
+  /** มี hint cookie แต่ /api/me ยังไม่ตอบ (≤3 วินาทีแรก) — สมาชิกพรีเมียมต้องไม่โดนปฏิเสธ */
+  describe('สถานะสมาชิกยังไม่รู้ (unknown)', () => {
+    let answer: (response: Response) => void = () => {};
+    beforeEach(() => {
+      __setPlanForTests(null);
+      document.cookie = 'ts_m=1; path=/';
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(() => new Promise<Response>((resolve) => (answer = resolve))),
+      );
+    });
+    afterEach(() => {
+      document.cookie = 'ts_m=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    });
+    const me = (plan: 'free' | 'premium') =>
+      new Response(
+        JSON.stringify({ plan, premiumUntil: 9e9, user: { displayName: 'A', email: 'a@b.c', avatarUrl: null } }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+
+    it('ไฟล์เกินฟรีแต่พรีเมียมรับไหว → รอผลสถานะก่อน แล้วรับไฟล์เมื่อเป็นพรีเมียม', async () => {
+      render(<FileTool id="pdf-merge" />);
+      upload([sized('big.pdf', mb(free.perFileMb.pdf) + 1)]);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent('กำลังตรวจสอบสถานะสมาชิก');
+      answer(me('premium'));
+      await waitFor(() => expect(screen.getByRole('listitem')).toHaveTextContent('big.pdf'));
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('รอแล้วพบว่าเป็นแพลนฟรี → ข้อเสนอพรีเมียมตามปกติ', async () => {
+      render(<FileTool id="pdf-merge" />);
+      upload([sized('big.pdf', mb(free.perFileMb.pdf) + 1)]);
+      answer(me('free'));
+      expect(await screen.findByText('big.pdf: เกินขีดจำกัดแบบฟรี')).toBeInTheDocument();
+      expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    });
+  });
+
   /** ลากสองไฟล์มาวางพร้อมกันบนเครื่องมือที่รับไฟล์เดียว — เพดาน "จำนวนไฟล์" ของแพลนไม่เกี่ยวเลย */
   it('เครื่องมือไฟล์เดียว: ไฟล์ส่วนเกินต้องได้ข้อความผิดพลาด ไม่ใช่ข้อเสนอเรื่องจำนวนไฟล์', () => {
     render(<FileTool id="pdf-rotate" />);

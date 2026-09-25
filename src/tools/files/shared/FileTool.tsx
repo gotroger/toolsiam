@@ -44,6 +44,67 @@ function premiumFits(kind: Upsell['kind'], value: number, fileClass: keyof PlanL
   }
 }
 
+/**
+ * ตรวจไฟล์ที่เลือกกับขีดจำกัดของแพลนปัจจุบัน — ฟังก์ชันบริสุทธิ์ เรียกซ้ำตอนสถานะสมาชิกเปลี่ยนได้
+ * premiumOnly = มีไฟล์ที่เกินฟรีแต่พรีเมียมรับไหว (ใช้ตัดสินว่าควรรอรู้สถานะสมาชิกก่อนไหม)
+ */
+function validateSelection(
+  selected: File[],
+  current: File[],
+  {
+    config,
+    limits,
+    canUpsell,
+    multiple,
+  }: {
+    config: { accept: string; fileClass: keyof PlanLimits['perFileMb'] };
+    limits: PlanLimits;
+    canUpsell: boolean;
+    multiple: boolean;
+  },
+) {
+  const next = [...current];
+  const errors: string[] = [];
+  let offer: Upsell | null = null;
+  let premiumOnly = false;
+  const perFile = mb(limits.perFileMb[config.fileClass]);
+  const total = mb(limits.totalMb);
+  /** ไฟล์ที่เกินขีดจำกัดของแพลนปัจจุบัน — ถ้าพรีเมียมรับไหวและผู้ใช้ยังไม่ใช่พรีเมียม ให้เสนอแทนการด่า */
+  function reject(kind: Upsell['kind'], value: number, name: string, message: string) {
+    const fits = premiumFits(kind, value, config.fileClass);
+    premiumOnly ||= fits;
+    if (canUpsell && fits) offer ??= { kind, name };
+    else errors.push(message);
+  }
+  for (const file of selected) {
+    if (!config.accept.split(',').some((ext) => file.name.toLowerCase().endsWith(ext))) {
+      errors.push(`${file.name}: ชนิดไฟล์ไม่รองรับ`);
+      continue;
+    }
+    if (!file.size) {
+      errors.push(`${file.name}: ไฟล์ว่างเปล่า`);
+      continue;
+    }
+    if (file.size > perFile) {
+      reject('perFile', file.size, file.name, `${file.name}: ขนาดไม่เกิน ${limits.perFileMb[config.fileClass]} MB`);
+      continue;
+    }
+    if (next.length >= (multiple ? limits.maxFiles : 1)) {
+      // เครื่องมือไฟล์เดียวไม่มีเพดานจำนวนไฟล์ให้ขยาย พรีเมียมก็รับได้ไฟล์เดียวเท่ากัน — อย่าเสนอขาย
+      if (!multiple) errors.push(`${file.name}: เครื่องมือนี้รับได้ครั้งละหนึ่งไฟล์`);
+      else reject('maxFiles', next.length + 1, file.name, `${file.name}: เกินขีดจำกัด ${limits.maxFiles} ไฟล์`);
+      continue;
+    }
+    const sum = next.reduce((acc, f) => acc + f.size, file.size);
+    if (sum > total) {
+      reject('total', sum, file.name, `${file.name}: รวมทุกไฟล์ต้องไม่เกิน ${limits.totalMb} MB`);
+      continue;
+    }
+    next.push(file);
+  }
+  return { next, errors, offer: offer as Upsell | null, premiumOnly };
+}
+
 /** ข้อความข้อเสนอพรีเมียม — status บอกว่าควรพาไปล็อกอินหรือไปหน้าบัญชี */
 export function PremiumUpsell({
   hit,
@@ -82,7 +143,7 @@ export function PremiumUpsell({
             สมัครพรีเมียม {PREMIUM_PRICE_BAHT} บาท
           </a>
         ) : (
-          <a className={link} href={getLoginUrl(path)}>
+          <a className={link} href={getLoginUrl(path)} rel="nofollow">
             เข้าสู่ระบบด้วย Google
           </a>
         )}
@@ -116,6 +177,8 @@ export default function FileTool({ id }: { id: FileToolId }) {
   const [quality, setQuality] = useState('80');
   const [flip, setFlip] = useState(false);
   const [notice, setNotice] = useState('');
+  /** ไฟล์ที่พักไว้รอผลสถานะสมาชิก — ดู selectFiles */
+  const [waiting, setWaiting] = useState<File[] | null>(null);
   const picker = useRef<HTMLInputElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const worker = useRef<Worker | null>(null);
@@ -156,57 +219,30 @@ export default function FileTool({ id }: { id: FileToolId }) {
     setError(message);
     requestAnimationFrame(() => errorRef.current?.focus());
   }
-  /** ไฟล์ที่เกินขีดจำกัดของแพลนปัจจุบัน — ถ้าพรีเมียมรับไหวและผู้ใช้ยังไม่ใช่พรีเมียม ให้เสนอแทนการด่า */
-  function reject(kind: Upsell['kind'], value: number, name: string | undefined, message: string, errors: string[]) {
-    if (canUpsell && premiumFits(kind, value, config.fileClass)) {
-      setUpsell((current) => current ?? { kind, name });
-    } else {
-      errors.push(message);
-    }
+  // สถานะสมาชิกรู้ผลแล้ว → ตรวจไฟล์ที่พักไว้ใหม่ด้วยขีดจำกัดจริง (ปรับ state ระหว่าง render แทน effect)
+  if (waiting && status !== 'unknown') {
+    const checked = validateSelection(waiting, multiple ? files : [], { config, limits, canUpsell, multiple });
+    setWaiting(null);
+    setNotice('');
+    setFiles(checked.next);
+    setUpsell(checked.offer);
+    setError(checked.errors.join(' · '));
   }
   function selectFiles(selected: FileList | null) {
     if (!selected) return;
     clearResult();
-    const next = multiple ? [...files] : [];
-    const errors: string[] = [];
-    const perFile = mb(limits.perFileMb[config.fileClass]);
-    const total = mb(limits.totalMb);
-    for (const file of Array.from(selected)) {
-      if (!config.accept.split(',').some((ext) => file.name.toLowerCase().endsWith(ext))) {
-        errors.push(`${file.name}: ชนิดไฟล์ไม่รองรับ`);
-        continue;
-      }
-      if (!file.size) {
-        errors.push(`${file.name}: ไฟล์ว่างเปล่า`);
-        continue;
-      }
-      if (file.size > perFile) {
-        reject(
-          'perFile',
-          file.size,
-          file.name,
-          `${file.name}: ขนาดไม่เกิน ${limits.perFileMb[config.fileClass]} MB`,
-          errors,
-        );
-        continue;
-      }
-      if (next.length >= (multiple ? limits.maxFiles : 1)) {
-        // เครื่องมือไฟล์เดียวไม่มีเพดานจำนวนไฟล์ให้ขยาย พรีเมียมก็รับได้ไฟล์เดียวเท่ากัน — อย่าเสนอขาย
-        if (!multiple) errors.push(`${file.name}: เครื่องมือนี้รับได้ครั้งละหนึ่งไฟล์`);
-        else
-          reject('maxFiles', next.length + 1, file.name, `${file.name}: เกินขีดจำกัด ${limits.maxFiles} ไฟล์`, errors);
-        continue;
-      }
-      const sum = next.reduce((acc, f) => acc + f.size, file.size);
-      if (sum > total) {
-        reject('total', sum, file.name, `${file.name}: รวมทุกไฟล์ต้องไม่เกิน ${limits.totalMb} MB`, errors);
-        continue;
-      }
-      next.push(file);
-    }
-    setFiles(next);
-    if (errors.length) fail(errors.join(' · '));
+    const incoming = Array.from(selected);
     if (picker.current) picker.current.value = '';
+    const checked = validateSelection(incoming, multiple ? files : [], { config, limits, canUpsell, multiple });
+    // ยังถาม /api/me อยู่ (มี hint cookie) และไฟล์เกินฟรีแต่พรีเมียมรับไหว — อาจเป็นสมาชิกพรีเมียม อย่าเพิ่งปฏิเสธ
+    if (status === 'unknown' && checked.premiumOnly) {
+      setWaiting(incoming);
+      setNotice('กำลังตรวจสอบสถานะสมาชิก…');
+      return;
+    }
+    setFiles(checked.next);
+    setUpsell(checked.offer);
+    if (checked.errors.length) fail(checked.errors.join(' · '));
   }
   function move(index: number, target: number) {
     clearResult();
@@ -453,7 +489,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
       </div>
       {upsell && <PremiumUpsell hit={upsell} status={status} fileClass={config.fileClass} />}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => void run()} disabled={busy} aria-busy={busy}>
+        <Button onClick={() => void run()} disabled={busy || !!waiting} aria-busy={busy}>
           {config.action}
         </Button>
         {busy ? (
@@ -467,6 +503,7 @@ export default function FileTool({ id }: { id: FileToolId }) {
             onClick={() => {
               clearResult();
               setFiles([]);
+              setWaiting(null);
               if (picker.current) picker.current.value = '';
               picker.current?.focus();
             }}
