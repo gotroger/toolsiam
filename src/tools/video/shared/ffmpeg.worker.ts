@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { translateFfmpegError } from './errors';
 import type { EngineJob, WorkerCommand, WorkerEvent } from './types';
 
 /**
@@ -50,17 +51,6 @@ async function load(base: string, gzipBytes: number) {
   core.setProgress(({ time }) => post({ type: 'progress', seconds: time / 1e6 }));
 }
 
-function translate(code: number) {
-  const text = logs.join('\n');
-  if (/Invalid data found|moov atom not found|Unable to find a suitable output/.test(text))
-    return 'ไฟล์เสียหายหรือเป็นชนิดที่อ่านไม่ได้ กรุณาลองไฟล์อื่น';
-  if (/Output file is empty|does not contain any stream/.test(text))
-    return 'ช่วงเวลาที่เลือกอยู่นอกความยาวคลิป กรุณาตรวจเวลาเริ่มและจบ';
-  if (/Cannot allocate memory|out of memory|Aborted/i.test(text))
-    return 'หน่วยความจำไม่พอ กรุณาใช้ไฟล์ที่เล็กลงหรือเลือกช่วงที่สั้นลง';
-  return `แปลงไม่สำเร็จ (รหัส ${code}) กรุณาลองไฟล์อื่นหรือลดขนาดไฟล์`;
-}
-
 function run(job: EngineJob) {
   if (!core) throw new Error('ตัวประมวลผลยังไม่พร้อม');
   logs.length = 0;
@@ -70,10 +60,10 @@ function run(job: EngineJob) {
     core.exec(...job.args);
     const code = core.ret;
     core.reset();
-    if (code !== 0) throw new Error(translate(code));
+    if (code !== 0) throw new Error(translateFfmpegError(logs.join('\n'), code, job.args));
     // สำเนาออกจาก heap ของ wasm ก่อน transfer — buffer เดิมเป็นของ core
     const bytes = core.FS.readFile(job.output.name, { encoding: 'binary' }).slice();
-    if (!bytes.byteLength) throw new Error(translate(code));
+    if (!bytes.byteLength) throw new Error(translateFfmpegError(logs.join('\n'), code, job.args));
     return bytes;
   } finally {
     for (const name of [job.input.name, job.output.name]) {
