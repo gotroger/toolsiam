@@ -46,3 +46,28 @@ export const HOLIDAYS_2569: readonly Holiday[] = [
   { date: '2026-12-10', name: 'วันรัฐธรรมนูญ', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-12-31', name: 'วันสิ้นปี', government: true, bank: true, type: 'ปกติ' },
 ];
+
+/**
+ * วันหยุดเฉพาะพื้นที่ — ไม่รวมในตัวเลือก "ทั่วประเทศ"
+ * 16 ต.ค. 2569: มติ ครม. 19 พ.ค. 2569 และประกาศ ธปท. ที่ 26/2569 (ประชุม IMF–World Bank)
+ */
+export const BANGKOK_HOLIDAYS: readonly Holiday[] = [
+  {
+    date: '2026-10-16',
+    name: 'วันหยุดพิเศษเฉพาะกรุงเทพมหานคร (ประชุม IMF–World Bank)',
+    government: true,
+    bank: true,
+    type: 'พิเศษ',
+  },
+];
+
+/**
+ * วันหยุดแยกตามปี ค.ศ. — ปีที่ยังไม่อยู่ในนี้ เครื่องมือจะนับเฉพาะเสาร์–อาทิตย์แล้วเตือนผู้ใช้
+ *
+ * เพิ่มปีใหม่ได้ก็ต่อเมื่อมีประกาศ ธปท. และมติ ครม. ของปีนั้นแล้วเท่านั้น
+ * ห้ามเดาจากปฏิทินจันทรคติหรือปีก่อน — วันหยุดพิเศษและวันชดเชยประกาศเป็นรายปี
+ */
+export const HOLIDAYS_BY_YEAR: Readonly<Record<number, readonly Holiday[]>> = {
+  2026: HOLIDAYS_2569,
+};
+

@@ -1,19 +1,48 @@
 import { DatePicker } from '@/components/ui/date-picker';
 import { useState } from 'react';
-import { addBusinessDays, businessDaysBetween, listHolidays, type HolidayRegion, type HolidayCalendar } from './logic';
+import {
+  addBusinessDays,
+  businessDaysBetween,
+  coveredYears,
+  isYearCovered,
+  listHolidays,
+  uncoveredWarning,
+  uncoveredYearsBetween,
+  type HolidayRegion,
+  type HolidayCalendar,
+} from './logic';
 import { describeDate } from '@/lib/thai-date';
-import { CopyButton, DataTable, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
+import { useTodayInBangkok } from '@/lib/use-today';
+import { Alert, CopyButton, DataTable, ErrorText, Field, NumberInput, Select, Stat } from '@/components/ui';
 import { toCsv } from '@/lib/clipboard';
+
+const YEARS = coveredYears();
+const FIRST_YEAR = YEARS[0].ce;
+const LAST_YEAR = YEARS[YEARS.length - 1].ce;
+const CAL_LABEL: Record<HolidayCalendar, string> = { bank: 'วันหยุดธนาคาร', government: 'วันหยุดราชการ' };
 
 export default function ThaiHolidaysTool() {
   const [region, setRegion] = useState<HolidayRegion>('national');
   const [cal, setCal] = useState<HolidayCalendar>('bank');
-  const [start, setStart] = useState('2026-01-01');
-  const [end, setEnd] = useState('2026-03-31');
-  const [addFrom, setAddFrom] = useState('2026-01-05');
+  // null = ผู้ใช้ยังไม่เคยแก้ → ใช้ค่าตั้งต้นตามปีปัจจุบันของไทย (ฝั่ง server ยังไม่รู้วันนี้ จึงใช้ปีล่าสุดที่มีข้อมูล)
+  const [editedStart, setStart] = useState<string | null>(null);
+  const [editedEnd, setEnd] = useState<string | null>(null);
+  const [editedAddFrom, setAddFrom] = useState<string | null>(null);
+  const [editedTableYear, setTableYear] = useState<number | null>(null);
   const [addCount, setAddCount] = useState('30');
+  const [direction, setDirection] = useState<'1' | '-1'>('1');
 
-  const holidays = listHolidays(cal, region);
+  const today = useTodayInBangkok();
+  const currentYear = today ? Number(today.slice(0, 4)) : LAST_YEAR;
+  const start = editedStart ?? `${currentYear}-01-01`;
+  const end = editedEnd ?? `${currentYear}-03-31`;
+  const addFrom = editedAddFrom ?? (today || `${currentYear}-01-05`);
+  const tableYear = editedTableYear ?? (isYearCovered(currentYear) ? currentYear : LAST_YEAR);
+  // ปีปัจจุบันเลือกได้เสมอแม้ยังไม่มีประกาศ — ผลจะนับเฉพาะเสาร์–อาทิตย์พร้อมคำเตือน
+  const pickerMin = `${Math.min(FIRST_YEAR, currentYear)}-01-01`;
+  const pickerMax = `${Math.max(LAST_YEAR, currentYear)}-12-31`;
+
+  const holidays = listHolidays(cal, region, tableYear);
 
   let spanError = '';
   let span: ReturnType<typeof businessDaysBetween> | null = null;
@@ -25,10 +54,17 @@ export default function ThaiHolidaysTool() {
 
   let addError = '';
   let dueDate = '';
-  try {
-    dueDate = addBusinessDays(addFrom, Number(addCount), cal, region);
-  } catch (e) {
-    addError = (e as Error).message;
+  let addWarning = '';
+  const count = addCount.trim() === '' ? Number.NaN : Number(addCount.replace(/,/g, ''));
+  if (!Number.isInteger(count) || count < 0) {
+    addError = 'จำนวนวันทำการต้องเป็นจำนวนเต็มไม่ติดลบ — เลือกทิศทางนับไปข้างหน้าหรือย้อนหลังแทน';
+  } else {
+    try {
+      dueDate = addBusinessDays(addFrom, count * Number(direction), cal, region);
+      addWarning = uncoveredWarning(uncoveredYearsBetween(addFrom, dueDate));
+    } catch (e) {
+      addError = (e as Error).message;
+    }
   }
 
   return (
@@ -54,13 +90,14 @@ export default function ThaiHolidaysTool() {
         <h2 className="text-lg font-medium">นับวันทำการระหว่างสองวันที่</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="วันเริ่มต้น" htmlFor="start">
-            <DatePicker id="start" min="2026-01-01" max="2026-12-31" value={start} onValueChange={setStart} />
+            <DatePicker id="start" min={pickerMin} max={pickerMax} value={start} onValueChange={setStart} />
           </Field>
           <Field label="วันสิ้นสุด" htmlFor="end">
-            <DatePicker id="end" min="2026-01-01" max="2026-12-31" value={end} onValueChange={setEnd} />
+            <DatePicker id="end" min={pickerMin} max={pickerMax} value={end} onValueChange={setEnd} />
           </Field>
         </div>
         {spanError && <ErrorText>{spanError}</ErrorText>}
+        {span && span.uncoveredYears.length > 0 && <Alert>{uncoveredWarning(span.uncoveredYears)}</Alert>}
         {span && (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="วันทำการ" value={`${span.businessDays} วัน`} />
@@ -73,28 +110,52 @@ export default function ThaiHolidaysTool() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">อีกกี่วันทำการจะครบกำหนด</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="นับจากวันที่" htmlFor="addFrom">
-            <DatePicker id="addFrom" min="2026-01-01" max="2026-12-31" value={addFrom} onValueChange={setAddFrom} />
+            <DatePicker id="addFrom" min={pickerMin} max={pickerMax} value={addFrom} onValueChange={setAddFrom} />
           </Field>
-          <Field label="จำนวนวันทำการ" htmlFor="addCount" hint="ใส่เลขติดลบเพื่อนับย้อนหลัง">
-            <Input id="addCount" inputMode="numeric" value={addCount} onChange={(e) => setAddCount(e.target.value)} />
+          {/* ทิศทางแยกเป็นตัวเลือก เพราะแป้นตัวเลขของ iOS ไม่มีเครื่องหมายลบให้พิมพ์ */}
+          <Field label="ทิศทาง" htmlFor="addDirection">
+            <Select id="addDirection" value={direction} onChange={(e) => setDirection(e.target.value as '1' | '-1')}>
+              <option value="1">นับไปข้างหน้า</option>
+              <option value="-1">นับย้อนหลัง</option>
+            </Select>
           </Field>
+          <NumberInput
+            id="addCount"
+            label="จำนวนวันทำการ"
+            mode="numeric"
+            value={addCount}
+            onValueChange={setAddCount}
+            suffix="วัน"
+            error={addError || undefined}
+          />
           <div className="self-end">
-            {addError ? (
-              <ErrorText>{addError}</ErrorText>
-            ) : (
-              <Stat label="ครบกำหนด" value={describeDate(dueDate).fullThai} />
-            )}
+            {dueDate && !addError && <Stat label="ครบกำหนด" value={describeDate(dueDate).fullThai} />}
           </div>
         </div>
+        {addWarning && !addError && <Alert>{addWarning}</Alert>}
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-medium">
-            {cal === 'bank' ? 'วันหยุดธนาคาร' : 'วันหยุดราชการ'} ปี 2569 ({holidays.length} รายการ)
+            {CAL_LABEL[cal]} ปี {tableYear + 543} ({holidays.length} รายการ)
           </h2>
+          {YEARS.length > 1 && (
+            <Select
+              aria-label="ปีของตารางวันหยุด"
+              wrapperClassName="w-40"
+              value={String(tableYear)}
+              onChange={(e) => setTableYear(Number(e.target.value))}
+            >
+              {YEARS.map((y) => (
+                <option key={y.ce} value={y.ce}>
+                  พ.ศ. {y.be}
+                </option>
+              ))}
+            </Select>
+          )}
           <CopyButton
             label="คัดลอกเป็น CSV"
             text={toCsv(
@@ -104,7 +165,7 @@ export default function ThaiHolidaysTool() {
           />
         </div>
         <DataTable
-          caption="รายการวันหยุดราชการ"
+          caption={`รายการ${CAL_LABEL[cal]} ปี ${tableYear + 543}`}
           rows={holidays}
           rowKey={(h) => h.date}
           columns={[
