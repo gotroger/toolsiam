@@ -45,6 +45,10 @@ jobs:
       - name: ตรวจสไตล์โค้ดและ a11y
         run: npm run lint
 
+      # เคยปล่อยให้ค้างจนไม่ตรง prettier 139 ไฟล์ เพราะไม่มีใครตรวจ — แก้ด้วย npm run format
+      - name: ตรวจรูปแบบโค้ด (prettier)
+        run: npm run format:check
+
       - name: ตรวจชนิดข้อมูล
         run: npm run typecheck
 
