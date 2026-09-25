@@ -36,8 +36,11 @@ export function drawByDate(date: string): LotteryDraw | undefined {
   return DRAWS.find((d) => d.drawDate === date);
 }
 
-/** งวดทั้งหมดจัดกลุ่มตามปี ค.ศ. เรียงจากใหม่ไปเก่า — ใช้กับหน้า archive */
-export function drawsByYear(): { year: number; draws: LotteryDraw[] }[] {
+/**
+ * งวดทั้งหมดจัดกลุ่มตามปี ค.ศ. เรียงจากใหม่ไปเก่า — ใช้กับหน้า archive
+ * `label` คือหัวข้อปี พ.ศ. ที่พร้อมแสดง ประกอบไว้ที่นี่เพื่อให้เทสต์คุมได้ ไม่ต้องไปต่อสตริงใน template
+ */
+export function drawsByYear(): { year: number; label: string; draws: LotteryDraw[] }[] {
   const groups = new Map<number, LotteryDraw[]>();
   for (const d of DRAWS) {
     const year = Number(d.drawDate.slice(0, 4));
@@ -46,6 +49,6 @@ export function drawsByYear(): { year: number; draws: LotteryDraw[] }[] {
     groups.set(year, list);
   }
   return [...groups.entries()]
-    .map(([year, draws]) => ({ year, draws }))
+    .map(([year, draws]) => ({ year, label: `พ.ศ. ${year + 543}`, draws }))
     .sort((a, b) => b.year - a.year);
 }

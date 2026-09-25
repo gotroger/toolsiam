@@ -42,4 +42,11 @@ describe('คลังข้อมูลงวด', () => {
     const years = groups.map((g) => g.year);
     expect(years).toEqual([...years].sort((a, b) => b - a));
   });
+
+  it('หัวข้อของแต่ละปีเป็นปี พ.ศ. จริง ไม่ใช่ข้อความ template ที่หลุดมา', () => {
+    for (const g of drawsByYear()) {
+      expect(g.label).toBe(`พ.ศ. ${g.year + 543}`);
+      expect(g.label).toMatch(/^พ\.ศ\. \d{4}$/);
+    }
+  });
 });

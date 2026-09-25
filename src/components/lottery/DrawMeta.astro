@@ -1,25 +1,12 @@
 ---
 import type { LotteryDraw } from '@/data/lottery/schema';
-import { formatThaiDate } from '@/lib/thai-date';
+import DrawMetaLine from './DrawMetaLine';
 
 /**
- * แถบบอกที่มาของข้อมูลงวด — ต้องมีทุกหน้าที่แสดงผลรางวัล (§28.1 ข้อ 6)
- * ข้อมูลดึงจาก API ของสำนักงานสลากฯ โดยตรงและผ่าน validator แล้ว จึงแสดงได้ทันทีโดยไม่รอคนตรวจซ้ำ
+ * แถบบอกที่มาของข้อมูลงวด (§28.1 ข้อ 6) — render ตอน build เป็น HTML ล้วน ไม่มี JS
+ * markup จริงอยู่ที่ `DrawMetaLine.tsx` ซึ่ง island ที่สลับเป็นงวดใหม่จาก KV ใช้ร่วมกัน
  */
 interface Props { draw: LotteryDraw }
 const { draw } = Astro.props;
 ---
-<div class="flex flex-wrap items-center gap-2 text-sm">
-  <span class="font-medium text-slate-900">งวดวันที่ {formatThaiDate(draw.drawDate, { style: 'medium' })}</span>
-  <span class="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800">
-    ข้อมูลจากสำนักงานสลากฯ
-  </span>
-  <a
-    href={draw.sourceUrl}
-    rel="nofollow noopener"
-    target="_blank"
-    class="text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
-  >
-    ประกาศของสำนักงานสลากกินแบ่งรัฐบาล
-  </a>
-</div>
+<DrawMetaLine draw={draw} />
