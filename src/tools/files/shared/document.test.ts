@@ -64,6 +64,17 @@ describe('PDF actual output', () => {
       processDocument({ id: 'pdf-extract', files: [await pdfFile('a.pdf', Array(151).fill(100))], options }),
     ).rejects.toThrow('150');
   });
+  it('PDF ที่เข้ารหัส (แม้เปิดอ่านได้โดยไม่ใส่รหัส) ได้ข้อความที่ตรงกับปัญหา ไม่ใช่ "ใช้ PDF ที่เปิดได้โดยไม่ต้องใส่รหัส"', async () => {
+    // PDF จำกัดสิทธิ์ (owner password อย่างเดียว) มี /Encrypt ใน trailer — pdf-lib ถอดรหัสไม่ได้ ต้องปฏิเสธแต่บอกให้ถูก
+    const pdf = await PDFDocument.create();
+    pdf.addPage([100, 100]);
+    pdf.context.trailerInfo.Encrypt = pdf.context.obj({ Filter: 'Standard', V: 2, R: 3, P: -3904 });
+    const file = new File([new Uint8Array(await pdf.save())], 'locked.pdf');
+    const error = await processDocument({ id: 'pdf-rotate', files: [file], options }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('เข้ารหัส');
+    expect((error as Error).message).not.toContain('เปิดได้โดยไม่ต้องใส่รหัส');
+  });
   it('ขีดจำกัดหน้ามากับ Job.limits — พรีเมียมรับ 151 หน้า และการชนเพดานเป็น LimitError ที่บอกจำนวนหน้าจริง', async () => {
     const big = await pdfFile('a.pdf', Array(151).fill(100));
     const output = await processDocument({ id: 'pdf-rotate', files: [big], options, limits: PLAN_LIMITS.premium });

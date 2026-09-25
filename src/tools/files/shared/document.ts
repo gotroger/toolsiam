@@ -53,10 +53,17 @@ export async function processDocument({ id, files, options, limits }: Job): Prom
     for (const file of files) {
       let source;
       try {
-        source = await PDFDocument.load(await file.arrayBuffer());
+        // ignoreEncryption แค่ให้โหลดผ่านเพื่อตรวจ isEncrypted — EncryptedPDFError ของ pdf-lib ใช้ instanceof ไม่ได้
+        source = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
       } catch {
-        throw new Error('เปิด PDF ไม่สำเร็จ ไฟล์อาจเสียหายหรือตั้งรหัสผ่าน กรุณาใช้ PDF ที่เปิดได้โดยไม่ต้องใส่รหัส');
+        throw new Error(`${file.name}: เปิด PDF ไม่สำเร็จ ไฟล์อาจเสียหาย กรุณาตรวจว่าไฟล์เปิดได้ตามปกติ`);
       }
+      // pdf-lib ถอดรหัสไม่ได้ — หน้าที่คัดลอกออกมาจะยังเป็นเนื้อหาเข้ารหัส ไฟล์ผลลัพธ์เสีย จึงต้องปฏิเสธ
+      // รวมถึง PDF ที่เปิดอ่านได้ปกติแต่ล็อกสิทธิ์แก้ไข/พิมพ์ (owner password) — บอกให้ตรงกับปัญหา
+      if (source.isEncrypted)
+        throw new Error(
+          `${file.name}: PDF นี้เข้ารหัสไว้ (ตั้งรหัสผ่านหรือจำกัดสิทธิ์แก้ไข แม้จะเปิดอ่านได้ปกติ) จึงแก้ไขไม่ได้ กรุณาปลดล็อกหรือบันทึกเป็นสำเนาที่ไม่เข้ารหัสก่อน`,
+        );
       total += source.getPageCount();
       if (total > plan.pages)
         throw new LimitError(`รองรับรวมไม่เกิน ${plan.pages} หน้า กรุณาแบ่งไฟล์ก่อน`, 'pages', total);
