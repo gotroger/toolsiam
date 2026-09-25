@@ -16,8 +16,18 @@ describe('กำไรทั้งล็อต', () => {
     expect(r.marginPercent).toBe(20);
   });
 
-  it('ขายขาดทุนแล้วไม่บอกจำนวนชิ้นที่ทำกำไร', () => {
-    expect(batchProfit({ cost: 100, price: 80, quantity: 10 }).unitsForProfit).toBeNull();
+  it('กำไรทั้งล็อตคิดจากส่วนต่างจริง ไม่ใช่กำไรต่อชิ้นที่ปัดแล้วคูณจำนวน', () => {
+    const r = batchProfit({ cost: 12.345, price: 20, quantity: 1000 });
+    expect(r.totalProfit).toBe(7_655);
+    expect(r.totalProfit).toBe(Math.round((r.totalRevenue - r.totalCost) * 100) / 100);
+  });
+
+  it('ขายขาดทุนได้กำไรติดลบ', () => {
+    expect(batchProfit({ cost: 100, price: 80, quantity: 10 }).totalProfit).toBe(-200);
+  });
+
+  it('ไม่มีช่อง unitsForProfit ที่ไม่มีความหมายแล้ว', () => {
+    expect(batchProfit({ cost: 100, price: 125, quantity: 40 })).not.toHaveProperty('unitsForProfit');
   });
 
   it('ปฏิเสธจำนวนชิ้นที่ไม่เป็นบวก', () => {
