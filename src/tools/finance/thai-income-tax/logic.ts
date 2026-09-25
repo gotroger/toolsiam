@@ -1,4 +1,10 @@
-import { TAX_BRACKETS, TAX_LIMITS, type TaxBracket } from '@/lib/rates/income-tax';
+import {
+  socialSecurityDeductionCap,
+  SUPPORTED_TAX_YEARS,
+  TAX_BRACKETS,
+  TAX_LIMITS,
+  type TaxBracket,
+} from '@/lib/rates/income-tax';
 
 // อัตราและเพดานทั้งหมดอยู่ที่ src/lib/rates/income-tax.ts ที่เดียว (E6)
 // เครื่องมือนี้ re-export ไว้เพื่อความเข้ากันได้ย้อนหลัง แต่ห้ามแก้ตัวเลขที่นี่
@@ -58,6 +64,11 @@ export interface TaxResult {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const clamp = (n: number, cap: number) => Math.min(Math.max(n, 0), cap);
 
+/** ค่าตั้งต้นของช่องประกันสังคม = เงินสมทบเต็มเพดานของปีภาษีที่เลือก (คนเงินเดือนถึงเพดานส่วนใหญ่จ่ายเท่านี้) */
+export function defaultSocialSecurity(taxYear: number): number {
+  return socialSecurityDeductionCap(taxYear);
+}
+
 export function progressiveTax(netIncome: number): { tax: number; lines: TaxBracketLine[] } {
   const lines: TaxBracketLine[] = [];
   let prev = 0;
@@ -79,7 +90,9 @@ export function calculateTax(input: TaxInput): TaxResult {
   const L = TAX_LIMITS;
 
   const taxYear = input.taxYear ?? 2025;
-  if (![2025, 2026].includes(taxYear)) throw new Error('รองรับปีภาษี 2568 และ 2569');
+  // เครื่องมือนี้ให้ผู้ใช้เลือกปีเอง จึงรับเฉพาะปีที่มีกฎครบ — การใช้ปีล่าสุดแทนเป็นหน้าที่ของผู้เรียก
+  if (!(SUPPORTED_TAX_YEARS as readonly number[]).includes(taxYear))
+    throw new Error(`รองรับปีภาษี ${SUPPORTED_TAX_YEARS.map((y) => y + 543).join(' และ ')}`);
   for (const [key, value] of Object.entries(input)) {
     if (typeof value === 'boolean' || value === undefined) continue;
     if (!Number.isFinite(value) || value < 0) throw new Error('รายได้และค่าลดหย่อนทุกช่องต้องเป็นตัวเลขไม่ติดลบ');
@@ -110,7 +123,7 @@ export function calculateTax(input: TaxInput): TaxResult {
     Math.max(0, input.children) * L.child +
     Math.max(0, input.childrenBorn2018Plus) * L.childBorn2018Plus +
     Math.min(Math.max(0, input.parents), L.parentMax) * L.parent +
-    clamp(input.socialSecurity, taxYear === 2026 ? 10_500 : L.socialSecurityCap) +
+    clamp(input.socialSecurity, socialSecurityDeductionCap(taxYear)) +
     insurance +
     retirement +
     clamp(input.thaiEsg, Math.min(income * 0.3, L.thaiEsgCap)) +

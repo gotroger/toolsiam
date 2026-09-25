@@ -104,3 +104,31 @@ describe('เงินเดือนสุทธิ', () => {
     }
   });
 });
+
+describe('ปีภาษีที่ยังไม่มีประกาศ', () => {
+  it('1 ม.ค. 2570 ไม่ error แต่ใช้อัตราภาษีปี 2569 และบอกว่าใช้อัตราสำรอง', () => {
+    const r = calculateNetSalary({ ...base, asOf: '2027-01-01' });
+    expect(r.taxYear).toBe(2027);
+    expect(r.appliedTaxYear).toBe(2026);
+    expect(r.taxYearFallback).toBe(true);
+    // ตัวเลขเท่ากับปี 2569 ทุกช่อง เพราะใช้กฎชุดเดียวกัน
+    const current = calculateNetSalary(base);
+    expect(r.annualTax).toBe(current.annualTax);
+    expect(r.netMonthly).toBe(current.netMonthly);
+  });
+
+  it('ปี 2571 ใช้เพดานประกันสังคมล่าสุดที่รู้ (17,500) และอัตราภาษีปี 2569', () => {
+    const r = calculateNetSalary({ ...base, asOf: '2028-06-15' });
+    expect(r.ssoMonthly).toBe(875);
+    expect(r.ssoDeductible).toBe(10_500);
+    expect(r.appliedTaxYear).toBe(2026);
+    expect(r.taxYearFallback).toBe(true);
+  });
+
+  it('ปีที่รองรับอยู่แล้วไม่ติดธงอัตราสำรอง', () => {
+    const r = calculateNetSalary(base);
+    expect(r.taxYear).toBe(2026);
+    expect(r.appliedTaxYear).toBe(2026);
+    expect(r.taxYearFallback).toBe(false);
+  });
+});

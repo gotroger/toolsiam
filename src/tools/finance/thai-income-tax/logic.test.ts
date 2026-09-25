@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { progressiveTax, calculateTax, TAX_LIMITS, type TaxInput } from './logic';
+import { progressiveTax, calculateTax, defaultSocialSecurity, TAX_LIMITS, type TaxInput } from './logic';
 
 const base: TaxInput = {
   annualIncome: 0,
@@ -113,5 +113,12 @@ describe('calculateTax', () => {
   it('เงินได้ติดลบหรือ NaN โยน error', () => {
     expect(() => calculateTax({ ...base, annualIncome: -1 })).toThrow();
     expect(() => calculateTax({ ...base, annualIncome: NaN })).toThrow();
+  });
+});
+
+describe('ค่าตั้งต้นช่องประกันสังคม', () => {
+  it('ตามเพดานของปีภาษีที่เลือก ไม่ใช่ 9,000 ตายตัว', () => {
+    expect(defaultSocialSecurity(2026)).toBe(10_500);
+    expect(defaultSocialSecurity(2025)).toBe(9_000);
   });
 });

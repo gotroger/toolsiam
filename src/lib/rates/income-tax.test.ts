@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { activeTemporaryMeasures, TAX_BRACKETS, TAX_LIMITS, TEMPORARY_MEASURES } from './income-tax';
+import {
+  activeTemporaryMeasures,
+  LATEST_TAX_YEAR,
+  resolveTaxYear,
+  socialSecurityDeductionCap,
+  SUPPORTED_TAX_YEARS,
+  TAX_BRACKETS,
+  TAX_LIMITS,
+  TEMPORARY_MEASURES,
+} from './income-tax';
 
 describe('ขั้นบันไดภาษี', () => {
   it('ตรงกับประกาศของกรมสรรพากร', () => {
@@ -33,5 +42,27 @@ describe('มาตรการชั่วคราว', () => {
   it('ว่างโดยตั้งใจ — ของปีภาษี 2568/2569 ยังไม่ verify จึงห้ามใส่', () => {
     expect(TEMPORARY_MEASURES).toEqual([]);
     expect(activeTemporaryMeasures('2026-09-08')).toEqual([]);
+  });
+});
+
+describe('ปีภาษีที่รองรับ', () => {
+  it('ปีที่มีกฎครบใช้ปีนั้นตรง ๆ', () => {
+    expect(resolveTaxYear(2025)).toEqual({ taxYear: 2025, isFallback: false });
+    expect(resolveTaxYear(2026)).toEqual({ taxYear: 2026, isFallback: false });
+  });
+
+  it('ปีหลังปีล่าสุดใช้กฎของปีล่าสุดไปก่อน พร้อมธงบอกผู้ใช้', () => {
+    expect(resolveTaxYear(2027)).toEqual({ taxYear: LATEST_TAX_YEAR, isFallback: true });
+    expect(resolveTaxYear(2030)).toEqual({ taxYear: LATEST_TAX_YEAR, isFallback: true });
+  });
+
+  it('ปีก่อนปีแรกที่รองรับยังเป็นข้อผิดพลาด ไม่เดาย้อนหลัง', () => {
+    expect(() => resolveTaxYear(2024)).toThrow('รองรับปีภาษี');
+  });
+
+  it('เพดานลดหย่อนประกันสังคมมีครบทุกปีที่รองรับ', () => {
+    for (const year of SUPPORTED_TAX_YEARS) expect(socialSecurityDeductionCap(year)).toBeGreaterThan(0);
+    expect(socialSecurityDeductionCap(2025)).toBe(9_000);
+    expect(socialSecurityDeductionCap(2026)).toBe(10_500);
   });
 });

@@ -1,5 +1,6 @@
 import { calculateTax } from '@/tools/finance/thai-income-tax/logic';
 import { section33Contribution } from '@/lib/rates/social-security';
+import { resolveTaxYear } from '@/lib/rates/income-tax';
 import { parseIsoDate } from '@/lib/date';
 
 /**
@@ -49,6 +50,12 @@ export interface NetSalaryResult {
   netYearly: number;
   /** ภาษีทั้งปี ÷ เงินได้ทั้งปี */
   effectiveRate: number;
+  /** ปีภาษี (ค.ศ.) ตามวันที่คำนวณ */
+  taxYear: number;
+  /** ปีภาษีที่ใช้กฎจริง — ต่างจาก taxYear เมื่อปีใหม่ยังไม่มีประกาศ */
+  appliedTaxYear: number;
+  /** true = ใช้อัตราของปีล่าสุดที่มีข้อมูลแทน ต้องแจ้งผู้ใช้ */
+  taxYearFallback: boolean;
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -63,6 +70,8 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
   }
   parseIsoDate(input.asOf);
   const taxYear = Number(input.asOf.slice(0, 4));
+  // ต้นปีใหม่ก่อนกรมสรรพากรออกประกาศ ใช้กฎของปีล่าสุดไปก่อนแทนการพังทั้งหน้า
+  const applied = resolveTaxYear(taxYear);
   const bonus = nonNegative(input.bonus);
   const otherIncome = nonNegative(input.otherIncome);
   const annualIncome = round2(input.monthlySalary * 12 + bonus + otherIncome);
@@ -73,7 +82,7 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
 
   const tax = calculateTax({
     annualIncome,
-    taxYear,
+    taxYear: applied.taxYear,
     rmf: input.rmf,
     providentFund: input.providentFund,
     pensionInsurance: input.pensionInsurance,
@@ -106,5 +115,8 @@ export function calculateNetSalary(input: NetSalaryInput): NetSalaryResult {
     netMonthly: round2(input.monthlySalary - sso - monthlyTax),
     netYearly: round2(annualIncome - ssoYearly - tax.tax),
     effectiveRate: tax.effectiveRate,
+    taxYear,
+    appliedTaxYear: applied.taxYear,
+    taxYearFallback: applied.isFallback,
   };
 }

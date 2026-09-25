@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { calculateTax, type TaxInput } from './logic';
+import { calculateTax, defaultSocialSecurity, type TaxInput } from './logic';
 import { Checkbox, DataTable, ErrorText, Field, Input, Select, Stat } from '@/components/ui';
 import { formatBaht } from '@/lib/format';
 
@@ -66,6 +66,8 @@ const fields: { key: NumKey; label: string; hint?: string }[] = [
   { key: 'withheldTax', label: 'ภาษีหัก ณ ที่จ่ายแล้ว (จาก 50 ทวิ)' },
 ];
 
+const DEFAULT_TAX_YEAR = '2026';
+
 const initial: TaxFormState = {
   rmf: '0',
   providentFund: '0',
@@ -75,7 +77,8 @@ const initial: TaxFormState = {
   children: '0',
   childrenBorn2018Plus: '0',
   parents: '0',
-  socialSecurity: '9000',
+  // เต็มเพดานของปีภาษีตั้งต้น — ค่าตายตัว 9,000 เป็นเพดานของปี 2568 จึงหักขาดไปในปี 2569
+  socialSecurity: String(defaultSocialSecurity(Number(DEFAULT_TAX_YEAR))),
   lifeInsurance: '0',
   healthInsurance: '0',
   retirementFunds: '0',
@@ -88,8 +91,16 @@ const initial: TaxFormState = {
 };
 
 export default function ThaiIncomeTaxTool() {
-  const [taxYear, setTaxYear] = useState('2026');
+  const [taxYear, setTaxYear] = useState(DEFAULT_TAX_YEAR);
   const [form, setForm] = useState<TaxFormState>(initial);
+
+  // เปลี่ยนปีภาษีแล้วให้ช่องประกันสังคมตามเพดานของปีใหม่ — เฉพาะเมื่อผู้ใช้ยังไม่ได้แก้ค่าเอง
+  const changeTaxYear = (next: string) => {
+    const previousDefault = String(defaultSocialSecurity(Number(taxYear)));
+    if (form.socialSecurity.replace(/,/g, '') === previousDefault)
+      setForm({ ...form, socialSecurity: String(defaultSocialSecurity(Number(next))) });
+    setTaxYear(next);
+  };
 
   const result = useMemo(() => {
     const input = Object.fromEntries(fields.map((f) => [f.key, Number(form[f.key].replace(/,/g, ''))])) as Record<
@@ -114,7 +125,7 @@ export default function ThaiIncomeTaxTool() {
           htmlFor="tax-year"
           hint="สำหรับเงินเดือนตามมาตรา 40(1); รายได้ธุรกิจและฟรีแลนซ์ใช้วิธีคำนวณต่างกัน"
         >
-          <Select id="tax-year" value={taxYear} onChange={(e) => setTaxYear(e.target.value)}>
+          <Select id="tax-year" value={taxYear} onChange={(e) => changeTaxYear(e.target.value)}>
             <option value="2026">2569 (รายได้ปี 2026)</option>
             <option value="2025">2568 (รายได้ปี 2025)</option>
           </Select>

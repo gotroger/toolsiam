@@ -26,8 +26,8 @@ export const TAX_BRACKETS: TaxBracket[] = [
   { upTo: Infinity, rate: 0.35 },
 ];
 
-/** เพดานพื้นฐาน; socialSecurityCap ใช้ปี 2568 เท่านั้น
- * ปี 2569 ใช้จ่ายจริงสูงสุด 10,500 ตาม ม.47(1)(ฌ) และกฎหมายประกันสังคม */
+/** เพดานพื้นฐาน; socialSecurityCap คือเพดานของปี 2568 คงไว้เพื่อความเข้ากันได้
+ * เพดานรายปีจริงให้ใช้ socialSecurityDeductionCap(taxYear) ด้านล่าง */
 export const TAX_LIMITS = {
   expenseRate: 0.5,
   expenseCap: 100_000,
@@ -57,6 +57,50 @@ export const TAX_LIMITS = {
   politicalDonationCap: 10_000,
   donationRate: 0.1,
 } as const;
+
+/**
+ * ปีภาษี (ค.ศ.) ที่มีกฎครบในไฟล์นี้ — เรียงจากเก่าไปใหม่
+ * เมื่อกรมสรรพากรประกาศปีใหม่ ให้เติมปีที่นี่พร้อมเพดานประกันสังคมด้านล่าง
+ */
+export const SUPPORTED_TAX_YEARS = [2025, 2026] as const;
+export const LATEST_TAX_YEAR = SUPPORTED_TAX_YEARS[SUPPORTED_TAX_YEARS.length - 1];
+
+/**
+ * เพดานลดหย่อนเงินสมทบประกันสังคมรายปีภาษี
+ * ม.47(1)(ฌ) ให้ลดหย่อนตามจ่ายจริงภายในกฎหมายประกันสังคม จึงเท่ากับเงินสมทบสูงสุดทั้งปี
+ * ปี 2568: 750 × 12 = 9,000 · ปี 2569: 875 × 12 = 10,500 (เพดานค่าจ้าง 17,500)
+ */
+const SOCIAL_SECURITY_DEDUCTION_CAPS: Record<(typeof SUPPORTED_TAX_YEARS)[number], number> = {
+  2025: 9_000,
+  2026: 10_500,
+};
+
+export interface ResolvedTaxYear {
+  /** ปีภาษีที่ใช้กฎจริง */
+  taxYear: number;
+  /** true = ปีที่ขอยังไม่มีประกาศ จึงใช้กฎของปีล่าสุดไปก่อน — ต้องแจ้งผู้ใช้ */
+  isFallback: boolean;
+}
+
+/**
+ * เลือกปีภาษีที่จะใช้กฎ
+ *
+ * ปีหลังปีล่าสุดที่รองรับ (เช่นต้นปีใหม่ที่กรมสรรพากรยังไม่ออกประกาศ) ใช้กฎของปีล่าสุดไปก่อน
+ * เพราะขั้นบันไดและค่าลดหย่อนหลักแทบไม่เปลี่ยนปีต่อปี ดีกว่าให้เครื่องมือพังทั้งหน้า
+ * ส่วนปีก่อนปีแรกที่รองรับยังเป็นข้อผิดพลาด เพราะกฎเก่าต่างจากปัจจุบันจริง ห้ามเดา
+ */
+export function resolveTaxYear(year: number): ResolvedTaxYear {
+  if ((SUPPORTED_TAX_YEARS as readonly number[]).includes(year)) return { taxYear: year, isFallback: false };
+  if (Number.isInteger(year) && year > LATEST_TAX_YEAR) return { taxYear: LATEST_TAX_YEAR, isFallback: true };
+  throw new Error(`รองรับปีภาษี ${SUPPORTED_TAX_YEARS.map((y) => y + 543).join(' และ ')}`);
+}
+
+/** เพดานลดหย่อนประกันสังคมของปีภาษีที่รองรับ */
+export function socialSecurityDeductionCap(taxYear: number): number {
+  const cap = SOCIAL_SECURITY_DEDUCTION_CAPS[taxYear as keyof typeof SOCIAL_SECURITY_DEDUCTION_CAPS];
+  if (cap === undefined) throw new Error(`ไม่มีเพดานลดหย่อนประกันสังคมของปีภาษี ${taxYear + 543}`);
+  return cap;
+}
 
 export interface TemporaryMeasure {
   id: string;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTodayInBangkok } from '@/lib/use-today';
 import { calculateNetSalary } from './logic';
 import { formatBaht, formatNumber } from '@/lib/format';
-import { Checkbox, ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
+import { Checkbox, Disclaimer, ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
 import { getToolUrl } from '@/lib/routes';
 
 const num = (s: string) => {
@@ -65,6 +65,11 @@ export default function NetSalaryTool() {
           ประมาณการปีภาษี {asOf ? Number(asOf.slice(0, 4)) + 543 : '…'} สำหรับเงินเดือนมาตรา 40(1) คงที่ 12 เดือน;
           ภาษีรายเดือนเฉลี่ยจากทั้งปี
         </p>
+        {result?.taxYearFallback && (
+          <div className="mb-3">
+            <Disclaimer>ใช้อัตราภาษีปี {result.appliedTaxYear + 543} จนกว่าจะมีประกาศปีใหม่</Disclaimer>
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-3">
           <NumberInput
             id="salary"
