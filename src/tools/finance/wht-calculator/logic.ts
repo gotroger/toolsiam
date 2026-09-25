@@ -55,10 +55,27 @@ export function calculateWht(input: WhtInput): WhtResult {
   const factor = 1 + vatRate - whtRate;
   if (mode === 'fromNet' && factor <= 0) throw new Error('อัตราที่กรอกทำให้ยอดรับสุทธิเป็นศูนย์หรือติดลบ');
 
-  const base = mode === 'fromBase' ? round2(amount) : round2(amount / factor);
+  if (mode === 'fromBase') return fromBase(round2(amount), whtRate, vatRate);
+
+  // ถอดกลับด้วยการหารตรง ๆ พลาดได้ 1 สตางค์ เพราะ VAT และหัก ณ ที่จ่ายต่างปัดเศษของตัวเอง
+  // จึงลอง base รอบ ๆ ค่าประมาณทีละสตางค์ แล้วเลือกตัวที่ให้ยอดรับสุทธิตรงเป้า (ถ้ามีหลายตัวเอาตัวน้อยสุด)
+  // ถ้าไม่มีตัวไหนตรงเลย (ยอดนั้นกระโดดข้ามไปจากการปัดเศษ) เลือกตัวที่ใกล้ที่สุด
+  const target = round2(amount);
+  const estimate = Math.round((target / factor) * 100);
+  // ช่วงค้นกว้างตามความชันของ factor — factor ยิ่งน้อย base ยิ่งคลาดจากค่าประมาณได้มาก
+  const reach = Math.max(3, Math.ceil(0.02 / factor) + 1);
+  let best: WhtResult | null = null;
+  for (let cents = Math.max(0, estimate - reach); cents <= estimate + reach; cents++) {
+    const candidate = fromBase(cents / 100, whtRate, vatRate);
+    if (candidate.netReceived === target) return candidate;
+    if (!best || Math.abs(candidate.netReceived - target) < Math.abs(best.netReceived - target) - 1e-9) best = candidate;
+  }
+  return best!;
+}
+
+function fromBase(base: number, whtRate: number, vatRate: number): WhtResult {
   const vat = round2(base * vatRate);
   const wht = round2(base * whtRate);
   const invoiceTotal = round2(base + vat);
-
   return { base, vat, invoiceTotal, wht, netReceived: round2(invoiceTotal - wht) };
 }

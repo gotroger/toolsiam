@@ -43,3 +43,48 @@ describe('ภาษีหัก ณ ที่จ่าย', () => {
     expect(() => calculateWht({ amount: 100, mode: 'fromBase', whtRate: 0.03, vatRate: -1 })).toThrow('VAT');
   });
 });
+
+describe('ถอดจากยอดรับสุทธิให้ได้ยอดตรงทุกสตางค์', () => {
+  it('อยากได้สุทธิ 1,000 บาท หัก 1% VAT 7% → ยอดรับจริงต้องเป็น 1,000.00 ไม่ใช่ 1,000.01', () => {
+    const r = calculateWht({ amount: 1_000, mode: 'fromNet', whtRate: 0.01, vatRate: 0.07 });
+    expect(r.netReceived).toBe(1_000);
+  });
+
+  // ยอดสุทธิที่ base ใด ๆ ทำได้จริง — ใช้ตรวจว่าถ้ามีคำตอบตรง ฟังก์ชันต้องหาเจอ
+  const netOf = (base: number, whtRate: number, vatRate: number) =>
+    calculateWht({ amount: base, mode: 'fromBase', whtRate, vatRate }).netReceived;
+
+  it.each([
+    [0.01, 0.07],
+    [0.02, 0.07],
+    [0.03, 0.07],
+    [0.05, 0.07],
+    [0.03, 0],
+    [0.05, 0],
+  ])('ไป-กลับครบทุกยอด (หัก %s VAT %s)', (whtRate, vatRate) => {
+    for (let cents = 1; cents <= 300_000; cents += 7) {
+      const target = cents / 100;
+      const r = calculateWht({ amount: target, mode: 'fromNet', whtRate, vatRate });
+      // ยอดที่ได้ต้องสอดคล้องกับ base ที่เลือกเสมอ
+      expect(netOf(r.base, whtRate, vatRate)).toBe(r.netReceived);
+      if (r.netReceived !== target) {
+        // ถ้าไม่ตรง ต้องเป็นเพราะไม่มี base ใดในละแวกนั้นให้ยอดตรงจริง และห่างไม่เกิน 1 สตางค์
+        expect(Math.abs(r.netReceived - target)).toBeLessThanOrEqual(0.0100001);
+        for (let d = -5; d <= 5; d++) {
+          const b = Math.round(r.base * 100 + d) / 100;
+          if (b >= 0) expect(netOf(b, whtRate, vatRate)).not.toBe(target);
+        }
+      }
+    }
+  });
+
+  it('มีหลาย base ที่ให้ยอดตรง เลือก base ที่น้อยที่สุด', () => {
+    for (let cents = 1; cents <= 50_000; cents += 13) {
+      const target = cents / 100;
+      const r = calculateWht({ amount: target, mode: 'fromNet', whtRate: 0.03, vatRate: 0.07 });
+      if (r.netReceived !== target) continue;
+      const smaller = Math.round(r.base * 100 - 1) / 100;
+      if (smaller >= 0) expect(netOf(smaller, 0.03, 0.07)).not.toBe(target);
+    }
+  });
+});
