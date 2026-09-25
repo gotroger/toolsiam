@@ -1,4 +1,4 @@
-import { extendExpiry } from './plan';
+import { DAY } from './plan';
 
 /**
  * ชั้นเก็บข้อมูลของระบบสมาชิก — interface เดียว สอง implementation
@@ -74,7 +74,7 @@ export interface MembershipStore {
   listPayments(userId: string, limit: number): Promise<Payment[]>;
   expirePayment(id: string): Promise<void>;
   /**
-   * atomic: payments → paid และ subscriptions.expires_at = max(now, เดิม) + payments.days
+   * atomic: payments → paid และ subscriptions.expires_at = max(now, เดิม) + payments.days (คำนวณใน SQL)
    * ทำงานกับ status ใน SETTLEABLE (pending หรือ expired) — เรียกซ้ำกี่ครั้งก็บวกวันครั้งเดียว
    */
   settlePayment(
@@ -223,18 +223,21 @@ export function d1Store(db: D1Database): MembershipStore {
     async settlePayment(id, p) {
       const payment = await this.getPayment(id);
       if (!payment) return { applied: false, expiresAt: null };
-      const current = await this.getExpiresAt(payment.userId);
-      const next = extendExpiry(current, p.now, payment.days);
       // batch = transaction เดียว · ทั้งสอง statement ใช้เงื่อนไข SETTLEABLE ชุดเดียวกัน
-      // webhook ซ้ำที่มาพร้อมกันจึงบวกวันได้แค่ครั้งเดียว ไม่ว่าจะอ่าน current ไปพร้อมกันหรือไม่
+      // webhook ซ้ำที่มาพร้อมกันจึงบวกวันได้แค่ครั้งเดียว
+      //
+      // วันหมดอายุใหม่ต้องคำนวณใน SQL จากค่าในแถว ณ ตอนเขียน (= extendExpiry แบบ atomic)
+      // ถ้าอ่านค่าเดิมมาคำนวณใน JS ก่อน batch สองรายการคนละใบของคนเดียวกันที่ settle พร้อมกัน
+      // จะอ่านค่าเดิมชุดเดียวกัน แล้วรายการที่เขียนทีหลังทับวันของอีกรายการหาย (lost update)
       const results = await db.batch([
         db
           .prepare(
             `INSERT INTO subscriptions (user_id, expires_at, updated_at)
-             SELECT ?1, ?2, ?3 WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status IN (${SETTLEABLE}))
-             ON CONFLICT (user_id) DO UPDATE SET expires_at = excluded.expires_at, updated_at = excluded.updated_at`,
+             SELECT ?1, ?2 + ?3, ?2 WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status IN (${SETTLEABLE}))
+             ON CONFLICT (user_id) DO UPDATE SET
+               expires_at = MAX(subscriptions.expires_at, ?2) + ?3, updated_at = excluded.updated_at`,
           )
-          .bind(payment.userId, next, p.now, id),
+          .bind(payment.userId, p.now, payment.days * DAY, id),
         db
           .prepare(
             `UPDATE payments SET status = 'paid', beam_charge_id = ?2, paid_at = ?3, raw_webhook_json = ?4
@@ -243,7 +246,8 @@ export function d1Store(db: D1Database): MembershipStore {
           .bind(id, p.beamChargeId, p.now, p.rawWebhookJson),
       ]);
       const applied = (results[1]?.meta?.changes ?? 0) > 0;
-      return { applied, expiresAt: applied ? next : current };
+      // อ่านกลับหลังเขียน — ค่าจริงในแถว ไม่ว่ารายการนี้จะเป็นตัวที่บวกวันหรือไม่
+      return { applied, expiresAt: await this.getExpiresAt(payment.userId) };
     },
   };
 }

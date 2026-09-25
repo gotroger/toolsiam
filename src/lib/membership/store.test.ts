@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
+import { readFileSync, readdirSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { d1Store } from './store';
 import { memoryStore } from './memory-store';
 import { DAY } from './plan';
@@ -87,7 +89,8 @@ describe('d1Store', () => {
       created_at: 0,
       paid_at: null,
     };
-    const db = fakeD1([paymentRow, { expires_at: 1000 + 5 * DAY }]);
+    // first() ตัวที่สองคือการอ่านวันหมดอายุกลับหลัง batch — ค่าที่ SQL คำนวณให้
+    const db = fakeD1([paymentRow, { expires_at: 1000 + 35 * DAY }]);
     const result = await d1Store(db).settlePayment('p1', {
       beamChargeId: 'ch',
       rawWebhookJson: '{}',
@@ -95,12 +98,16 @@ describe('d1Store', () => {
     });
     expect(result).toEqual({ applied: true, expiresAt: 1000 + 35 * DAY });
     expect(db.batch).toHaveBeenCalledTimes(1);
-    const [sub, pay] = db.calls.slice(-2);
+    // ห้ามอ่านวันหมดอายุเดิมมาคำนวณนอก batch (lost update เมื่อสองรายการ settle พร้อมกัน)
+    const batchAt = db.calls.findIndex((c) => c.sql.includes('INSERT INTO subscriptions'));
+    expect(db.calls.slice(0, batchAt).some((c) => c.sql.includes('FROM subscriptions'))).toBe(false);
+    const [sub, pay] = db.calls.slice(batchAt, batchAt + 2);
     expect(sub.sql).toContain(
       "WHERE EXISTS (SELECT 1 FROM payments WHERE id = ?4 AND status IN ('pending', 'expired'))",
     );
     expect(sub.sql).toContain('ON CONFLICT (user_id)');
-    expect(sub.args).toEqual(['u1', 1000 + 35 * DAY, 1000, 'p1']);
+    expect(sub.sql).toContain('MAX(subscriptions.expires_at, ?2) + ?3');
+    expect(sub.args).toEqual(['u1', 1000, 30 * DAY, 'p1']);
     expect(pay.sql).toContain("WHERE id = ?1 AND status IN ('pending', 'expired')");
     expect(pay.args).toEqual(['p1', 'ch', 1000, '{}']);
   });
@@ -209,5 +216,133 @@ describe('จำนวนวันผูกกับรายการ ไม่
     expect(res.applied).toBe(true);
     expect(res.expiresAt).toBe(100 + 365 * 86_400);
     expect((await store.getPayment('p-year'))?.days).toBe(365);
+  });
+});
+
+/**
+ * D1 บน SQLite จริง (node:sqlite) — รัน SQL ของ d1Store จริงกับ schema จาก migrations/
+ * ทุกเมธอดเป็น async และ yield ก่อนทำงาน เพื่อให้ Promise.all สลับลำดับได้เหมือน request พร้อมกันบน Worker
+ * batch รันใน transaction เดียวแบบไม่มีช่องว่างระหว่าง statement — ตรงกับที่ D1 รับประกัน
+ */
+function sqliteD1() {
+  const sqlite = new DatabaseSync(':memory:');
+  const dir = new URL('../../../migrations/', import.meta.url);
+  for (const f of readdirSync(dir)
+    .filter((n) => n.endsWith('.sql'))
+    .sort()) {
+    sqlite.exec(readFileSync(new URL(f, dir), 'utf8'));
+  }
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+  const stmt = (d1Sql: string) => {
+    // D1 ใช้ ?1 ?2 … (ซ้ำได้) แต่ node:sqlite bind ?NNN ตามตำแหน่งไม่ได้ — แปลงเป็น ? แล้วเรียง args ตามที่ปรากฏ
+    const order: number[] = [];
+    const sql = d1Sql.replace(/\?(\d+)/g, (_, n: string) => {
+      order.push(Number(n) - 1);
+      return '?';
+    });
+    let args: never[] = [];
+    const run = () => {
+      const r = sqlite.prepare(sql).run(...args);
+      return { meta: { changes: Number(r.changes) } };
+    };
+    const s = {
+      bind(...a: unknown[]) {
+        args = order.map((i) => a[i]) as never[];
+        return s;
+      },
+      async first() {
+        await tick();
+        return sqlite.prepare(sql).get(...args) ?? null;
+      },
+      async all() {
+        await tick();
+        return { results: sqlite.prepare(sql).all(...args) };
+      },
+      async run() {
+        await tick();
+        return run();
+      },
+      _run: run,
+    };
+    return s;
+  };
+  const db = {
+    prepare: stmt,
+    async batch(stmts: ReturnType<typeof stmt>[]) {
+      await tick();
+      sqlite.exec('BEGIN');
+      try {
+        const out = stmts.map((s) => s._run());
+        sqlite.exec('COMMIT');
+        return out;
+      } catch (e) {
+        sqlite.exec('ROLLBACK');
+        throw e;
+      }
+    },
+  };
+  return db as unknown as D1Database;
+}
+
+describe('d1Store บน SQLite จริง', () => {
+  async function seed(db: D1Database, payments: { id: string; days: number }[]) {
+    const store = d1Store(db);
+    await store.upsertUserFromGoogle({ googleSub: 'g', email: 'e', displayName: 'n', avatarUrl: null }, 0, () => 'u1');
+    for (const p of payments) {
+      await store.createPayment({
+        id: p.id,
+        userId: 'u1',
+        amountSatang: 2900,
+        days: p.days,
+        beamChargeId: `ch-${p.id}`,
+        qrExpiresAt: 900,
+        qrImage: null,
+        qrRaw: null,
+        createdAt: 0,
+      });
+    }
+    return store;
+  }
+
+  it('สองรายการของคนเดียวกัน settle พร้อมกัน → ได้วันครบทั้งสองรายการ ไม่มีรายการไหนทับอีกรายการ', async () => {
+    const store = await seed(sqliteD1(), [
+      { id: 'p1', days: 30 },
+      { id: 'p2', days: 90 },
+    ]);
+    const [a, b] = await Promise.all([
+      store.settlePayment('p1', { beamChargeId: 'ch-p1', rawWebhookJson: '{}', now: 1000 }),
+      store.settlePayment('p2', { beamChargeId: 'ch-p2', rawWebhookJson: '{}', now: 1000 }),
+    ]);
+    expect(a.applied && b.applied).toBe(true);
+    expect(await store.getExpiresAt('u1')).toBe(1000 + 120 * DAY);
+  });
+
+  it('ต่ออายุจากวันหมดอายุเดิมที่ยังไม่หมด · หมดแล้วนับจาก now · settle ซ้ำ (แม้พร้อมกัน) บวกครั้งเดียว', async () => {
+    const store = await seed(sqliteD1(), [
+      { id: 'p1', days: 30 },
+      { id: 'p2', days: 30 },
+    ]);
+    const first = await Promise.all([
+      store.settlePayment('p1', { beamChargeId: 'ch-p1', rawWebhookJson: '{}', now: 1000 }),
+      store.settlePayment('p1', { beamChargeId: 'ch-p1', rawWebhookJson: '{}', now: 1000 }),
+    ]);
+    expect(first.filter((r) => r.applied)).toHaveLength(1);
+    expect(await store.getExpiresAt('u1')).toBe(1000 + 30 * DAY);
+    // ยังไม่หมด → บวกต่อจากวันหมดอายุเดิม
+    const renew = await store.settlePayment('p2', { beamChargeId: 'ch-p2', rawWebhookJson: '{}', now: 2000 });
+    expect(renew).toEqual({ applied: true, expiresAt: 1000 + 60 * DAY });
+    const replay = await store.settlePayment('p2', { beamChargeId: 'ch-p2', rawWebhookJson: '{}', now: 3000 });
+    expect(replay).toEqual({ applied: false, expiresAt: 1000 + 60 * DAY });
+  });
+
+  it('รายการที่หมดอายุไปแล้ว (expired) ยัง settle ได้ และวันหมดอายุที่ผ่านไปแล้วนับใหม่จาก now', async () => {
+    const store = await seed(sqliteD1(), [{ id: 'p1', days: 30 }]);
+    await store.expirePayment('p1');
+    const late = 100 * DAY;
+    expect(await store.settlePayment('p1', { beamChargeId: 'ch-p1', rawWebhookJson: '{}', now: late })).toEqual({
+      applied: true,
+      expiresAt: late + 30 * DAY,
+    });
+    expect(await store.getPayment('p1')).toMatchObject({ status: 'paid', paidAt: late });
   });
 });
