@@ -49,11 +49,19 @@ describe('calculateInvoice', () => {
   });
 
   it('ตารางอัตราหัก ณ ที่จ่ายมีครบและอัตราอยู่ระหว่าง 0–1', () => {
-    expect(WHT_RATES.length).toBeGreaterThanOrEqual(6);
+    expect(WHT_RATES.length).toBeGreaterThanOrEqual(4);
     for (const w of WHT_RATES) {
       expect(w.rate).toBeGreaterThan(0);
       expect(w.rate).toBeLessThan(1);
       expect(w.label.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('ประเภทเงินได้ที่ไม่มี VAT', () => {
+  it('ไม่มีเงินปันผลหรือดอกเบี้ยในเครื่องมือ VAT — สองประเภทนี้ไม่ต้องเสีย VAT จึงห้ามบวก 7% ให้', () => {
+    for (const w of WHT_RATES) expect(w.label).not.toMatch(/ปันผล|ดอกเบี้ย/);
+    expect(WHT_RATES.map((w) => w.rate)).not.toContain(0.1);
+    expect(WHT_RATES.map((w) => w.rate)).not.toContain(0.15);
   });
 });
