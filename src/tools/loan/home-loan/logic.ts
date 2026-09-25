@@ -1,4 +1,5 @@
 import { amortize, monthlyPayment, type AmortResult, type AmortRow, type RateStage } from '@/lib/loan';
+import { formatBaht } from '@/lib/format';
 
 export type { AmortResult, AmortRow, RateStage };
 export { amortize, monthlyPayment };
@@ -24,8 +25,12 @@ export interface HomeLoanResult extends AmortResult {
   payment: number;
   /** ค่างวดขั้นต่ำก่อนบวกเงินผ่อนเพิ่ม */
   minimumPayment: number;
-  /** ผ่อนหมดเร็วกว่ากำหนดกี่เดือน */
+  /** ผ่อนหมดเร็วกว่ากำหนดกี่เดือน (รวมทุกสาเหตุ) */
   monthsSaved: number;
+  /** ส่วนที่มาจากโครงสร้างดอกเบี้ย 2 ช่วง — ค่างวดคิดจากอัตราสูงสุด ช่วงที่อัตราต่ำกว่าจึงตัดต้นได้มากขึ้น */
+  monthsSavedByRate: number;
+  /** ส่วนที่มาจากการผ่อนเพิ่มต่อเดือน */
+  monthsSavedByExtra: number;
   /** ดอกเบี้ยที่ประหยัดได้จากการผ่อนเพิ่ม (0 เมื่อผ่อนตามขั้นต่ำ) */
   interestSaved: number;
   /** รายได้ขั้นต่ำโดยประมาณตามเกณฑ์ภาระหนี้ต่อรายได้ */
@@ -87,7 +92,34 @@ export function homeLoan(input: HomeLoanInput): HomeLoanResult {
     payment,
     minimumPayment,
     monthsSaved: months - schedule.months,
+    monthsSavedByRate: months - baseline.months,
+    monthsSavedByExtra: baseline.months - schedule.months,
     interestSaved: round2(baseline.totalInterest - schedule.totalInterest),
     suggestedIncome: round2(minimumPayment / DEBT_SERVICE_RATIO),
   };
+}
+
+/**
+ * ข้อความอธิบายว่าทำไมผ่อนหมดก่อนกำหนด — แยกตามสาเหตุจริง
+ *
+ * เดิมข้อความให้เครดิตดอกเบี้ยโปรโมชันเสมอ แม้ไม่มีโปรฯ และที่หมดเร็วมาจากการผ่อนเพิ่มล้วน ๆ
+ * หรือแม้อัตราโปรฯ สูงกว่าอัตราหลังโปรฯ (กรณีนั้นหมดเร็วเพราะดอกเบี้ย "ลดลง" หลังโปรฯ ไม่ใช่เพราะโปรฯ ต่ำ)
+ */
+export function earlyPayoffNotes(input: HomeLoanInput, result: HomeLoanResult): string[] {
+  const notes: string[] = [];
+  if (result.monthsSavedByRate > 0) {
+    notes.push(
+      input.promoRate < input.afterRate
+        ? `ดอกเบี้ยช่วงโปรโมชันต่ำกว่าอัตราหลังโปรโมชัน ค่างวดที่คิดจากอัตราสูงสุดจึงตัดเงินต้นได้มากกว่าปกติ ทำให้ผ่อนหมดเร็วขึ้น ${result.monthsSavedByRate} งวด`
+        : `ค่างวดคิดจากดอกเบี้ยช่วงแรกซึ่งสูงกว่า เมื่อดอกเบี้ยลดลงหลังช่วงนั้นจึงตัดเงินต้นได้มากขึ้น ทำให้ผ่อนหมดเร็วขึ้น ${result.monthsSavedByRate} งวด`,
+    );
+  }
+  if (result.monthsSavedByExtra > 0) {
+    const extra = Math.max(0, input.extraPayment ?? 0);
+    notes.push(
+      `การผ่อนเพิ่มเดือนละ ${formatBaht(extra)} บาททำให้ผ่อนหมดเร็วขึ้น${result.monthsSavedByRate > 0 ? 'อีก' : ''} ${result.monthsSavedByExtra} งวด` +
+        (result.interestSaved > 0 ? ` และประหยัดดอกเบี้ยได้ ${formatBaht(result.interestSaved)} บาท` : ''),
+    );
+  }
+  return notes;
 }

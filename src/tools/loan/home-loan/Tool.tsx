@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { homeLoan } from './logic';
+import { earlyPayoffNotes, homeLoan } from './logic';
 import { DataTable, Disclaimer, ErrorText, NumberInput, ResultBox, Stat } from '@/components/ui';
 import { formatBaht, formatNumber } from '@/lib/format';
 
@@ -19,16 +19,17 @@ export default function HomeLoanTool() {
 
   let error = '';
   let result: ReturnType<typeof homeLoan> | null = null;
+  const input = {
+    price: num(price),
+    downPayment: num(down),
+    years: num(years),
+    promoRate: num(promoRate) / 100,
+    promoMonths: num(promoMonths),
+    afterRate: num(afterRate) / 100,
+    extraPayment: num(extra),
+  };
   try {
-    result = homeLoan({
-      price: num(price),
-      downPayment: num(down),
-      years: num(years),
-      promoRate: num(promoRate) / 100,
-      promoMonths: num(promoMonths),
-      afterRate: num(afterRate) / 100,
-      extraPayment: num(extra),
-    });
+    result = homeLoan(input);
   } catch (e) {
     error = (e as Error).message;
   }
@@ -94,10 +95,12 @@ export default function HomeLoanTool() {
           </Disclaimer>
 
           {result.monthsSaved > 0 && (
-            <p className="rounded-[10px] border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-              ดอกเบี้ยที่ต่ำในช่วงโปรโมชันทำให้ตัดเงินต้นได้มากกว่าปกติ จึงผ่อนหมดเร็วกว่ากำหนด {result.monthsSaved} งวด
-              {result.interestSaved > 0 && ` และประหยัดดอกเบี้ยได้ ${formatBaht(result.interestSaved)} บาทจากการผ่อนเพิ่ม`}
-            </p>
+            <div className="space-y-1 rounded-[10px] border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+              <p>ผ่อนหมดเร็วกว่ากำหนด {result.monthsSaved} งวด</p>
+              {earlyPayoffNotes(input, result).map((note) => (
+                <p key={note}>{note}</p>
+              ))}
+            </div>
           )}
 
           <div>

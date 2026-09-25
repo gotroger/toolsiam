@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { homeLoan } from './logic';
+import { earlyPayoffNotes, homeLoan } from './logic';
 
 const base = { price: 3_000_000, downPayment: 300_000, years: 30, promoRate: 0.0299, promoMonths: 36, afterRate: 0.0665 };
 
@@ -54,5 +54,50 @@ describe('ผ่อนบ้าน', () => {
     expect(() => homeLoan({ ...base, downPayment: 3_000_000 })).toThrow('น้อยกว่าราคาบ้าน');
     expect(() => homeLoan({ ...base, years: 50 })).toThrow('ไม่เกิน 40 ปี');
     expect(() => homeLoan({ ...base, years: 0 })).toThrow();
+  });
+});
+
+describe('ที่มาของการผ่อนหมดก่อนกำหนด', () => {
+  it('ไม่มีโปรฯ แต่ผ่อนเพิ่ม → ให้เครดิตการผ่อนเพิ่ม ไม่ใช่ดอกเบี้ยโปรฯ', () => {
+    const input = { ...base, promoMonths: 0, extraPayment: 5_000 };
+    const r = homeLoan(input);
+    expect(r.monthsSavedByRate).toBe(0);
+    expect(r.monthsSavedByExtra).toBe(r.monthsSaved);
+    const notes = earlyPayoffNotes(input, r);
+    expect(notes.join(' ')).toContain('ผ่อนเพิ่ม');
+    expect(notes.join(' ')).not.toContain('โปรโมชัน');
+  });
+
+  it('โปรฯ ต่ำกว่าอัตราหลังโปรฯ และไม่ผ่อนเพิ่ม → ให้เครดิตดอกเบี้ยโปรฯ อย่างเดียว', () => {
+    const r = homeLoan(base);
+    expect(r.monthsSavedByExtra).toBe(0);
+    expect(r.monthsSavedByRate).toBe(r.monthsSaved);
+    const notes = earlyPayoffNotes(base, r);
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toContain('ดอกเบี้ยช่วงโปรโมชันต่ำกว่า');
+    expect(notes[0]).not.toContain('ผ่อนเพิ่ม');
+  });
+
+  it('โปรฯ สูงกว่าอัตราหลังโปรฯ → ไม่อ้างว่าดอกเบี้ยโปรฯ ต่ำ', () => {
+    const input = { ...base, promoRate: 0.07, afterRate: 0.05 };
+    const r = homeLoan(input);
+    expect(r.monthsSavedByRate).toBeGreaterThan(0);
+    const text = earlyPayoffNotes(input, r).join(' ');
+    expect(text).not.toContain('ต่ำกว่า');
+    expect(text).toContain('ลดลง');
+  });
+
+  it('ทั้งโปรฯ และผ่อนเพิ่ม → แยกจำนวนงวดของแต่ละสาเหตุ รวมกันเท่ายอดทั้งหมด', () => {
+    const input = { ...base, extraPayment: 5_000 };
+    const r = homeLoan(input);
+    expect(r.monthsSavedByRate).toBeGreaterThan(0);
+    expect(r.monthsSavedByExtra).toBeGreaterThan(0);
+    expect(r.monthsSavedByRate + r.monthsSavedByExtra).toBe(r.monthsSaved);
+    expect(earlyPayoffNotes(input, r)).toHaveLength(2);
+  });
+
+  it('ผ่อนหมดตามกำหนด → ไม่มีข้อความ', () => {
+    const input = { ...base, promoMonths: 0 };
+    expect(earlyPayoffNotes(input, homeLoan(input))).toEqual([]);
   });
 });
