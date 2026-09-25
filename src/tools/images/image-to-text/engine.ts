@@ -2,6 +2,12 @@ import type { EngineHooks, OcrEngine, OcrLanguage } from './types';
 
 const MANIFEST_URL = '/ocr/manifest.json';
 const LOAD_ERROR = 'โหลดตัวอ่านข้อความไม่สำเร็จ กรุณาตรวจการเชื่อมต่อแล้วลองใหม่';
+/**
+ * เพดานเวลาอ่านรูปเดียว — tesseract.js ไม่ reject งานที่ค้างเมื่อ worker ตาย (เช่น iOS ฆ่าเพราะหน่วยความจำหมด)
+ * ถ้าไม่มีเพดาน ปุ่มจะค้าง "กำลังอ่าน" ตลอดไป · มือถือเก่ากับรูปใหญ่ใช้ราวหนึ่งนาที จึงเผื่อไว้สามเท่า
+ */
+export const RECOGNIZE_TIMEOUT_MS = 3 * 60_000;
+const TIMEOUT_ERROR = 'อ่านรูปนี้นานเกินไป อาจเพราะหน่วยความจำไม่พอ กรุณาลองรูปที่เล็กลง';
 
 // สัดส่วนของแถบ "กำลังโหลด" ต่อขั้นของ tesseract.js — โมเดลภาษาเป็นก้อนที่ใหญ่สุดจึงได้ช่วงกว้างสุด
 const LOAD_STAGES: Record<string, [number, number]> = {
@@ -91,7 +97,20 @@ export function createEngine(hooks: EngineHooks): OcrEngine {
               void current.terminate();
               throw new Error('cancelled');
             }
-            return current.recognize(image);
+            return new Promise<Awaited<ReturnType<TesseractWorker['recognize']>>>((done, fail) => {
+              const timer = setTimeout(() => {
+                // worker อาจตายหรือค้าง — ทิ้งทั้งตัว รูปถัดไปจะโหลด worker ใหม่ (ไม่ใช่ dead: ยังใช้ engine ต่อได้)
+                void current.terminate();
+                if (worker === current) worker = null;
+                loading = null;
+                language = null;
+                fail(new Error(TIMEOUT_ERROR));
+              }, RECOGNIZE_TIMEOUT_MS);
+              current
+                .recognize(image)
+                .then(done, fail)
+                .finally(() => clearTimeout(timer));
+            });
           })
           .then(({ data }) => resolve({ text: data.text, confidence: data.confidence }))
           .catch((error: unknown) => reject(error instanceof Error ? error : new Error('อ่านรูปนี้ไม่สำเร็จ')));

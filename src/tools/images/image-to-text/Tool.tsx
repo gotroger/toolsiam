@@ -13,7 +13,7 @@ import {
 } from '@/components/ui';
 import { ACCEPT, MAX_FILES, MAX_MB, prepareImage, validateFiles } from './image';
 import { joinResults, outputFileName } from './text';
-import type { OcrEngine, OcrLanguage, OcrPageResult } from './types';
+import type { EngineHooks, OcrEngine, OcrLanguage, OcrPageResult } from './types';
 
 export const TESSERACT_CREDIT = 'อ่านข้อความด้วย Tesseract OCR และ tesseract.js (Apache License 2.0)';
 export const TESSERACT_SOURCE = 'https://github.com/naptha/tesseract.js';
@@ -38,6 +38,7 @@ export default function ImageToTextTool() {
   const errorRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLElement>(null);
   const engine = useRef<OcrEngine | null>(null);
+  const hooks = useRef<EngineHooks | null>(null);
   const version = useRef(0);
   const lock = useRef(false);
   const index = useRef(0);
@@ -100,13 +101,18 @@ export default function ImageToTextTool() {
     setBusy(true);
     setPhase({ kind: 'loading', percent: 0 });
     try {
+      // engine อยู่ข้ามรอบ แต่ alive() ผูกกับรอบนี้ — เปลี่ยน hooks ทุกรอบ ไม่อย่างนั้นรอบที่สองแถบค้าง
+      hooks.current = {
+        onLoad: (fraction) => alive() && setPhase({ kind: 'loading', percent: fraction * 100 }),
+        onProgress: (fraction) =>
+          alive() && setPhase({ kind: 'reading', index: index.current, percent: fraction * 100 }),
+      };
       if (!engine.current) {
         const { createEngine } = await import('./engine');
         if (!alive()) return;
         engine.current = createEngine({
-          onLoad: (fraction) => alive() && setPhase({ kind: 'loading', percent: fraction * 100 }),
-          onProgress: (fraction) =>
-            alive() && setPhase({ kind: 'reading', index: index.current, percent: fraction * 100 }),
+          onLoad: (fraction) => hooks.current?.onLoad(fraction),
+          onProgress: (fraction) => hooks.current?.onProgress(fraction),
         });
       }
       const done: OcrPageResult[] = [];

@@ -65,6 +65,20 @@ describe('ImageToTextTool', () => {
     expect(engines).toHaveLength(0);
   });
 
+  it('อ่านรอบที่สองด้วย engine ตัวเดิม → แถบความคืบหน้ายังขยับ (ไม่ผูกกับรอบแรก)', async () => {
+    render(<ImageToTextTool />);
+    upload(image());
+    for (const round of [1, 2]) {
+      start();
+      await waitFor(() => expect(latest().calls).toHaveLength(round));
+      expect(engines).toHaveLength(1);
+      latest().hooks.onProgress(0.5);
+      await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50'));
+      latest().resolve({ text: `รอบ ${round}`, confidence: 90 });
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('อ่านเสร็จ'));
+    }
+  });
+
   it('อ่านรูป แสดงข้อความที่จัดช่องว่างแล้ว และสลับกลับเป็นผลดิบได้โดยไม่อ่านใหม่', async () => {
     render(<ImageToTextTool />);
     upload(image());

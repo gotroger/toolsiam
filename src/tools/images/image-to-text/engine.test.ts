@@ -10,7 +10,7 @@ const tesseract = vi.hoisted(() => ({
 }));
 vi.mock('tesseract.js', () => ({ createWorker: tesseract.createWorker, OEM: { LSTM_ONLY: 1 } }));
 
-import { createEngine } from './engine';
+import { createEngine, RECOGNIZE_TIMEOUT_MS } from './engine';
 
 const image = new Blob(['x'], { type: 'image/png' });
 const hooks = () => ({ onLoad: vi.fn(), onProgress: vi.fn() });
@@ -97,5 +97,23 @@ describe('createEngine', () => {
     await expect(job).rejects.toThrow('cancelled');
     expect(tesseract.worker.terminate).toHaveBeenCalled();
     await expect(engine.recognize(image, 'tha')).rejects.toThrow('cancelled');
+  });
+
+  it('อ่านรูปค้างนานเกินกำหนด (worker ตายเงียบ) → reject ข้อความไทย ฆ่า worker และรูปถัดไปเริ่ม worker ใหม่', async () => {
+    vi.useFakeTimers();
+    try {
+      tesseract.worker.recognize.mockReturnValueOnce(new Promise(() => undefined));
+      const engine = createEngine(hooks());
+      const job = engine.recognize(image, 'tha');
+      const settled = expect(job).rejects.toThrow('นานเกินไป');
+      await vi.waitFor(() => expect(tesseract.worker.recognize).toHaveBeenCalled());
+      await vi.advanceTimersByTimeAsync(RECOGNIZE_TIMEOUT_MS);
+      await settled;
+      expect(tesseract.worker.terminate).toHaveBeenCalled();
+      await expect(engine.recognize(image, 'tha')).resolves.toMatchObject({ text: 'สวัสดี' });
+      expect(tesseract.createWorker).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
