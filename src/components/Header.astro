@@ -75,7 +75,7 @@ const current = Astro.url.pathname;
       {
         membershipOn && (
           <>
-            <a href={getLoginUrl()} data-login data-me-url={getMeApiUrl()} class="header-login hidden md:inline-flex">
+            <a href={getLoginUrl()} rel="nofollow" data-login data-me-url={getMeApiUrl()} class="header-login hidden md:inline-flex">
               เข้าสู่ระบบ
             </a>
             <details data-account-menu class="account-menu hidden md:block" hidden>
@@ -175,7 +175,7 @@ const current = Astro.url.pathname;
       {
         membershipOn && (
           <>
-            <a href={getLoginUrl()} data-login class="mnav-link text-brand-700">
+            <a href={getLoginUrl()} rel="nofollow" data-login class="mnav-link text-brand-700">
               เข้าสู่ระบบ
             </a>
             <div data-account-menu hidden class="mnav-account">
@@ -239,8 +239,11 @@ const current = Astro.url.pathname;
 
     const isDark = () => root.dataset.theme === 'dark' || (!root.dataset.theme && systemDark.matches);
 
+    // สีแถบเบราว์เซอร์ใน Base.astro แยกตาม media ของระบบ — ถ้าผู้ใช้เลือกธีมเองต้องตามธีมที่เลือกแทน
+    const themeColors = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
     const paint = () => {
       const dark = isDark();
+      if (root.dataset.theme) for (const meta of themeColors) meta.content = dark ? '#161616' : '#ffffff';
       themeToggle.setAttribute('aria-pressed', String(dark));
       if (label) label.textContent = dark ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด';
       sun?.toggleAttribute('hidden', dark);

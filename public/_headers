@@ -1,3 +1,15 @@
+# ทุกไฟล์ static — header ความปลอดภัยชุดเดียวกับที่ src/middleware.ts ใส่ให้ /api/* (ที่ Worker ตอบเอง)
+# ไฟล์นี้มีผลเฉพาะ static assets ที่ชั้น assets ตอบ ไม่ถึงคำตอบของ Worker จึงต้องมีทั้งสองที่ แก้ต้องแก้คู่กัน
+# CSP ใส่เฉพาะ frame-ancestors (กันเว็บอื่นเอาหน้าเราไปครอบ) — CSP เต็มรูปจะพัง inline script ของ Astro และ analytics
+# camera=(self) เผื่อเครื่องอ่าน QR ผ่านกล้อง · ไม่มีเครื่องมือไหนใช้ไมโครโฟนหรือตำแหน่ง จึงปิดทิ้ง
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()
+
 # ffmpeg core มีเวอร์ชันอยู่ใน path (public/ffmpeg/<ver>/) จึง cache ยาวได้ — ไม่งั้นเบราว์เซอร์ต้อง revalidate ไฟล์ 10 MB ทุกครั้ง
 # manifest.json ในโฟลเดอร์เดียวกันโดนกฎนี้ด้วย แต่ engine.ts fetch มันด้วย cache: "no-store" จึงไม่ค้างเวอร์ชันเก่า
 # (กฎ /ffmpeg/*/* ไม่ match ใน wrangler — ทดสอบแล้ว 13 ก.ย. 2569)
@@ -7,3 +19,8 @@
 # ตัวอ่านข้อความ (OCR) มีเวอร์ชันอยู่ใน path เช่นกัน — engine.ts fetch manifest ด้วย cache: "no-store"
 /ocr/*
   Cache-Control: public, max-age=31536000, immutable
+
+# ฟอนต์ไม่มีเวอร์ชันในชื่อไฟล์ (npm run fonts เขียนทับชื่อเดิม) จึงห้าม immutable
+# cache 30 วัน + ใช้ของเก่าระหว่างตรวจของใหม่อีก 1 วัน — เดิม max-age=0 ทำให้ revalidate ทุกหน้า
+/fonts/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
