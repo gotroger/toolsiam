@@ -16,7 +16,8 @@ export interface EngineHooks {
   onProgress: (seconds: number) => void;
 }
 export interface Engine {
-  run: (job: EngineJob) => Promise<EngineOutput>;
+  /** hooks ส่งมากับแต่ละรอบ เพราะ engine อยู่ต่อข้ามรอบ แต่ callback ผูกกับรอบที่เรียก */
+  run: (job: EngineJob, hooks: EngineHooks) => Promise<EngineOutput>;
   terminate: () => void;
 }
 

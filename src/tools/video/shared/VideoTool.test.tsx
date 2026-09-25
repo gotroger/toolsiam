@@ -6,23 +6,24 @@ import VideoTool from './VideoTool';
 
 const engines: FakeEngine[] = [];
 class FakeEngine implements Engine {
-  hooks: EngineHooks;
+  /** hooks ของรอบล่าสุด — engine อยู่ข้ามรอบ แต่ callback ต้องมากับแต่ละ run */
+  hooks: EngineHooks | undefined;
   job: EngineJob | null = null;
   resolve!: (o: EngineOutput) => void;
   reject!: (e: Error) => void;
   terminate = vi.fn(() => this.reject?.(new Error('cancelled')));
-  constructor(hooks: EngineHooks) {
-    this.hooks = hooks;
+  constructor() {
     engines.push(this);
   }
-  run = (job: EngineJob) =>
+  run = (job: EngineJob, hooks: EngineHooks) =>
     new Promise<EngineOutput>((resolve, reject) => {
+      this.hooks = hooks;
       this.job = job;
       this.resolve = resolve;
       this.reject = reject;
     });
 }
-vi.mock('./engine', () => ({ createEngine: (hooks: EngineHooks) => new FakeEngine(hooks) }));
+vi.mock('./engine', () => ({ createEngine: () => new FakeEngine() }));
 const latest = () => engines[engines.length - 1];
 const output = (name: string, mime = 'audio/mpeg'): EngineOutput => ({ bytes: new Uint8Array([1, 2]), name, mime });
 
@@ -73,6 +74,21 @@ describe('VideoTool', () => {
     const link = await screen.findByRole('link', { name: 'ดาวน์โหลด song.mp3' });
     expect(link).toHaveAttribute('href', 'blob:x');
     expect(link).toHaveAttribute('download', 'song.mp3');
+  });
+
+  it('ใช้ engine ตัวเดิมรอบที่สอง → progress ยังขยับ (ไม่ค้าง 0% จาก callback ของรอบแรก)', async () => {
+    render(<VideoTool id="video-trim" />);
+    upload(video());
+    fireEvent.change(screen.getByLabelText('เวลาจบ'), { target: { value: '0:10' } });
+    for (const round of [1, 2]) {
+      fireEvent.click(screen.getByRole('button', { name: 'ตัดคลิป' }));
+      await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0'));
+      expect(engines).toHaveLength(1);
+      latest().hooks!.onProgress(5);
+      await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50'));
+      latest().resolve(output(`r${round}.mp4`, 'video/mp4'));
+      await screen.findByRole('link', { name: /ดาวน์โหลด/ });
+    }
   });
 
   it('ยกเลิกแล้วผลลัพธ์เก่าไม่โผล่ และลองใหม่ได้ด้วย engine ตัวใหม่', async () => {

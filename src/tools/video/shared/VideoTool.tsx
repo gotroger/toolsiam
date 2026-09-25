@@ -220,23 +220,28 @@ export default function VideoTool({ id }: { id: VideoToolId }) {
     try {
       const { createEngine } = await import('./engine');
       if (current !== version.current) return;
-      engine.current ??= createEngine({
-        onLoad: (loaded, total) => {
+      engine.current ??= createEngine();
+      // callback ผูกกับรอบนี้ (current/expected) จึงต้องส่งใหม่ทุกรอบ ไม่ผูกไว้กับ engine ที่อยู่ข้ามรอบ
+      const hooks = {
+        onLoad: (loaded: number, total: number) => {
           if (current === version.current) setPhase({ kind: 'loading', loaded, total });
         },
-        onProgress: (seconds) => {
+        onProgress: (seconds: number) => {
           if (current !== version.current) return;
           setPhase({ kind: 'working', percent: expected ? Math.min(99, (seconds / expected) * 100) : null });
         },
-      });
+      };
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (current !== version.current) return;
       setPhase({ kind: 'working', percent: expected ? 0 : null });
-      const output = await engine.current.run({
-        input: { name: `in.${inputExt(file.name)}`, bytes },
-        args: spec.args,
-        output: { name: spec.args[spec.args.length - 1], mime: spec.mime },
-      });
+      const output = await engine.current.run(
+        {
+          input: { name: `in.${inputExt(file.name)}`, bytes },
+          args: spec.args,
+          output: { name: spec.args[spec.args.length - 1], mime: spec.mime },
+        },
+        hooks,
+      );
       if (current !== version.current) return;
       const blob = new Blob([output.bytes], { type: output.mime });
       objectUrl.current = URL.createObjectURL(blob);
