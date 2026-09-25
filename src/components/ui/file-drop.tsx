@@ -194,6 +194,19 @@ function Thumbnail({ file }: { file: File }) {
 }
 
 /**
+ * เลขประจำ File แต่ละตัว — ใช้เป็น key ของแถว ชื่อไฟล์ซ้ำกันได้และลำดับเปลี่ยนได้
+ * ถ้า key ผูกกับลำดับ/ชื่อ Thumbnail ของแถวจะค้าง URL ของไฟล์เดิมหลังสลับหรือนำออก
+ * WeakMap ไม่กันไม่ให้ File ถูกเก็บกวาดเมื่อเลิกใช้
+ */
+const fileIds = new WeakMap<File, number>();
+let nextFileId = 0;
+function fileId(file: File) {
+  let id = fileIds.get(file);
+  if (id === undefined) fileIds.set(file, (id = nextFileId++));
+  return id;
+}
+
+/**
  * รายการไฟล์ที่เลือกไว้ พร้อมรูปตัวอย่างของไฟล์รูปภาพ
  *
  * ส่ง `onMove` มาก็ต่อเมื่อลำดับไฟล์มีผลกับผลลัพธ์ (เช่น รวม PDF) — ปุ่มขึ้น/ลง
@@ -209,11 +222,19 @@ export function SelectedFiles({
   onMove?: (index: number, target: number) => void;
 }) {
   if (!files.length) return null;
+  // File ตัวเดียวกันอยู่ในรายการซ้ำได้ (ผู้เรียกไม่ได้กัน) — ต่อท้ายลำดับที่พบเพื่อให้ key ไม่ชนกัน
+  const seen = new Map<number, number>();
+  const keys = files.map((file) => {
+    const id = fileId(file);
+    const count = seen.get(id) ?? 0;
+    seen.set(id, count + 1);
+    return `${id}-${count}`;
+  });
   return (
     <ol className="space-y-2" aria-label="ไฟล์ที่เลือกตามลำดับ">
       {files.map((file, index) => (
         <li
-          key={`${index}-${file.name}`}
+          key={keys[index]}
           className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-surface p-3"
         >
           <Thumbnail file={file} />

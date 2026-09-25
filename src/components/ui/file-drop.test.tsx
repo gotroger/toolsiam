@@ -143,6 +143,26 @@ describe('SelectedFiles', () => {
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
   });
 
+  it('รูปตัวอย่างตามไฟล์ไปเมื่อสลับลำดับหรือนำออก แม้ชื่อไฟล์ซ้ำกัน', () => {
+    const urls = new Map<File, string>();
+    vi.mocked(URL.createObjectURL).mockImplementation((file) => {
+      const url = `blob:${urls.size}`;
+      urls.set(file as File, url);
+      return url;
+    });
+    const first = png('รูป.png');
+    const second = png('รูป.png');
+    const srcs = () => screen.getAllByRole('img').map((img) => img.getAttribute('src'));
+    const { rerender } = render(<SelectedFiles files={[first, second]} onRemove={vi.fn()} />);
+    expect(srcs()).toEqual(['blob:0', 'blob:1']);
+    rerender(<SelectedFiles files={[second, first]} onRemove={vi.fn()} />);
+    expect(srcs()).toEqual(['blob:1', 'blob:0']);
+    rerender(<SelectedFiles files={[first]} onRemove={vi.fn()} />);
+    expect(srcs()).toEqual(['blob:0']);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:1');
+    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:0');
+  });
+
   it('แสดงปุ่มจัดลำดับเฉพาะเมื่อส่ง onMove และปิดปุ่มที่หัวและท้ายรายการ', () => {
     const onMove = vi.fn();
     const files = [pdf('a.pdf'), pdf('b.pdf')];
