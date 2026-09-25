@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  assertValidDraw, distinctPermutations, DrawValidationError, expectedShuffle3,
+  assertValidDraw, assertValidFetchedDraw, distinctPermutations, DrawValidationError, expectedShuffle3,
   HEADLINE_PRIZES, MAJOR_PRIZES, N3_PRIZE_STRUCTURE, neighboursOf, PRIZE_STRUCTURE, validateDrawIssues,
 } from './schema';
 
@@ -92,8 +92,16 @@ describe('validator', () => {
   });
 
   it('จับเลขซ้ำในรางวัลประเภทเดียวกัน', () => {
-    const bad = fixture({ prizes: { ...fixture().prizes, threeDigitBack: ['333', '333'] } });
+    const second = ['200000', '200000', '200002', '200003', '200004'];
+    const bad = fixture({ prizes: { ...fixture().prizes, second } });
     expect(validateDrawIssues(bad).join(' ')).toContain('มีเลขซ้ำกัน');
+  });
+
+  it('เลขหน้า 3 ตัวและเลขท้าย 3 ตัวซ้ำกันได้ — สองรางวัลนี้ออกแยกกันคนละครั้ง', () => {
+    const ok = fixture({
+      prizes: { ...fixture().prizes, threeDigitFront: ['111', '111'], threeDigitBack: ['333', '333'] },
+    });
+    expect(validateDrawIssues(ok)).toEqual([]);
   });
 
   it('จับรางวัลข้างเคียงที่ไม่ตรงกับรางวัลที่ 1 — ความสอดคล้องภายในที่ตรวจอัตโนมัติได้', () => {
@@ -193,6 +201,26 @@ describe('สลากตัวเลขสามหลัก (N3)', () => {
   it('จับกรณีมี n3 แต่ขาดรางวัลบางประเภท', () => {
     const { special, ...rest } = n3;
     expect(validateDrawIssues(fixture({ n3: rest })).join(' ')).toContain('รางวัลพิเศษ');
+  });
+
+  it('งวดที่ดึงจาก API: N3 ที่ไม่ผ่านถูกตัดทิ้ง แต่ผลสลาก 6 หลักยังใช้ได้', () => {
+    // ผลทยอยออก — สามสลับหลักยังมาไม่ครบ ไม่ควรทำให้ผลรางวัลที่ 1 ที่ครบแล้วถูกทิ้งไปด้วย
+    const partial = fixture({ n3: { ...n3, shuffle3: { price: 2702, numbers: ['122'] } } });
+    const { draw, droppedN3 } = assertValidFetchedDraw(partial);
+    expect(draw.n3).toBeUndefined();
+    expect(draw.prizes.first).toEqual(['123456']);
+    expect(droppedN3.join(' ')).toContain('สามสลับหลัก');
+  });
+
+  it('งวดที่ดึงจาก API: N3 ที่ถูกต้องถูกเก็บไว้ครบ', () => {
+    const { draw, droppedN3 } = assertValidFetchedDraw(fixture({ n3 }));
+    expect(draw.n3).toEqual(n3);
+    expect(droppedN3).toEqual([]);
+  });
+
+  it('งวดที่ดึงจาก API: สลาก 6 หลักที่ไม่ผ่านยังโยน error เหมือนเดิม', () => {
+    const bad = fixture({ n3, prizes: { ...fixture().prizes, twoDigitBack: [] } });
+    expect(() => assertValidFetchedDraw(bad)).toThrow(DrawValidationError);
   });
 
   it('distinctPermutations ไม่คืนค่าซ้ำ', () => {

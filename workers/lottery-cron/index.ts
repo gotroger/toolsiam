@@ -1,4 +1,4 @@
-import { syncLatestDraw, type LotteryEnv } from '../../src/lib/lottery-worker';
+import { outcomeSeverity, syncLatestDraw, type LotteryEnv } from '../../src/lib/lottery-worker';
 
 /**
  * Worker ที่ดึงผลงวดใหม่จาก GLO ตามเวลา แล้วเขียนลง KV (§28.2)
@@ -20,11 +20,17 @@ import { syncLatestDraw, type LotteryEnv } from '../../src/lib/lottery-worker';
 const NEWEST_STATIC_DATE = undefined;
 
 export default {
-  async scheduled(_controller: ScheduledController, env: LotteryEnv, ctx: ExecutionContext): Promise<void> {
+  async scheduled(controller: ScheduledController, env: LotteryEnv, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       syncLatestDraw({ env, newestStaticDate: NEWEST_STATIC_DATE }).then((outcome) => {
         // log ทุกรอบ ไม่ใช่เฉพาะตอนพลาด — เวลาไล่ปัญหาย้อนหลังต้องรู้ว่ารอบที่เงียบทำอะไรไป
-        console.log(`[lottery-cron] ${JSON.stringify(outcome)}`);
+        // ระดับ log แยกตามความร้ายแรง: รอบสุดท้ายของวันที่จบโดยไม่ได้งวดที่ควรมี = console.error
+        // ให้ตั้ง alert จาก Workers logs ได้ (ดู `outcomeSeverity`)
+        const line = `[lottery-cron] ${JSON.stringify(outcome)}`;
+        const severity = outcomeSeverity(outcome, new Date(controller.scheduledTime));
+        if (severity === 'error') console.error(`${line} — รอบสุดท้ายของวันจบโดยไม่ได้ผลงวดที่ควรมีแล้ว`);
+        else if (severity === 'warn') console.warn(line);
+        else console.log(line);
       }),
     );
   },

@@ -30,6 +30,12 @@ export const PRIZE_MAP = [
   ['last2', 'twoDigitBack', 1],
 ];
 
+/**
+ * เวลาสูงสุดที่รอ API ของ GLO ต่อหนึ่งคำขอ
+ * วันหวยออกเซิร์ฟเวอร์ของสำนักงานสลากฯ ช้าได้มาก ถ้าไม่ตัด คำขอที่ค้างจะกิน wall time ของ cron ทั้งรอบ
+ */
+export const GLO_TIMEOUT_MS = 10_000;
+
 /** รางวัลของสลากตัวเลขสามหลัก (N3) และจำนวนหลักที่ต้องมี */
 export const N3_MAP = [
   ['straight3', 3],
@@ -62,6 +68,7 @@ export async function postGlo(url, body, fetchImpl = fetch) {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(GLO_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`${url} ตอบ HTTP ${res.status}`);
   const json = await res.json();
@@ -70,7 +77,8 @@ export async function postGlo(url, body, fetchImpl = fetch) {
 }
 
 /**
- * รายการวันที่ของทุกงวดที่ API มี เรียงจากใหม่ไปเก่า
+ * รายการวันที่ของทุกงวดที่ API มี — ปกติเรียงจากใหม่ไปเก่า แต่ **ห้ามพึ่งลำดับนี้**
+ * ให้เลือกงวดผ่าน `latestPeriodOnOrBefore` / `recentPeriods` ซึ่งเรียงเองเสมอ
  * @param {typeof fetch} [fetchImpl]
  * @returns {Promise<string[]>}
  */
@@ -84,6 +92,31 @@ export async function fetchPeriodList(fetchImpl = fetch) {
     }
   }
   return list;
+}
+
+/**
+ * งวดใหม่สุดที่ถึงวันออกรางวัลแล้ว (≤ วันนี้ตามเวลาไทย)
+ * ไม่เชื่อลำดับของ API และข้ามงวดในอนาคตที่ API อาจใส่มาล่วงหน้า
+ * @param {string[]} periods
+ * @param {string} today YYYY-MM-DD
+ * @returns {string | undefined}
+ */
+export function latestPeriodOnOrBefore(periods, today) {
+  return recentPeriods(periods, 1, today)[0];
+}
+
+/**
+ * N งวดล่าสุดที่ถึงวันออกรางวัลแล้ว เรียงจากใหม่ไปเก่า
+ * @param {string[]} periods
+ * @param {number} limit
+ * @param {string} today YYYY-MM-DD
+ * @returns {string[]}
+ */
+export function recentPeriods(periods, limit, today) {
+  return [...new Set(periods)]
+    .filter((d) => d <= today)
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, limit);
 }
 
 /**
@@ -147,31 +180,46 @@ export function toDraw(drawDate, result, opts) {
 
 /**
  * แปลงรางวัลสลากตัวเลขสามหลัก (N3)
- * งวดก่อนที่ N3 จะเริ่มขายไม่มีส่วนนี้ ซึ่งถูกต้อง ไม่ใช่ข้อผิดพลาด
+ *
+ * - ไม่มี n3 หรือเป็นอ็อบเจกต์ว่าง (`{}`) → งวดนั้นไม่มี N3 ซึ่งถูกต้อง ไม่ใช่ข้อผิดพลาด
+ * - มี n3 แต่ไม่ครบหรือรูปแบบผิด → **ตัด N3 ทิ้งแล้ว log** ไม่โยน error
+ *   เพราะผลทยอยออกทีละรางวัล และ N3 เป็นสลากคนละใบ — ไม่ควรทำให้ผลสลาก 6 หลักที่ครบแล้วถูกทิ้งไปด้วย
+ *   (Worker จะดึงซ้ำเองในรอบถัดไปเมื่องวดที่เก็บไว้ยังไม่มี N3)
  *
  * @param {string} drawDate
  * @param {any} raw
  * @returns {Record<string, N3PrizeResult> | undefined}
  */
 export function toN3(drawDate, raw) {
-  if (!raw) return undefined;
+  if (!raw || typeof raw !== 'object') return undefined;
+  const hasAnyNumber = N3_MAP.some(([key]) => Array.isArray(raw[key]?.number) && raw[key].number.length > 0);
+  if (!hasAnyNumber) return undefined;
+
   /** @type {Record<string, N3PrizeResult>} */
   const out = {};
+  /** @type {string[]} */
+  const problems = [];
   for (const [key, digits] of N3_MAP) {
     const group = raw[key];
-    if (!group) throw new Error(`งวด ${drawDate}: n3 มีอยู่แต่ขาดรางวัล ${key}`);
-    const price = Number(group.price);
-    if (!Number.isFinite(price) || price <= 0) {
-      throw new Error(`งวด ${drawDate}: n3.${key} เงินรางวัลไม่ถูกต้อง (${group.price})`);
+    if (!group) {
+      problems.push(`ขาดรางวัล ${key}`);
+      continue;
     }
+    const price = Number(group.price);
+    if (!Number.isFinite(price) || price <= 0) problems.push(`${key} เงินรางวัลไม่ถูกต้อง (${group.price})`);
     const numbers = (group.number ?? []).map((/** @type {any} */ n) => n.value);
-    if (numbers.length === 0) throw new Error(`งวด ${drawDate}: n3.${key} ไม่มีเลขรางวัล`);
+    if (numbers.length === 0) problems.push(`${key} ไม่มีเลขรางวัล`);
     for (const value of numbers) {
       if (typeof value !== 'string' || !new RegExp(`^\\d{${digits}}$`).test(value)) {
-        throw new Error(`งวด ${drawDate}: n3.${key} มีค่า "${value}" ที่ไม่ใช่ตัวเลข ${digits} หลัก`);
+        problems.push(`${key} มีค่า "${value}" ที่ไม่ใช่ตัวเลข ${digits} หลัก`);
       }
     }
     out[key] = { price, numbers: [...numbers].sort() };
+  }
+
+  if (problems.length > 0) {
+    console.warn(`[glo-api] งวด ${drawDate}: ตัด N3 ทิ้งเพราะยังไม่ครบหรือรูปแบบผิด — ${problems.join(' · ')}`);
+    return undefined;
   }
   return out;
 }

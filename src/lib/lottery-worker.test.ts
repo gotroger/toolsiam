@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { handleLatest, KV_KEY, readStored, syncLatestDraw, type LotteryEnv } from './lottery-worker';
+import {
+  handleLatest, KV_KEY, outcomeSeverity, readStored, syncLatestDraw, type LotteryEnv,
+} from './lottery-worker';
 
 const seq = (n: number, start: number) => Array.from({ length: n }, (_, i) => String(start + i).padStart(6, '0'));
 
@@ -23,6 +25,16 @@ function gloResult(date: string, first = '123456') {
     },
   };
 }
+
+const n3Raw = {
+  straight3: { price: '5801.00', number: [{ value: '212' }] },
+  shuffle3: { price: '2702.00', number: [{ value: '122' }, { value: '221' }] },
+  straight2: { price: '582.00', number: [{ value: '04' }] },
+  special: { price: '839705.00', number: [{ value: '212000003860' }] },
+};
+
+/** เวลา 15:30 น. ตามเวลาไทยของวันที่ระบุ — ช่วงที่ cron ทำงาน */
+const at = (date: string, utc = '08:30') => new Date(`${date}T${utc}:00Z`);
 
 /** KV จำลองที่เก็บใน memory */
 function fakeKv(initial?: string) {
@@ -78,7 +90,7 @@ describe('L1 — ข้อมูลที่ดึงเองห้ามเป
     const fetchImpl = fakeFetch(['2026-09-16'], { '2026-09-16': gloResult('2026-09-16') });
     const outcome = await syncLatestDraw({ env: e, newestStaticDate: '2026-09-01', fetchImpl });
 
-    expect(outcome).toEqual({ action: 'stored', drawDate: '2026-09-16' });
+    expect(outcome).toEqual({ action: 'stored', drawDate: '2026-09-16', hasN3: false });
     const stored = await readStored(e);
     expect(stored!.draw.status).toBe('validated');
     expect(stored!.draw.status).not.toBe('verified');
@@ -100,15 +112,97 @@ describe('L3 — ไฟล์ใน repo ชนะ KV', () => {
 });
 
 describe('early exit ตาม §28.4', () => {
+  const calls = (f: typeof fetch) => (f as unknown as ReturnType<typeof vi.fn>).mock.calls;
+
   it('งวดที่อยู่ใน KV แล้วไม่ถูกดึงซ้ำ', async () => {
     const e = env();
-    await e.LOTTERY.put(KV_KEY, JSON.stringify({ draw: { drawDate: '2026-09-16' }, fetchedAt: 'x' }));
+    await e.LOTTERY.put(KV_KEY, JSON.stringify({ draw: { drawDate: '2026-09-16', n3: {} }, fetchedAt: 'x' }));
     const fetchImpl = fakeFetch(['2026-09-16'], { '2026-09-16': gloResult('2026-09-16') });
 
-    const outcome = await syncLatestDraw({ env: e, newestStaticDate: '2026-09-01', fetchImpl });
+    const outcome = await syncLatestDraw({ env: e, newestStaticDate: '2026-09-01', fetchImpl, now: at('2026-09-27') });
     expect(outcome).toMatchObject({ action: 'skipped' });
     // ยิงแค่ getPeriodList ไม่ได้ยิง getLotteryResult
-    expect((fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
+    expect(calls(fetchImpl)).toHaveLength(1);
+  });
+
+  it('วันที่งวดใหม่ยังออกไม่ได้ (งวดใน KV เพิ่งออกไม่ถึง 10 วัน) ไม่ยิงออกนอกเลย', async () => {
+    const e = env();
+    await e.LOTTERY.put(KV_KEY, JSON.stringify({ draw: { drawDate: '2026-09-16', n3: {} }, fetchedAt: 'x' }));
+    const fetchImpl = fakeFetch(['2026-09-16'], {});
+
+    const outcome = await syncLatestDraw({ env: e, newestStaticDate: undefined, fetchImpl, now: at('2026-09-20') });
+    expect(outcome).toMatchObject({ action: 'skipped', known: '2026-09-16' });
+    expect(calls(fetchImpl)).toHaveLength(0);
+  });
+
+  it('งวดใน KV ที่ยังไม่มี N3 ถูกดึงซ้ำในวันออกรางวัลจนกว่า N3 จะครบ', async () => {
+    const e = env();
+    await e.LOTTERY.put(KV_KEY, JSON.stringify({ draw: { drawDate: '2026-09-16' }, fetchedAt: 'x' }));
+    const fetchImpl = fakeFetch(['2026-09-16'], { '2026-09-16': { ...gloResult('2026-09-16'), n3: n3Raw } });
+
+    const outcome = await syncLatestDraw({ env: e, newestStaticDate: undefined, fetchImpl, now: at('2026-09-16') });
+    expect(outcome).toEqual({ action: 'stored', drawDate: '2026-09-16', hasN3: true });
+    expect((await readStored(e))!.draw.n3?.straight3.numbers).toEqual(['212']);
+  });
+
+  it('N3 ยังไม่ออกในรอบดึงซ้ำ ไม่เขียน KV ทับด้วยข้อมูลเดิม', async () => {
+    const e = env();
+    const before = JSON.stringify({ draw: { drawDate: '2026-09-16' }, fetchedAt: 'เดิม' });
+    await e.LOTTERY.put(KV_KEY, before);
+    const fetchImpl = fakeFetch(['2026-09-16'], { '2026-09-16': gloResult('2026-09-16') });
+
+    const outcome = await syncLatestDraw({ env: e, newestStaticDate: undefined, fetchImpl, now: at('2026-09-16') });
+    expect(outcome).toMatchObject({ action: 'skipped' });
+    expect(e.LOTTERY.store.get(KV_KEY)).toBe(before);
+  });
+});
+
+describe('เลือกงวดจากรายการของ API', () => {
+  it('เลือกงวดใหม่สุดที่ไม่เลยวันนี้ ไม่ใช่ periods[0]', async () => {
+    const e = env();
+    // API เรียงไม่ตรงลำดับ และมีงวดในอนาคตที่ประกาศล่วงหน้า
+    const fetchImpl = fakeFetch(['2026-10-01', '2026-09-01', '2026-09-16'], {
+      '2026-09-16': gloResult('2026-09-16'),
+    });
+    const outcome = await syncLatestDraw({ env: e, newestStaticDate: undefined, fetchImpl, now: at('2026-09-16') });
+    expect(outcome).toMatchObject({ action: 'stored', drawDate: '2026-09-16' });
+  });
+
+  it('N3 ที่ไม่ผ่านไม่ทำให้ผลสลาก 6 หลักทั้งงวดถูกทิ้ง', async () => {
+    const e = env();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const partialN3 = { ...n3Raw, shuffle3: { price: '2702.00', number: [{ value: '122' }] } };
+    const fetchImpl = fakeFetch(['2026-09-16'], { '2026-09-16': { ...gloResult('2026-09-16'), n3: partialN3 } });
+
+    const outcome = await syncLatestDraw({ env: e, newestStaticDate: undefined, fetchImpl, now: at('2026-09-16') });
+    expect(outcome).toEqual({ action: 'stored', drawDate: '2026-09-16', hasN3: false });
+    expect((await readStored(e))!.draw.n3).toBeUndefined();
+    warn.mockRestore();
+  });
+});
+
+describe('ระดับ log ของแต่ละรอบ — ให้ Workers logs จับรอบที่ผิดปกติได้', () => {
+  const lastRun = (date: string) => at(date, '13:30');
+
+  it('รอบสุดท้ายของวันจบโดยเก็บงวดที่ออกแล้วไม่ได้ = error', () => {
+    expect(outcomeSeverity({ action: 'rejected', drawDate: '2026-09-16', issues: [] }, lastRun('2026-09-16'))).toBe('error');
+    expect(outcomeSeverity({ action: 'failed', error: 'x' }, lastRun('2026-09-16'))).toBe('error');
+  });
+
+  it('รอบกลางหน้าต่างที่ผลยังไม่ครบเป็นเรื่องปกติ ไม่ใช่ error', () => {
+    expect(outcomeSeverity({ action: 'rejected', drawDate: '2026-09-16', issues: [] }, at('2026-09-16'))).toBe('info');
+    expect(outcomeSeverity({ action: 'failed', error: 'x' }, at('2026-09-16'))).toBe('warn');
+  });
+
+  it('รอบสุดท้ายที่ข้อมูลล่าสุดที่รู้จักเก่าเกินเกณฑ์ = error · พ้นวันออกรางวัลแล้วยังไม่มีผล = warn', () => {
+    expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-01' }, lastRun('2026-09-20'))).toBe('error');
+    expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-01' }, lastRun('2026-09-17'))).toBe('warn');
+    expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-16' }, lastRun('2026-09-17'))).toBe('info');
+  });
+
+  it('เก็บสำเร็จเป็น info · เก็บได้แต่ยังไม่มี N3 เป็น warn', () => {
+    expect(outcomeSeverity({ action: 'stored', drawDate: '2026-09-16', hasN3: true }, lastRun('2026-09-16'))).toBe('info');
+    expect(outcomeSeverity({ action: 'stored', drawDate: '2026-09-16', hasN3: false }, lastRun('2026-09-16'))).toBe('warn');
   });
 });
 

@@ -122,11 +122,23 @@ export interface LotteryDraw {
 }
 
 export class DrawValidationError extends Error {
-  constructor(public readonly issues: string[]) {
+  // ประกาศ field แยกแทน parameter property โดยตั้งใจ — ไฟล์นี้ถูก import จาก
+  // `scripts/fetch-lottery.mjs` ผ่าน type stripping ของ node ซึ่งรองรับเฉพาะ syntax ที่ลบทิ้งได้
+  readonly issues: string[];
+
+  constructor(issues: string[]) {
     super(`ข้อมูลงวดไม่ถูกต้อง:\n- ${issues.join('\n- ')}`);
     this.name = 'DrawValidationError';
+    this.issues = issues;
   }
 }
+
+/**
+ * รางวัลที่ออกแยกกันคนละครั้ง จึงได้เลขซ้ำกันเองได้จริง
+ * (เลขหน้า 3 ตัวสองรางวัล และเลขท้าย 3 ตัวสองรางวัล จับทีละลูกแยกกัน)
+ * รางวัลอื่นเลขซ้ำในประเภทเดียวกันแทบทุกกรณีคือพิมพ์ผิด
+ */
+const INDEPENDENT_DRAW_PRIZES: ReadonlySet<PrizeId> = new Set<PrizeId>(['threeDigitFront', 'threeDigitBack']);
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -173,9 +185,9 @@ export function validateDrawIssues(input: unknown): string[] {
         issues.push(`${spec.name}: "${String(n)}" ต้องเป็นตัวเลข ${spec.digits} หลักในรูปสตริง (ห้ามตัดเลขศูนย์นำหน้า)`);
       }
     }
-    // เลขซ้ำในรางวัลเดียวกันแทบทุกกรณีคือพิมพ์ผิด ไม่ใช่ผลจริง
+    // เลขซ้ำในรางวัลเดียวกันแทบทุกกรณีคือพิมพ์ผิด ไม่ใช่ผลจริง — ยกเว้นรางวัลที่ออกแยกกันคนละครั้ง
     const unique = new Set(numbers.filter((n): n is string => typeof n === 'string'));
-    if (unique.size !== numbers.length) {
+    if (!INDEPENDENT_DRAW_PRIZES.has(spec.id) && unique.size !== numbers.length) {
       issues.push(`${spec.name} มีเลขซ้ำกันในประเภทเดียวกัน — ตรวจการพิมพ์อีกครั้ง`);
     }
   }
@@ -269,4 +281,20 @@ export function assertValidDraw(input: unknown): LotteryDraw {
   const issues = validateDrawIssues(input);
   if (issues.length > 0) throw new DrawValidationError(issues);
   return input as LotteryDraw;
+}
+
+/**
+ * ตรวจงวดที่ดึงจาก API ของสำนักงานสลากฯ (ทั้ง Worker และ `npm run lottery`)
+ *
+ * ต่างจาก `assertValidDraw` ตรงที่ส่วน N3 ที่ไม่ผ่านจะถูก **ตัดทิ้ง** แทนการทิ้งทั้งงวด
+ * เพราะผลทยอยออกทีละรางวัล และ N3 เป็นสลากคนละใบ — ผลสลาก 6 หลักที่ครบแล้วมีค่ากับผู้ใช้
+ * มากกว่าการรอ N3 ให้ครบ ส่วนสลาก 6 หลักที่ไม่ผ่านยังโยน error เหมือนเดิมทุกประการ
+ * ผู้เรียกต้อง log `droppedN3` เอง เพื่อให้รู้ว่างวดนี้ยังขาด N3
+ */
+export function assertValidFetchedDraw(input: unknown): { draw: LotteryDraw; droppedN3: string[] } {
+  const droppedN3: string[] = [];
+  if (typeof input === 'object' && input !== null) validateN3((input as Partial<LotteryDraw>).n3, droppedN3);
+  if (droppedN3.length === 0) return { draw: assertValidDraw(input), droppedN3 };
+  const { n3: _dropped, ...withoutN3 } = input as LotteryDraw;
+  return { draw: assertValidDraw(withoutN3), droppedN3 };
 }
