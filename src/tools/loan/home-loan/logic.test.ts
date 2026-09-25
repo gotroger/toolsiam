@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { earlyPayoffNotes, homeLoan } from './logic';
 
-const base = { price: 3_000_000, downPayment: 300_000, years: 30, promoRate: 0.0299, promoMonths: 36, afterRate: 0.0665 };
+const base = {
+  price: 3_000_000,
+  downPayment: 300_000,
+  years: 30,
+  promoRate: 0.0299,
+  promoMonths: 36,
+  afterRate: 0.0665,
+};
 
 describe('ผ่อนบ้าน', () => {
   it('ค่างวดขั้นต่ำคิดจากอัตราที่สูงที่สุด ไม่ใช่อัตราโปรโมชัน — ไม่งั้นหนี้ไม่มีวันหมด', () => {

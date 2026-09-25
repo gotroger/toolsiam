@@ -23,6 +23,7 @@ interface Props {
 const { title, level = 2, lead, id, class: cls } = Astro.props;
 const Heading = `h${level}` as 'h2' | 'h3';
 ---
+
 <section id={id} class:list={[cls]}>
   <Heading class={sectionHeading}>{title}</Heading>
   {lead && <p class="mt-1 text-sm text-slate-600">{lead}</p>}

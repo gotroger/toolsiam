@@ -1,7 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import {
-  handleLatest, KV_KEY, outcomeSeverity, readStored, syncLatestDraw, type LotteryEnv,
-} from './lottery-worker';
+import { handleLatest, KV_KEY, outcomeSeverity, readStored, syncLatestDraw, type LotteryEnv } from './lottery-worker';
 
 const seq = (n: number, start: number) => Array.from({ length: n }, (_, i) => String(start + i).padStart(6, '0'));
 
@@ -43,7 +41,9 @@ function fakeKv(initial?: string) {
   return {
     store,
     get: async (k: string) => store.get(k) ?? null,
-    put: async (k: string, v: string) => { store.set(k, v); },
+    put: async (k: string, v: string) => {
+      store.set(k, v);
+    },
   } as unknown as KVNamespace & { store: Map<string, string> };
 }
 
@@ -71,7 +71,9 @@ describe('kill switch', () => {
   it('ไม่ดึงข้อมูลเลยเมื่อ LOTTERY_AUTO ไม่ใช่ on', async () => {
     const fetchImpl = fakeFetch(['2026-09-16'], {});
     const outcome = await syncLatestDraw({
-      env: env({ LOTTERY_AUTO: 'off' }), newestStaticDate: '2026-09-01', fetchImpl,
+      env: env({ LOTTERY_AUTO: 'off' }),
+      newestStaticDate: '2026-09-01',
+      fetchImpl,
     });
     expect(outcome).toEqual({ action: 'disabled' });
     expect(fetchImpl).not.toHaveBeenCalled();
@@ -185,7 +187,9 @@ describe('ระดับ log ของแต่ละรอบ — ให้ Wo
   const lastRun = (date: string) => at(date, '13:30');
 
   it('รอบสุดท้ายของวันจบโดยเก็บงวดที่ออกแล้วไม่ได้ = error', () => {
-    expect(outcomeSeverity({ action: 'rejected', drawDate: '2026-09-16', issues: [] }, lastRun('2026-09-16'))).toBe('error');
+    expect(outcomeSeverity({ action: 'rejected', drawDate: '2026-09-16', issues: [] }, lastRun('2026-09-16'))).toBe(
+      'error',
+    );
     expect(outcomeSeverity({ action: 'failed', error: 'x' }, lastRun('2026-09-16'))).toBe('error');
   });
 
@@ -195,14 +199,20 @@ describe('ระดับ log ของแต่ละรอบ — ให้ Wo
   });
 
   it('รอบสุดท้ายที่ข้อมูลล่าสุดที่รู้จักเก่าเกินเกณฑ์ = error · พ้นวันออกรางวัลแล้วยังไม่มีผล = warn', () => {
-    expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-01' }, lastRun('2026-09-20'))).toBe('error');
+    expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-01' }, lastRun('2026-09-20'))).toBe(
+      'error',
+    );
     expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-01' }, lastRun('2026-09-17'))).toBe('warn');
     expect(outcomeSeverity({ action: 'skipped', reason: '', known: '2026-09-16' }, lastRun('2026-09-17'))).toBe('info');
   });
 
   it('เก็บสำเร็จเป็น info · เก็บได้แต่ยังไม่มี N3 เป็น warn', () => {
-    expect(outcomeSeverity({ action: 'stored', drawDate: '2026-09-16', hasN3: true }, lastRun('2026-09-16'))).toBe('info');
-    expect(outcomeSeverity({ action: 'stored', drawDate: '2026-09-16', hasN3: false }, lastRun('2026-09-16'))).toBe('warn');
+    expect(outcomeSeverity({ action: 'stored', drawDate: '2026-09-16', hasN3: true }, lastRun('2026-09-16'))).toBe(
+      'info',
+    );
+    expect(outcomeSeverity({ action: 'stored', drawDate: '2026-09-16', hasN3: false }, lastRun('2026-09-16'))).toBe(
+      'warn',
+    );
   });
 });
 
@@ -223,7 +233,9 @@ describe('ข้อมูลไม่ครบหรือ API ล่ม', () =>
   });
 
   it('API ล่มคืน failed โดยไม่โยน error ออกมา — cron ต้องไม่พังทั้งรอบ', async () => {
-    const fetchImpl = vi.fn(async () => { throw new Error('เครือข่ายล่ม'); }) as unknown as typeof fetch;
+    const fetchImpl = vi.fn(async () => {
+      throw new Error('เครือข่ายล่ม');
+    }) as unknown as typeof fetch;
     const outcome = await syncLatestDraw({ env: env(), newestStaticDate: '2026-09-01', fetchImpl });
     expect(outcome).toMatchObject({ action: 'failed' });
   });

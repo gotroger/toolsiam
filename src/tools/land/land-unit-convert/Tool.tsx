@@ -45,12 +45,18 @@ export default function LandUnitConvertTool() {
         />
         <Field label="หน่วยที่กรอก" htmlFor="unit">
           <Select id="unit" value={unit} onChange={(e) => setUnit(e.target.value as LandUnit)}>
-            {UNIT_ORDER.map((u) => <option key={u} value={u}>{UNIT_LABEL[u]}</option>)}
+            {UNIT_ORDER.map((u) => (
+              <option key={u} value={u}>
+                {UNIT_LABEL[u]}
+              </option>
+            ))}
           </Select>
         </Field>
       </div>
 
-      {error ? <ErrorText>{error}</ErrorText> : (
+      {error ? (
+        <ErrorText>{error}</ErrorText>
+      ) : (
         <>
           <ResultBox label="เขียนแบบโฉนด">
             {rnw.rai} ไร่ {rnw.ngan} งาน {smart(rnw.wa2)} ตารางวา

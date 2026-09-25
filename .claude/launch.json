@@ -4,20 +4,14 @@
     {
       "name": "toolsiam",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
+      "runtimeArgs": ["run", "dev"],
       "port": 4321,
       "autoPort": true
     },
     {
       "name": "toolsiam-worker",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "preview"
-      ],
+      "runtimeArgs": ["run", "preview"],
       "port": 8787
     }
   ]

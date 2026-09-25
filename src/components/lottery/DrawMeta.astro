@@ -6,7 +6,10 @@ import DrawMetaLine from './DrawMetaLine';
  * แถบบอกที่มาของข้อมูลงวด (§28.1 ข้อ 6) — render ตอน build เป็น HTML ล้วน ไม่มี JS
  * markup จริงอยู่ที่ `DrawMetaLine.tsx` ซึ่ง island ที่สลับเป็นงวดใหม่จาก KV ใช้ร่วมกัน
  */
-interface Props { draw: LotteryDraw }
+interface Props {
+  draw: LotteryDraw;
+}
 const { draw } = Astro.props;
 ---
+
 <DrawMetaLine draw={draw} />

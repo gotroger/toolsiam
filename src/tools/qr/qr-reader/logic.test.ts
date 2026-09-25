@@ -28,7 +28,15 @@ describe('classifyQrText', () => {
   });
 
   it('vCard ดึงชื่อ เบอร์ อีเมล', () => {
-    const raw = ['BEGIN:VCARD', 'VERSION:3.0', 'N:ใจดี;สมชาย;;;', 'FN:สมชาย ใจดี', 'TEL;TYPE=CELL:0812345678', 'EMAIL:somchai@example.com', 'END:VCARD'].join('\r\n');
+    const raw = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      'N:ใจดี;สมชาย;;;',
+      'FN:สมชาย ใจดี',
+      'TEL;TYPE=CELL:0812345678',
+      'EMAIL:somchai@example.com',
+      'END:VCARD',
+    ].join('\r\n');
     const r = classifyQrText(raw);
     expect(r.kind).toBe('vcard');
     expect(r.fields).toContainEqual({ label: 'ชื่อ', value: 'สมชาย ใจดี' });

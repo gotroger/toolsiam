@@ -1,13 +1,26 @@
 import {
-  SECTION_33_RATES, SECTION_39, SECTION_40_EXTRA_SAVING_CAP, SECTION_40_OPTIONS,
-  section33Contribution, section39Contribution, SOCIAL_SECURITY_SOURCE, wageCapAt,
-  type Section33Result, type Section40Option,
+  SECTION_33_RATES,
+  SECTION_39,
+  SECTION_40_EXTRA_SAVING_CAP,
+  SECTION_40_OPTIONS,
+  section33Contribution,
+  section39Contribution,
+  SOCIAL_SECURITY_SOURCE,
+  wageCapAt,
+  type Section33Result,
+  type Section40Option,
 } from '@/lib/rates/social-security';
 
 export type { Section33Result, Section40Option };
 export {
-  SECTION_33_RATES, SECTION_39, SECTION_40_EXTRA_SAVING_CAP, SECTION_40_OPTIONS,
-  section33Contribution, section39Contribution, SOCIAL_SECURITY_SOURCE, wageCapAt,
+  SECTION_33_RATES,
+  SECTION_39,
+  SECTION_40_EXTRA_SAVING_CAP,
+  SECTION_40_OPTIONS,
+  section33Contribution,
+  section39Contribution,
+  SOCIAL_SECURITY_SOURCE,
+  wageCapAt,
 };
 
 export type SsoSection = '33' | '39' | '40';

@@ -2,8 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { checkTicket, checkTickets, InvalidTicketError, normalizeTicket, parseTicketInput } from './lottery';
 import type { LotteryDraw } from '@/data/lottery/schema';
 
-const seq = (n: number, start: number) =>
-  Array.from({ length: n }, (_, i) => String(start + i).padStart(6, '0'));
+const seq = (n: number, start: number) => Array.from({ length: n }, (_, i) => String(start + i).padStart(6, '0'));
 
 /** งวดสมมติสำหรับทดสอบ logic — ไม่ใช่ผลรางวัลจริง */
 const draw: LotteryDraw = {
@@ -87,7 +86,10 @@ describe('ตรวจรางวัล', () => {
   });
 
   it('หมายเลขที่มีศูนย์นำหน้าถูกเทียบอย่างถูกต้อง', () => {
-    const zeroDraw: LotteryDraw = { ...draw, prizes: { ...draw.prizes, first: ['000123'], firstNear: ['000122', '000124'] } };
+    const zeroDraw: LotteryDraw = {
+      ...draw,
+      prizes: { ...draw.prizes, first: ['000123'], firstNear: ['000122', '000124'] },
+    };
     expect(checkTicket('000123', zeroDraw).wins.map((w) => w.prize.id)).toContain('first');
     // "123" ไม่ใช่หมายเลขสลาก — ต้องถูกปฏิเสธ ไม่ใช่เติมศูนย์ให้เองแล้วบอกว่าถูกรางวัล
     expect(() => checkTicket('123', zeroDraw)).toThrow(InvalidTicketError);

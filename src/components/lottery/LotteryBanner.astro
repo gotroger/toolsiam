@@ -29,7 +29,10 @@ const prizes = draw
           </div>
           <div class="lottery-draw-meta">
             <p>
-              งวดวันที่ <time data-lottery-date datetime={draw.drawDate}>{formatThaiDate(draw.drawDate, { style: 'medium' })}</time>
+              งวดวันที่{' '}
+              <time data-lottery-date datetime={draw.drawDate}>
+                {formatThaiDate(draw.drawDate, { style: 'medium' })}
+              </time>
             </p>
             <span class="lottery-status text-brand-700">ข้อมูลจากสำนักงานสลากฯ</span>
           </div>

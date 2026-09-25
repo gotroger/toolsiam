@@ -30,14 +30,18 @@ function Form() {
     <main>
       <h1>คำนวณเงินเดือนสุทธิ</h1>
       <NumberInput
-        id="salary" label="เงินเดือน" mode="decimal" value={amount} onValueChange={setAmount}
-        hint="กรอกยอดก่อนหักภาษี" suffix="บาท"
+        id="salary"
+        label="เงินเดือน"
+        mode="decimal"
+        value={amount}
+        onValueChange={setAmount}
+        hint="กรอกยอดก่อนหักภาษี"
+        suffix="บาท"
       />
-      <NumberInput
-        id="bonus" label="โบนัส" mode="decimal" value="" onValueChange={() => {}}
-        error="ต้องเป็นตัวเลข"
-      />
-      <Field label="ชื่อบริษัท" htmlFor="company"><Input id="company" /></Field>
+      <NumberInput id="bonus" label="โบนัส" mode="decimal" value="" onValueChange={() => {}} error="ต้องเป็นตัวเลข" />
+      <Field label="ชื่อบริษัท" htmlFor="company">
+        <Input id="company" />
+      </Field>
       <Checkbox label="ส่งประกันสังคม" checked={sso} onChange={(e) => setSso(e.target.checked)} />
       <ResultBox label="รับสุทธิ">28,500.00 บาท</ResultBox>
       <Stat label="ภาษีทั้งปี" value="12,000 บาท" />
@@ -66,14 +70,19 @@ function Table() {
 }
 
 function TabbedTool() {
-  const tabs = [{ id: 'a', label: 'แบบ ก' }, { id: 'b', label: 'แบบ ข' }];
+  const tabs = [
+    { id: 'a', label: 'แบบ ก' },
+    { id: 'b', label: 'แบบ ข' },
+  ];
   const [v, setV] = useState('a');
   return (
     <main>
       <h1>เครื่องมือ</h1>
       <Tabs tabs={tabs} value={v} onChange={setV} label="วิธีคำนวณ" idPrefix="t" />
       {tabs.map((t) => (
-        <TabPanel key={t.id} id={t.id} idPrefix="t" active={v === t.id}>เนื้อหา {t.label}</TabPanel>
+        <TabPanel key={t.id} id={t.id} idPrefix="t" active={v === t.id}>
+          เนื้อหา {t.label}
+        </TabPanel>
       ))}
     </main>
   );
@@ -100,7 +109,12 @@ describe('a11y ของชุด primitive (axe-core)', () => {
    * โดยไม่ได้ตรวจอะไรเลย ข้อนี้จึงจงใจใส่ของที่ผิดเพื่อยืนยันว่าด่านยังมีชีวิต
    */
   it('ด่านนี้จับของจริง — ช่องกรอกที่ไม่มี label ต้องถูกจับได้', async () => {
-    const { container } = render(<main><h1>ทดสอบ</h1><input type="text" /></main>);
+    const { container } = render(
+      <main>
+        <h1>ทดสอบ</h1>
+        <input type="text" />
+      </main>,
+    );
     const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
     expect(results.violations.map((v) => v.id)).toContain('label');
   });

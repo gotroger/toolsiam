@@ -34,14 +34,38 @@ export const HOLIDAYS_2569: readonly Holiday[] = [
   { date: '2026-05-13', name: 'วันพืชมงคล', government: true, bank: false, type: 'ปกติ' },
   { date: '2026-05-31', name: 'วันวิสาขบูชา', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-06-01', name: 'ชดเชยวันวิสาขบูชา', government: true, bank: true, type: 'ชดเชย' },
-  { date: '2026-06-03', name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดาฯ พระบรมราชินี', government: true, bank: true, type: 'ปกติ' },
-  { date: '2026-07-28', name: 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว', government: true, bank: true, type: 'ปกติ' },
+  {
+    date: '2026-06-03',
+    name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดาฯ พระบรมราชินี',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
+  {
+    date: '2026-07-28',
+    name: 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
   { date: '2026-07-29', name: 'วันอาสาฬหบูชา', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-07-30', name: 'วันเข้าพรรษา', government: true, bank: false, type: 'ปกติ' },
-  { date: '2026-08-12', name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระบรมราชชนนีพันปีหลวง / วันแม่แห่งชาติ', government: true, bank: true, type: 'ปกติ' },
+  {
+    date: '2026-08-12',
+    name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระบรมราชชนนีพันปีหลวง / วันแม่แห่งชาติ',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
   { date: '2026-10-13', name: 'วันนวมินทรมหาราช (วันคล้ายวันสวรรคต ร.9)', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-10-23', name: 'วันปิยมหาราช', government: true, bank: true, type: 'ปกติ' },
-  { date: '2026-12-05', name: 'วันคล้ายวันพระบรมราชสมภพ ร.9 / วันชาติ / วันพ่อแห่งชาติ', government: true, bank: true, type: 'ปกติ' },
+  {
+    date: '2026-12-05',
+    name: 'วันคล้ายวันพระบรมราชสมภพ ร.9 / วันชาติ / วันพ่อแห่งชาติ',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
   { date: '2026-12-07', name: 'ชดเชยวันพ่อแห่งชาติ', government: true, bank: true, type: 'ชดเชย' },
   { date: '2026-12-10', name: 'วันรัฐธรรมนูญ', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-12-31', name: 'วันสิ้นปี', government: true, bank: true, type: 'ปกติ' },
@@ -70,4 +94,3 @@ export const BANGKOK_HOLIDAYS: readonly Holiday[] = [
 export const HOLIDAYS_BY_YEAR: Readonly<Record<number, readonly Holiday[]>> = {
   2026: HOLIDAYS_2569,
 };
-

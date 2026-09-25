@@ -60,7 +60,10 @@ export interface SyncDeps {
 }
 
 const maxDate = (...dates: (string | undefined)[]) =>
-  dates.filter((d): d is string => d !== undefined).sort().at(-1);
+  dates
+    .filter((d): d is string => d !== undefined)
+    .sort()
+    .at(-1);
 
 /** งวดที่เก็บไว้ยังควรดึงซ้ำเพื่อเติม N3 หรือไม่ */
 function awaitingN3(stored: StoredDraw | null, today: string): boolean {

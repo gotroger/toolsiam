@@ -33,12 +33,8 @@ export function countText(text: string): CountResult {
   const charactersNoSpaces = Array.from(text.replace(/\s/g, '')).length;
   const words = countWords(text);
   const lines = text === '' ? 0 : text.split(/\r\n|\r|\n/).length;
-  const paragraphs = text
-    .split(/(?:\r\n|\r|\n){2,}/)
-    .filter((p) => p.trim() !== '').length;
-  const sentences = text
-    .split(/[.!?…]+|(?:\r\n|\r|\n)+/)
-    .filter((s) => s.trim() !== '').length;
+  const paragraphs = text.split(/(?:\r\n|\r|\n){2,}/).filter((p) => p.trim() !== '').length;
+  const sentences = text.split(/[.!?…]+|(?:\r\n|\r|\n)+/).filter((s) => s.trim() !== '').length;
 
   return {
     characters,

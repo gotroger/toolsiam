@@ -3,6 +3,7 @@
 เว็บรวมเครื่องมือออนไลน์ภาษาไทย บน Cloudflare Workers (Astro + React islands)
 
 ## คำสั่ง
+
 - `npm run dev` — dev server http://localhost:4321
 - `npm test` — unit test ทุก `logic.ts`
 - `npm run build` — build ลง `dist/`
@@ -10,6 +11,7 @@
 - `npm run deploy` — build + deploy ขึ้น Cloudflare
 
 ## เพิ่มเครื่องมือใหม่
+
 1. สร้าง `src/tools/<category>/<slug>/` มี `logic.ts` + `logic.test.ts` (เขียน test ก่อน), `meta.ts`, `Tool.tsx`
 2. เพิ่ม meta ใน `src/tools/registry.ts` และ loader ใน `src/tools/loaders.ts`
 3. `npm test` ต้องผ่าน (registry test บังคับให้ meta/loader ครบ)
@@ -17,6 +19,7 @@
 Spec: `docs/superpowers/specs/2026-09-07-toolsiam-design.md`
 
 ## สมาชิกและพรีเมียม
+
 - เครื่องมือทุกตัวใช้ฟรีไม่ต้อง login · สมาชิกพรีเมียม 29 บาท/30 วัน · 79 บาท/90 วัน · 269 บาท/365 วัน (Google login + PromptPay ผ่าน Beam) ขยายขีดจำกัดเครื่องมือไฟล์
 - ตัวเลขขีดจำกัดทั้งหมดอยู่ที่ `src/lib/plan-limits.ts` · logic ฝั่ง server อยู่ที่ `src/lib/membership/` · route ใน `src/pages/api/`
 - เปิด/ปิดได้สองชั้น: var `MEMBERSHIP=on` ใน `wrangler.jsonc` (runtime, ทุก API) และ `PUBLIC_MEMBERSHIP=on` ตอน build (แสดงปุ่ม login ใน HTML)

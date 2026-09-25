@@ -46,7 +46,13 @@ export function comparePayments(balance: number, annualRate: number, payments: n
   return payments.map((monthlyPayment) => {
     try {
       const r = payoffSchedule(balance, annualRate, monthlyPayment);
-      return { monthlyPayment, months: r.months, totalInterest: r.totalInterest, totalPaid: r.totalPaid, feasible: true };
+      return {
+        monthlyPayment,
+        months: r.months,
+        totalInterest: r.totalInterest,
+        totalPaid: r.totalPaid,
+        feasible: true,
+      };
     } catch {
       return { monthlyPayment, months: 0, totalInterest: 0, totalPaid: 0, feasible: false };
     }

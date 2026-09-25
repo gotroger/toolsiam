@@ -1,8 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import {
-  MS_PER_DAY, parseIsoDate, toIsoDate, daysBetweenDates, addDays,
-  weekdayIndex, isWeekend, daysInMonth, isLeapYear, countWeekends, dateDiffParts,
-  daysBetween, shiftDate,
+  MS_PER_DAY,
+  parseIsoDate,
+  toIsoDate,
+  daysBetweenDates,
+  addDays,
+  weekdayIndex,
+  isWeekend,
+  daysInMonth,
+  isLeapYear,
+  countWeekends,
+  dateDiffParts,
+  daysBetween,
+  shiftDate,
 } from './date';
 
 describe('parseIsoDate', () => {
@@ -164,9 +174,11 @@ describe('dateDiffParts', () => {
         for (const mode of ['clamp', 'rollover'] as const) {
           const p = dateDiffParts(start, end, mode);
           const total = p.years * 12 + p.months;
-          if (p.days < 0 || p.months < 0 || p.months > 11) throw new Error(`${mode} ${start}→${end} ${JSON.stringify(p)}`);
+          if (p.days < 0 || p.months < 0 || p.months > 11)
+            throw new Error(`${mode} ${start}→${end} ${JSON.stringify(p)}`);
           // ครบเดือนที่ total แล้ว แต่ยังไม่ครบเดือนถัดไป
-          if (addDays(anniversary(start, total, mode), p.days) !== end) throw new Error(`${mode} ${start}→${end} ประกอบกลับไม่ได้`);
+          if (addDays(anniversary(start, total, mode), p.days) !== end)
+            throw new Error(`${mode} ${start}→${end} ประกอบกลับไม่ได้`);
           if (anniversary(start, total + 1, mode) <= end) throw new Error(`${mode} ${start}→${end} นับเดือนขาด`);
         }
       }

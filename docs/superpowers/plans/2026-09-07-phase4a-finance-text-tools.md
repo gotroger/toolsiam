@@ -11,6 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-09-07-toolsiam-design.md` (หัวข้อ 4 — ตารางเครื่องมือ MVP, หัวข้อ 8 โครงสร้าง, หัวข้อ 9 เฟส 4)
 
 **แผนพี่น้อง (นอกขอบเขตแผนนี้ โดยตั้งใจ):**
+
 - 4b: หมวดวันที่/เวลา (3 ตัว) + QR เพิ่ม (2 ตัว) — QR ทั่วไป/WiFi/vCard ต้องเพิ่ม dependency `jsqr`
 - 4c: หมวดรูปภาพ (3 ตัว) + PDF (2 ตัว) — ต้องเพิ่ม `pdf-lib`, ใช้ canvas/File API, ต้องทดสอบใน browser จริง
 - 4d: หมวด dev เพิ่ม (2 ตัว) + web/SEO (3 ตัว) + ถอดอักษรไทยเป็นโรมัน RTGS + AdSlot + Cloudflare Web Analytics
@@ -50,11 +51,13 @@ src/tools/loaders.ts     ← แก้ทุก Task (เพิ่ม 1 บร�
 หักประกันสังคม 5% (ฐาน 1,650–15,000 → สูงสุด 750 บาท/เดือน) และภาษีหัก ณ ที่จ่ายรายเดือน โดยคำนวณภาษีทั้งปีจาก `calculateTax` ของเครื่องมือภาษีที่มีอยู่แล้ว แล้วหาร 12
 
 **Files:**
+
 - Create: `src/tools/finance/net-salary/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/finance/net-salary/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `calculateTax(input: TaxInput): TaxResult` จาก `@/tools/finance/thai-income-tax/logic` (มีอยู่แล้ว — `TaxInput` ต้องส่งครบทุก field)
 - Produces: `SSO`, `ssoMonthly(monthlySalary: number): number`, `calculateNetSalary(input: NetSalaryInput): NetSalaryResult`
 
@@ -261,16 +264,31 @@ export const netSalaryMeta: ToolMeta = {
   tier: 'free',
   description:
     'คำนวณเงินเดือนสุทธิที่ได้รับจริงหลังหักประกันสังคม 5% (สูงสุด 750 บาท/เดือน) และภาษีหัก ณ ที่จ่าย พร้อมสรุปยอดทั้งปี ใส่โบนัสและค่าลดหย่อนได้',
-  keywords: ['เงินเดือนสุทธิ', 'คำนวณเงินเดือนหลังหักภาษี', 'ประกันสังคม 750', 'ภาษีหัก ณ ที่จ่ายเงินเดือน', 'เงินเดือนออกเท่าไหร่'],
+  keywords: [
+    'เงินเดือนสุทธิ',
+    'คำนวณเงินเดือนหลังหักภาษี',
+    'ประกันสังคม 750',
+    'ภาษีหัก ณ ที่จ่ายเงินเดือน',
+    'เงินเดือนออกเท่าไหร่',
+  ],
   howTo: [
     'กรอกเงินเดือนต่อเดือน และโบนัสทั้งปี (ถ้ามี)',
     'เลือกว่าส่งประกันสังคมหรือไม่ และกรอกค่าลดหย่อน เช่น คู่สมรส บุตร บิดามารดา',
     'ดูยอดสุทธิรายเดือนและสรุปทั้งปีทันที',
   ],
   faq: [
-    { q: 'หักประกันสังคมเท่าไหร่', a: 'ลูกจ้างมาตรา 33 ส่ง 5% ของค่าจ้าง โดยคิดจากฐานค่าจ้าง 1,650–15,000 บาท จึงหักสูงสุด 750 บาทต่อเดือน หรือ 9,000 บาทต่อปี' },
-    { q: 'ภาษีหัก ณ ที่จ่ายรายเดือนคำนวณอย่างไร', a: 'นายจ้างประมาณภาษีทั้งปีจากเงินได้ทั้งปีแล้วหารด้วยจำนวนงวด เครื่องมือนี้ใช้วิธีเดียวกันคือคำนวณภาษีทั้งปีตามขั้นบันไดแล้วหาร 12' },
-    { q: 'ทำไมยอดไม่ตรงกับสลิปเงินเดือน', a: 'สลิปจริงอาจมีรายการอื่น เช่น กองทุนสำรองเลี้ยงชีพ ค่าล่วงเวลา เบี้ยขยัน หรือค่าลดหย่อนที่แจ้ง HR ไว้ ให้ใส่ค่าลดหย่อนอื่นเพิ่มเพื่อให้ใกล้เคียงขึ้น' },
+    {
+      q: 'หักประกันสังคมเท่าไหร่',
+      a: 'ลูกจ้างมาตรา 33 ส่ง 5% ของค่าจ้าง โดยคิดจากฐานค่าจ้าง 1,650–15,000 บาท จึงหักสูงสุด 750 บาทต่อเดือน หรือ 9,000 บาทต่อปี',
+    },
+    {
+      q: 'ภาษีหัก ณ ที่จ่ายรายเดือนคำนวณอย่างไร',
+      a: 'นายจ้างประมาณภาษีทั้งปีจากเงินได้ทั้งปีแล้วหารด้วยจำนวนงวด เครื่องมือนี้ใช้วิธีเดียวกันคือคำนวณภาษีทั้งปีตามขั้นบันไดแล้วหาร 12',
+    },
+    {
+      q: 'ทำไมยอดไม่ตรงกับสลิปเงินเดือน',
+      a: 'สลิปจริงอาจมีรายการอื่น เช่น กองทุนสำรองเลี้ยงชีพ ค่าล่วงเวลา เบี้ยขยัน หรือค่าลดหย่อนที่แจ้ง HR ไว้ ให้ใส่ค่าลดหย่อนอื่นเพิ่มเพื่อให้ใกล้เคียงขึ้น',
+    },
   ],
 };
 ```
@@ -380,7 +398,14 @@ import { netSalaryMeta } from './finance/net-salary/meta';
 และเพิ่ม `netSalaryMeta` ต่อท้าย `loanInstallmentMeta` ใน array `tools`:
 
 ```ts
-export const tools: ToolMeta[] = [thaiIncomeTaxMeta, loanInstallmentMeta, netSalaryMeta, bahtTextMeta, promptpayQrMeta, jsonFormatterMeta];
+export const tools: ToolMeta[] = [
+  thaiIncomeTaxMeta,
+  loanInstallmentMeta,
+  netSalaryMeta,
+  bahtTextMeta,
+  promptpayQrMeta,
+  jsonFormatterMeta,
+];
 ```
 
 ใน `src/tools/loaders.ts` เพิ่มบรรทัดใน `toolLoaders`:
@@ -408,11 +433,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 2: เครื่องมือ "ถอด/รวม VAT 7% และหัก ณ ที่จ่าย" (`vat-wht`, free)
 
 **Files:**
+
 - Create: `src/tools/finance/vat-wht/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/finance/vat-wht/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `formatBaht` จาก `@/lib/format` (ใน Tool.tsx เท่านั้น)
 - Produces: `VAT_RATE`, `WHT_RATES`, `calculateInvoice(input: InvoiceInput): InvoiceResult`
 
@@ -576,9 +603,18 @@ export const vatWhtMeta: ToolMeta = {
     'อ่านผลลัพธ์: ราคาก่อน VAT, VAT, ยอดรวม, ยอดหัก ณ ที่จ่าย และยอดจ่ายจริง',
   ],
   faq: [
-    { q: 'ถอด VAT คำนวณอย่างไร', a: 'ราคาก่อน VAT = ยอดรวม ÷ 1.07 และ VAT = ยอดรวม − ราคาก่อน VAT เครื่องมือนี้คำนวณ VAT จากส่วนต่างเพื่อให้ผลรวมตรงกับยอดที่กรอกเสมอ ไม่เพี้ยนจากการปัดเศษ' },
-    { q: 'หัก ณ ที่จ่ายคิดจากยอดรวม VAT หรือไม่', a: 'ไม่ ภาษีหัก ณ ที่จ่ายคิดจากราคาก่อน VAT เท่านั้น เครื่องมือนี้จึงหักจากฐานก่อน VAT ให้อัตโนมัติ' },
-    { q: 'ยอดจ่ายจริงคืออะไร', a: 'ยอดรวมที่มี VAT แล้ว หักด้วยภาษีหัก ณ ที่จ่าย คือจำนวนเงินที่ผู้จ่ายโอนให้ผู้รับจริง ส่วนภาษีที่หักไว้ผู้จ่ายต้องนำส่งกรมสรรพากร' },
+    {
+      q: 'ถอด VAT คำนวณอย่างไร',
+      a: 'ราคาก่อน VAT = ยอดรวม ÷ 1.07 และ VAT = ยอดรวม − ราคาก่อน VAT เครื่องมือนี้คำนวณ VAT จากส่วนต่างเพื่อให้ผลรวมตรงกับยอดที่กรอกเสมอ ไม่เพี้ยนจากการปัดเศษ',
+    },
+    {
+      q: 'หัก ณ ที่จ่ายคิดจากยอดรวม VAT หรือไม่',
+      a: 'ไม่ ภาษีหัก ณ ที่จ่ายคิดจากราคาก่อน VAT เท่านั้น เครื่องมือนี้จึงหักจากฐานก่อน VAT ให้อัตโนมัติ',
+    },
+    {
+      q: 'ยอดจ่ายจริงคืออะไร',
+      a: 'ยอดรวมที่มี VAT แล้ว หักด้วยภาษีหัก ณ ที่จ่าย คือจำนวนเงินที่ผู้จ่ายโอนให้ผู้รับจริง ส่วนภาษีที่หักไว้ผู้จ่ายต้องนำส่งกรมสรรพากร',
+    },
   ],
 };
 ```
@@ -628,7 +664,9 @@ export default function VatWhtTool() {
           <Select id="wht" value={whtRate} onChange={(e) => setWhtRate(e.target.value)}>
             <option value="0">ไม่หัก</option>
             {WHT_RATES.map((w) => (
-              <option key={w.rate} value={w.rate}>{w.label}</option>
+              <option key={w.rate} value={w.rate}>
+                {w.label}
+              </option>
             ))}
           </Select>
         </Field>
@@ -683,11 +721,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 3: เครื่องมือ "ดอกเบี้ยทบต้น / เป้าหมายออม" (`compound-interest`, free)
 
 **Files:**
+
 - Create: `src/tools/finance/compound-interest/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/finance/compound-interest/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `compoundGrowth(input: CompoundInput): CompoundResult`, `monthlyForGoal(input: GoalInput): number`
 
 - [ ] **Step 1: เขียน test**
@@ -700,20 +740,38 @@ import { compoundGrowth, monthlyForGoal } from './logic';
 
 describe('compoundGrowth', () => {
   it('ดอกเบี้ย 0% → ยอดสุดท้ายเท่ากับเงินต้นบวกเงินฝากรวม', () => {
-    const r = compoundGrowth({ principal: 100_000, monthlyDeposit: 1_000, annualRate: 0, years: 1, compoundsPerYear: 12 });
+    const r = compoundGrowth({
+      principal: 100_000,
+      monthlyDeposit: 1_000,
+      annualRate: 0,
+      years: 1,
+      compoundsPerYear: 12,
+    });
     expect(r.futureValue).toBe(112_000);
     expect(r.totalDeposits).toBe(12_000);
     expect(r.totalInterest).toBe(0);
   });
 
   it('ทบต้นรายเดือน 12% ต่อปี 1 ปี ไม่มีเงินฝากเพิ่ม', () => {
-    const r = compoundGrowth({ principal: 100_000, monthlyDeposit: 0, annualRate: 0.12, years: 1, compoundsPerYear: 12 });
+    const r = compoundGrowth({
+      principal: 100_000,
+      monthlyDeposit: 0,
+      annualRate: 0.12,
+      years: 1,
+      compoundsPerYear: 12,
+    });
     expect(r.futureValue).toBe(112_682.5);
     expect(r.totalInterest).toBe(12_682.5);
   });
 
   it('มีตารางรายปีครบตามจำนวนปี และยอดปีสุดท้ายเท่ากับ futureValue', () => {
-    const r = compoundGrowth({ principal: 10_000, monthlyDeposit: 500, annualRate: 0.05, years: 3, compoundsPerYear: 12 });
+    const r = compoundGrowth({
+      principal: 10_000,
+      monthlyDeposit: 500,
+      annualRate: 0.05,
+      years: 3,
+      compoundsPerYear: 12,
+    });
     expect(r.rows).toHaveLength(3);
     expect(r.rows[0].year).toBe(1);
     expect(r.rows[2].balance).toBe(r.futureValue);
@@ -721,23 +779,35 @@ describe('compoundGrowth', () => {
   });
 
   it('ยอดรวมดอกเบี้ย = ยอดสุดท้าย − เงินต้น − เงินฝากรวม', () => {
-    const r = compoundGrowth({ principal: 50_000, monthlyDeposit: 2_000, annualRate: 0.06, years: 5, compoundsPerYear: 12 });
+    const r = compoundGrowth({
+      principal: 50_000,
+      monthlyDeposit: 2_000,
+      annualRate: 0.06,
+      years: 5,
+      compoundsPerYear: 12,
+    });
     expect(r.totalDeposits).toBe(120_000);
     expect(r.totalInterest).toBe(Math.round((r.futureValue - 50_000 - 120_000) * 100) / 100);
   });
 
   it('จำนวนปีต้องมากกว่า 0', () => {
-    expect(() => compoundGrowth({ principal: 1, monthlyDeposit: 0, annualRate: 0.05, years: 0, compoundsPerYear: 12 })).toThrow();
+    expect(() =>
+      compoundGrowth({ principal: 1, monthlyDeposit: 0, annualRate: 0.05, years: 0, compoundsPerYear: 12 }),
+    ).toThrow();
   });
 
   it('เงินต้นติดลบ → error', () => {
-    expect(() => compoundGrowth({ principal: -1, monthlyDeposit: 0, annualRate: 0.05, years: 1, compoundsPerYear: 12 })).toThrow();
+    expect(() =>
+      compoundGrowth({ principal: -1, monthlyDeposit: 0, annualRate: 0.05, years: 1, compoundsPerYear: 12 }),
+    ).toThrow();
   });
 });
 
 describe('monthlyForGoal', () => {
   it('ดอกเบี้ย 0% → (เป้าหมาย − เงินต้น) ÷ จำนวนเดือน', () => {
-    expect(monthlyForGoal({ goal: 112_000, principal: 100_000, annualRate: 0, years: 1, compoundsPerYear: 12 })).toBe(1_000);
+    expect(monthlyForGoal({ goal: 112_000, principal: 100_000, annualRate: 0, years: 1, compoundsPerYear: 12 })).toBe(
+      1_000,
+    );
   });
 
   it('ฝากตามที่คำนวณได้ แล้วโตถึงเป้าหมายพอดี', () => {
@@ -748,7 +818,9 @@ describe('monthlyForGoal', () => {
   });
 
   it('เงินต้นมากกว่าเป้าหมายแล้ว → 0', () => {
-    expect(monthlyForGoal({ goal: 50_000, principal: 100_000, annualRate: 0.05, years: 5, compoundsPerYear: 12 })).toBe(0);
+    expect(monthlyForGoal({ goal: 50_000, principal: 100_000, annualRate: 0.05, years: 5, compoundsPerYear: 12 })).toBe(
+      0,
+    );
   });
 });
 ```
@@ -888,9 +960,18 @@ export const compoundInterestMeta: ToolMeta = {
     'ดูยอดสุดท้ายพร้อมตารางการเติบโตรายปี',
   ],
   faq: [
-    { q: 'ดอกเบี้ยทบต้นต่างจากดอกเบี้ยธรรมดาอย่างไร', a: 'ดอกเบี้ยทบต้นนำดอกเบี้ยที่ได้ในแต่ละงวดไปรวมเป็นเงินต้นของงวดถัดไป เงินจึงโตแบบทวีคูณ ยิ่งระยะเวลานานยิ่งต่างจากดอกเบี้ยธรรมดามาก' },
-    { q: 'เงินฝากรายเดือนคิดตอนต้นเดือนหรือสิ้นเดือน', a: 'เครื่องมือนี้คิดแบบฝากตอนสิ้นเดือน (ordinary annuity) ซึ่งเป็นวิธีมาตรฐานของแผนออมรายเดือนทั่วไป' },
-    { q: 'จำนวนครั้งที่ทบต้นต่อปีมีผลแค่ไหน', a: 'ยิ่งทบต้นถี่ ผลตอบแทนจริงยิ่งสูงขึ้นเล็กน้อย เช่น 12% ทบต้นรายเดือนให้ผลตอบแทนจริงประมาณ 12.68% ต่อปี' },
+    {
+      q: 'ดอกเบี้ยทบต้นต่างจากดอกเบี้ยธรรมดาอย่างไร',
+      a: 'ดอกเบี้ยทบต้นนำดอกเบี้ยที่ได้ในแต่ละงวดไปรวมเป็นเงินต้นของงวดถัดไป เงินจึงโตแบบทวีคูณ ยิ่งระยะเวลานานยิ่งต่างจากดอกเบี้ยธรรมดามาก',
+    },
+    {
+      q: 'เงินฝากรายเดือนคิดตอนต้นเดือนหรือสิ้นเดือน',
+      a: 'เครื่องมือนี้คิดแบบฝากตอนสิ้นเดือน (ordinary annuity) ซึ่งเป็นวิธีมาตรฐานของแผนออมรายเดือนทั่วไป',
+    },
+    {
+      q: 'จำนวนครั้งที่ทบต้นต่อปีมีผลแค่ไหน',
+      a: 'ยิ่งทบต้นถี่ ผลตอบแทนจริงยิ่งสูงขึ้นเล็กน้อย เช่น 12% ทบต้นรายเดือนให้ผลตอบแทนจริงประมาณ 12.68% ต่อปี',
+    },
   ],
 };
 ```
@@ -1041,11 +1122,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ใช้ `Intl.Segmenter` ตัดคำภาษาไทย (รองรับใน Node 22 และเบราว์เซอร์ทันสมัยทุกตัว) พร้อม fallback เป็นการแยกด้วยช่องว่างเมื่อ runtime ไม่มี Segmenter
 
 **Files:**
+
 - Create: `src/tools/text/word-count/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/text/word-count/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `countText(text: string): CountResult`
 
 - [ ] **Step 1: เขียน test**
@@ -1159,12 +1242,8 @@ export function countText(text: string): CountResult {
   const charactersNoSpaces = Array.from(text.replace(/\s/g, '')).length;
   const words = countWords(text);
   const lines = text === '' ? 0 : text.split(/\r\n|\r|\n/).length;
-  const paragraphs = text
-    .split(/(?:\r\n|\r|\n){2,}/)
-    .filter((p) => p.trim() !== '').length;
-  const sentences = text
-    .split(/[.!?…]+|(?:\r\n|\r|\n)+/)
-    .filter((s) => s.trim() !== '').length;
+  const paragraphs = text.split(/(?:\r\n|\r|\n){2,}/).filter((p) => p.trim() !== '').length;
+  const sentences = text.split(/[.!?…]+|(?:\r\n|\r|\n)+/).filter((s) => s.trim() !== '').length;
 
   return {
     characters,
@@ -1208,9 +1287,18 @@ export const wordCountMeta: ToolMeta = {
     'ใช้ตัวเลข "ตัวอักษรที่ตาเห็น" เมื่อต้องนับตามจำนวนที่แสดงผล เช่น จำกัดความยาวโพสต์',
   ],
   faq: [
-    { q: 'นับคำภาษาไทยที่ไม่มีช่องว่างได้อย่างไร', a: 'ใช้ตัวตัดคำมาตรฐานของเบราว์เซอร์ (Intl.Segmenter) ซึ่งใช้พจนานุกรมภาษาไทย จึงแยก "สวัสดีครับ" เป็น "สวัสดี" และ "ครับ" ได้โดยไม่ต้องมีช่องว่าง' },
-    { q: 'ทำไม "ที่" นับได้ 3 ตัวอักษร', a: 'เพราะสระและวรรณยุกต์ไทยเป็นอักขระแยกในระบบคอมพิวเตอร์ เครื่องมือจึงแสดงทั้งจำนวนอักขระจริงและจำนวนตัวอักษรที่ตาเห็น ให้เลือกใช้ตามงาน' },
-    { q: 'ข้อมูลที่พิมพ์ถูกส่งขึ้นเซิร์ฟเวอร์ไหม', a: 'ไม่ ข้อความทั้งหมดประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งออกไปที่ใด' },
+    {
+      q: 'นับคำภาษาไทยที่ไม่มีช่องว่างได้อย่างไร',
+      a: 'ใช้ตัวตัดคำมาตรฐานของเบราว์เซอร์ (Intl.Segmenter) ซึ่งใช้พจนานุกรมภาษาไทย จึงแยก "สวัสดีครับ" เป็น "สวัสดี" และ "ครับ" ได้โดยไม่ต้องมีช่องว่าง',
+    },
+    {
+      q: 'ทำไม "ที่" นับได้ 3 ตัวอักษร',
+      a: 'เพราะสระและวรรณยุกต์ไทยเป็นอักขระแยกในระบบคอมพิวเตอร์ เครื่องมือจึงแสดงทั้งจำนวนอักขระจริงและจำนวนตัวอักษรที่ตาเห็น ให้เลือกใช้ตามงาน',
+    },
+    {
+      q: 'ข้อมูลที่พิมพ์ถูกส่งขึ้นเซิร์ฟเวอร์ไหม',
+      a: 'ไม่ ข้อความทั้งหมดประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการส่งออกไปที่ใด',
+    },
   ],
 };
 ```
@@ -1232,7 +1320,14 @@ export default function WordCountTool() {
   return (
     <div className="space-y-4">
       <Field label="ข้อความ" htmlFor="text" hint="ประมวลผลในเบราว์เซอร์ ไม่มีการส่งข้อมูลออก">
-        <Textarea id="text" rows={10} value={text} onChange={(e) => setText(e.target.value)} placeholder="พิมพ์หรือวางข้อความที่นี่…" autoFocus />
+        <Textarea
+          id="text"
+          rows={10}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="พิมพ์หรือวางข้อความที่นี่…"
+          autoFocus
+        />
       </Field>
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <Stat label="คำ" value={formatNumber(r.words)} />
@@ -1271,11 +1366,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 5: เครื่องมือ "เลขไทย ↔ อารบิก และตัวพิมพ์ใหญ่/เล็ก" (`thai-numerals`, free)
 
 **Files:**
+
 - Create: `src/tools/text/thai-numerals/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/text/thai-numerals/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `toThaiDigits`, `toArabicDigits`, `transformCase(text: string, mode: CaseMode): string`, `type CaseMode = 'upper' | 'lower' | 'title' | 'sentence'`
 
 - [ ] **Step 1: เขียน test**
@@ -1401,9 +1498,18 @@ export const thaiNumeralsMeta: ToolMeta = {
     'กด "คัดลอก" เพื่อนำผลลัพธ์ไปใช้ต่อ',
   ],
   faq: [
-    { q: 'เครื่องมือแปลงเฉพาะตัวเลขหรือทั้งข้อความ', a: 'แปลงเฉพาะตัวเลขในข้อความ ตัวอักษรและเครื่องหมายอื่นคงเดิมทั้งหมด จึงวางทั้งย่อหน้าได้เลย' },
-    { q: 'ทำไมข้อความภาษาไทยไม่เปลี่ยนเมื่อเลือกตัวพิมพ์ใหญ่', a: 'ภาษาไทยไม่มีตัวพิมพ์ใหญ่-เล็ก การแปลงตัวพิมพ์จึงมีผลกับอักษรโรมันเท่านั้น' },
-    { q: 'ใช้เลขไทยในหนังสือราชการอย่างไร', a: 'ระเบียบงานสารบรรณกำหนดให้ใช้เลขไทยในหนังสือราชการ เช่น วันที่และเลขที่หนังสือ เครื่องมือนี้ช่วยแปลงทั้งฉบับได้ในครั้งเดียว' },
+    {
+      q: 'เครื่องมือแปลงเฉพาะตัวเลขหรือทั้งข้อความ',
+      a: 'แปลงเฉพาะตัวเลขในข้อความ ตัวอักษรและเครื่องหมายอื่นคงเดิมทั้งหมด จึงวางทั้งย่อหน้าได้เลย',
+    },
+    {
+      q: 'ทำไมข้อความภาษาไทยไม่เปลี่ยนเมื่อเลือกตัวพิมพ์ใหญ่',
+      a: 'ภาษาไทยไม่มีตัวพิมพ์ใหญ่-เล็ก การแปลงตัวพิมพ์จึงมีผลกับอักษรโรมันเท่านั้น',
+    },
+    {
+      q: 'ใช้เลขไทยในหนังสือราชการอย่างไร',
+      a: 'ระเบียบงานสารบรรณกำหนดให้ใช้เลขไทยในหนังสือราชการ เช่น วันที่และเลขที่หนังสือ เครื่องมือนี้ช่วยแปลงทั้งฉบับได้ในครั้งเดียว',
+    },
   ],
 };
 ```
@@ -1471,7 +1577,9 @@ export default function ThaiNumeralsTool() {
         <Textarea id="out" rows={6} value={result} readOnly />
       </Field>
 
-      <Button onClick={copy} disabled={!result}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
+      <Button onClick={copy} disabled={!result}>
+        {copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}
+      </Button>
       {copyError && <p className="text-sm text-red-600">{copyError}</p>}
     </div>
   );
@@ -1500,11 +1608,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 6: เครื่องมือ "จัดการบรรทัด: ลบซ้ำ เรียง ตัดช่องว่าง" (`text-lines`, free)
 
 **Files:**
+
 - Create: `src/tools/text/text-lines/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/text/text-lines/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `processLines(text: string, options: LineOptions): LineResult`, `DEFAULT_LINE_OPTIONS: LineOptions`
 
 - [ ] **Step 1: เขียน test**
@@ -1682,9 +1792,18 @@ export const textLinesMeta: ToolMeta = {
     'คัดลอกผลลัพธ์ไปใช้ต่อ พร้อมดูสรุปว่าลบไปกี่บรรทัด',
   ],
   faq: [
-    { q: 'เรียงภาษาไทยถูกต้องตามพจนานุกรมไหม', a: 'ใช้การเรียงลำดับมาตรฐานภาษาไทยของเบราว์เซอร์ (Intl.Collator) จึงเรียง ก ข ค ได้ถูกต้อง ไม่ใช่การเรียงตามรหัสอักขระ' },
-    { q: 'ลบบรรทัดซ้ำแล้วเก็บบรรทัดไหนไว้', a: 'เก็บบรรทัดที่พบครั้งแรกไว้ และตัดบรรทัดซ้ำที่ตามมาออก หากติ๊ก "ไม่สนตัวพิมพ์ใหญ่-เล็ก" จะถือว่า Apple และ apple ซ้ำกัน' },
-    { q: 'ใช้กับรายการอีเมลหรือเบอร์โทรได้ไหม', a: 'ได้ และปลอดภัย เพราะประมวลผลในเบราว์เซอร์ทั้งหมด ข้อมูลไม่ถูกส่งออกไปที่ใด' },
+    {
+      q: 'เรียงภาษาไทยถูกต้องตามพจนานุกรมไหม',
+      a: 'ใช้การเรียงลำดับมาตรฐานภาษาไทยของเบราว์เซอร์ (Intl.Collator) จึงเรียง ก ข ค ได้ถูกต้อง ไม่ใช่การเรียงตามรหัสอักขระ',
+    },
+    {
+      q: 'ลบบรรทัดซ้ำแล้วเก็บบรรทัดไหนไว้',
+      a: 'เก็บบรรทัดที่พบครั้งแรกไว้ และตัดบรรทัดซ้ำที่ตามมาออก หากติ๊ก "ไม่สนตัวพิมพ์ใหญ่-เล็ก" จะถือว่า Apple และ apple ซ้ำกัน',
+    },
+    {
+      q: 'ใช้กับรายการอีเมลหรือเบอร์โทรได้ไหม',
+      a: 'ได้ และปลอดภัย เพราะประมวลผลในเบราว์เซอร์ทั้งหมด ข้อมูลไม่ถูกส่งออกไปที่ใด',
+    },
   ],
 };
 ```
@@ -1729,7 +1848,14 @@ export default function TextLinesTool() {
   return (
     <div className="space-y-4">
       <Field label="ข้อความต้นฉบับ" htmlFor="src" hint="บรรทัดละ 1 รายการ">
-        <Textarea id="src" rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder="วางรายการที่นี่…" autoFocus />
+        <Textarea
+          id="src"
+          rows={8}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="วางรายการที่นี่…"
+          autoFocus
+        />
       </Field>
 
       <div className="flex flex-wrap items-end gap-4">
@@ -1748,7 +1874,11 @@ export default function TextLinesTool() {
         </div>
         <div className="w-48">
           <Field label="เรียงลำดับ" htmlFor="sort">
-            <Select id="sort" value={options.sort} onChange={(e) => setOptions({ ...options, sort: e.target.value as LineOptions['sort'] })}>
+            <Select
+              id="sort"
+              value={options.sort}
+              onChange={(e) => setOptions({ ...options, sort: e.target.value as LineOptions['sort'] })}
+            >
               <option value="none">ไม่เรียง</option>
               <option value="asc">ก-ฮ / A-Z</option>
               <option value="desc">ฮ-ก / Z-A</option>
@@ -1767,7 +1897,9 @@ export default function TextLinesTool() {
         <Textarea id="out" rows={8} value={result.text} readOnly />
       </Field>
 
-      <Button onClick={copy} disabled={!result.text}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
+      <Button onClick={copy} disabled={!result.text}>
+        {copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}
+      </Button>
       {copyError && <p className="text-sm text-red-600">{copyError}</p>}
     </div>
   );
@@ -1798,11 +1930,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 สูตร checksum: ผลรวมของ `หลักที่ i × (13 − i)` สำหรับ 12 หลักแรก (i เริ่มที่ 0) แล้วหลักตรวจสอบ = `(11 − ผลรวม mod 11) mod 10`
 
 **Files:**
+
 - Create: `src/tools/text/thai-id-check/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/text/thai-id-check/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `idCheckDigit(first12: string): number`, `validateThaiId(input: string): IdValidation`, `formatThaiId(id13: string): string`, `randomThaiId(rand?: () => number): string`
 
 - [ ] **Step 1: เขียน test**
@@ -1970,9 +2104,18 @@ export const thaiIdCheckMeta: ToolMeta = {
     'กด "สุ่มเลขทดสอบ" เมื่อต้องการเลขสมมติที่ผ่าน checksum สำหรับทดสอบระบบ',
   ],
   faq: [
-    { q: 'ตรวจแบบนี้ยืนยันว่ามีคนนี้อยู่จริงไหม', a: 'ไม่ เครื่องมือตรวจเฉพาะความถูกต้องทางคณิตศาสตร์ของหลักตรวจสอบเท่านั้น ไม่ได้เชื่อมกับฐานข้อมูลทะเบียนราษฎร จึงบอกไม่ได้ว่าเลขนั้นออกให้ใครหรือมีอยู่จริง' },
-    { q: 'หลักตรวจสอบคำนวณอย่างไร', a: 'นำเลข 12 หลักแรกคูณด้วยน้ำหนัก 13 ลดลงถึง 2 ตามลำดับ รวมผลลัพธ์ หาเศษจากการหารด้วย 11 แล้วคำนวณ (11 − เศษ) mod 10 จะได้หลักที่ 13' },
-    { q: 'เลขที่สุ่มได้นำไปใช้จริงได้ไหม', a: 'ไม่ควร เลขที่สุ่มเป็นเลขสมมติที่ผ่านสูตรตรวจสอบเท่านั้น มีไว้สำหรับทดสอบฟอร์มและระบบ ไม่ใช่เลขบัตรของบุคคลใด' },
+    {
+      q: 'ตรวจแบบนี้ยืนยันว่ามีคนนี้อยู่จริงไหม',
+      a: 'ไม่ เครื่องมือตรวจเฉพาะความถูกต้องทางคณิตศาสตร์ของหลักตรวจสอบเท่านั้น ไม่ได้เชื่อมกับฐานข้อมูลทะเบียนราษฎร จึงบอกไม่ได้ว่าเลขนั้นออกให้ใครหรือมีอยู่จริง',
+    },
+    {
+      q: 'หลักตรวจสอบคำนวณอย่างไร',
+      a: 'นำเลข 12 หลักแรกคูณด้วยน้ำหนัก 13 ลดลงถึง 2 ตามลำดับ รวมผลลัพธ์ หาเศษจากการหารด้วย 11 แล้วคำนวณ (11 − เศษ) mod 10 จะได้หลักที่ 13',
+    },
+    {
+      q: 'เลขที่สุ่มได้นำไปใช้จริงได้ไหม',
+      a: 'ไม่ควร เลขที่สุ่มเป็นเลขสมมติที่ผ่านสูตรตรวจสอบเท่านั้น มีไว้สำหรับทดสอบฟอร์มและระบบ ไม่ใช่เลขบัตรของบุคคลใด',
+    },
   ],
 };
 ```
@@ -1994,7 +2137,14 @@ export default function ThaiIdCheckTool() {
   return (
     <div className="space-y-4">
       <Field label="เลขบัตรประชาชน" htmlFor="id" hint="ใส่ขีดหรือเว้นวรรคได้ ระบบตัดให้อัตโนมัติ">
-        <Input id="id" inputMode="numeric" value={value} onChange={(e) => setValue(e.target.value)} placeholder="1-2345-67890-12-1" autoFocus />
+        <Input
+          id="id"
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="1-2345-67890-12-1"
+          autoFocus
+        />
       </Field>
 
       {touched && (
@@ -2008,8 +2158,12 @@ export default function ThaiIdCheckTool() {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => setValue(formatThaiId(randomThaiId()))}>สุ่มเลขทดสอบ</Button>
-        <Button variant="secondary" onClick={() => setValue('')}>ล้าง</Button>
+        <Button variant="secondary" onClick={() => setValue(formatThaiId(randomThaiId()))}>
+          สุ่มเลขทดสอบ
+        </Button>
+        <Button variant="secondary" onClick={() => setValue('')}>
+          ล้าง
+        </Button>
       </div>
 
       <p className="text-xs text-slate-500">
@@ -2042,25 +2196,30 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 8: ตรวจในเบราว์เซอร์ + deploy
 
 **Files:**
+
 - Modify: ไม่มี (เว้นแต่พบบั๊กจากการตรวจ)
 
 **Interfaces:**
+
 - Consumes: เครื่องมือทั้ง 7 ตัวจาก Task 1–7 ที่ลงทะเบียนใน registry แล้ว
 
 - [ ] **Step 1: ตรวจ HTML ที่ build ออกมาว่ามีเนื้อหา SEO โดยไม่ต้องรัน JS**
 
 Run:
+
 ```bash
 npm run build
 grep -c "คำถามที่พบบ่อย" dist/client/t/net-salary.html dist/client/t/word-count.html dist/client/t/thai-id-check.html
 grep -o "FAQPage" dist/client/t/vat-wht.html | head -1
 grep -c "loc>" dist/client/sitemap-0.xml
 ```
+
 Expected: ทุกไฟล์เจอ "คำถามที่พบบ่อย" อย่างน้อย 1 ครั้ง, เจอ `FAQPage`, และ sitemap มีจำนวน `<loc>` เพิ่มขึ้นจากเดิม 7 รายการ (เดิม 5 เครื่องมือ → รวม 12 เครื่องมือ)
 
 - [ ] **Step 2: ทดสอบ 7 เครื่องมือใหม่ใน dev server**
 
 Run: `npm run dev` แล้วเปิดทีละหน้า
+
 - `/t/net-salary` — เปลี่ยนเงินเดือนเป็น 50000 แล้วดูว่าตัวเลขอัปเดต, ติ๊ก/ปลดประกันสังคมแล้วยอดเปลี่ยน
 - `/t/vat-wht` — สลับ "รวม VAT แล้ว" แล้วดูว่าฐาน + VAT = ยอดรวมเป๊ะ
 - `/t/compound-interest` — สลับโหมด "คำนวณเงินที่ต้องออม" แล้วตารางแสดงครบทุกปี
@@ -2081,11 +2240,13 @@ Expected: deploy สำเร็จ และแสดง `toolsiam.com (custom 
 - [ ] **Step 4: ตรวจ production**
 
 Run:
+
 ```bash
 for p in /t/net-salary /t/vat-wht /t/compound-interest /t/word-count /t/thai-numerals /t/text-lines /t/thai-id-check /c/text /c/finance; do
   echo "$(curl -s -o /dev/null -w '%{http_code}' "https://toolsiam.com$p")  $p"
 done
 ```
+
 Expected: `200` ทุกบรรทัด
 
 - [ ] **Step 5: Commit สรุปเฟส (ถ้ามีไฟล์ค้าง)**
@@ -2093,6 +2254,7 @@ Expected: `200` ทุกบรรทัด
 ```bash
 git status --short
 ```
+
 ถ้าไม่มีอะไรค้างก็ข้ามได้ — งานทั้งหมด commit ไปแล้วราย Task
 
 ---

@@ -40,16 +40,36 @@ export default function LandPriceTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <NumberInput id="area" label="ขนาดที่ดิน" mode="decimal" value={area} onValueChange={setArea} suffix={UNIT_LABEL[areaUnit]} />
+        <NumberInput
+          id="area"
+          label="ขนาดที่ดิน"
+          mode="decimal"
+          value={area}
+          onValueChange={setArea}
+          suffix={UNIT_LABEL[areaUnit]}
+        />
         <Field label="หน่วยของขนาด" htmlFor="area-unit">
           <Select id="area-unit" value={areaUnit} onChange={(e) => setAreaUnit(e.target.value as LandUnit)}>
-            {AREA_UNITS.map((u) => <option key={u} value={u}>{UNIT_LABEL[u]}</option>)}
+            {AREA_UNITS.map((u) => (
+              <option key={u} value={u}>
+                {UNIT_LABEL[u]}
+              </option>
+            ))}
           </Select>
         </Field>
-        <NumberInput id="price" label="ราคาที่ประกาศขาย" mode="decimal" value={price} onValueChange={setPrice} suffix="บาท" />
+        <NumberInput
+          id="price"
+          label="ราคาที่ประกาศขาย"
+          mode="decimal"
+          value={price}
+          onValueChange={setPrice}
+          suffix="บาท"
+        />
         <Field label="ราคาต่อหน่วย" htmlFor="price-unit">
           <Select id="price-unit" value={priceUnit} onChange={(e) => setPriceUnit(e.target.value as LandUnit)}>
-            {PRICE_UNITS.map((u) => <option key={u} value={u}>{`บาท / ${UNIT_LABEL[u]}`}</option>)}
+            {PRICE_UNITS.map((u) => (
+              <option key={u} value={u}>{`บาท / ${UNIT_LABEL[u]}`}</option>
+            ))}
           </Select>
         </Field>
       </div>
@@ -80,7 +100,14 @@ export default function LandPriceTool() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
-            <NumberInput id="down" label="เงินดาวน์" mode="decimal" value={downPercent} onValueChange={setDownPercent} suffix="%" />
+            <NumberInput
+              id="down"
+              label="เงินดาวน์"
+              mode="decimal"
+              value={downPercent}
+              onValueChange={setDownPercent}
+              suffix="%"
+            />
             <Stat label="เงินดาวน์" value={`${formatBaht(down.downPayment)} บาท`} />
             <Stat label="ส่วนที่ต้องกู้" value={`${formatBaht(down.financed)} บาท`} />
           </div>

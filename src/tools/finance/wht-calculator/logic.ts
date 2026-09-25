@@ -48,7 +48,8 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 export function calculateWht(input: WhtInput): WhtResult {
   const { amount, mode, whtRate, vatRate } = input;
   if (!Number.isFinite(amount) || amount < 0) throw new Error('ยอดเงินต้องเป็นตัวเลขไม่ติดลบ');
-  if (!Number.isFinite(whtRate) || whtRate < 0 || whtRate >= 1) throw new Error('อัตราหัก ณ ที่จ่ายต้องอยู่ระหว่าง 0–100%');
+  if (!Number.isFinite(whtRate) || whtRate < 0 || whtRate >= 1)
+    throw new Error('อัตราหัก ณ ที่จ่ายต้องอยู่ระหว่าง 0–100%');
   if (!Number.isFinite(vatRate) || vatRate < 0) throw new Error('อัตรา VAT ต้องเป็นตัวเลขไม่ติดลบ');
 
   // ยอดที่ได้รับจริง = base × (1 + vat − wht) → ถอดกลับหา base
@@ -68,7 +69,8 @@ export function calculateWht(input: WhtInput): WhtResult {
   for (let cents = Math.max(0, estimate - reach); cents <= estimate + reach; cents++) {
     const candidate = fromBase(cents / 100, whtRate, vatRate);
     if (candidate.netReceived === target) return candidate;
-    if (!best || Math.abs(candidate.netReceived - target) < Math.abs(best.netReceived - target) - 1e-9) best = candidate;
+    if (!best || Math.abs(candidate.netReceived - target) < Math.abs(best.netReceived - target) - 1e-9)
+      best = candidate;
   }
   return best!;
 }

@@ -5,7 +5,11 @@ import { Button } from './button';
 
 describe('Alert', () => {
   it('tone="danger" ประกาศเป็น role="alert" ให้ screen reader อ่านทันที', () => {
-    render(<Alert tone="danger" title="เครื่องมือนี้ทำงานผิดพลาด">ลองโหลดหน้าใหม่</Alert>);
+    render(
+      <Alert tone="danger" title="เครื่องมือนี้ทำงานผิดพลาด">
+        ลองโหลดหน้าใหม่
+      </Alert>,
+    );
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent('เครื่องมือนี้ทำงานผิดพลาด');
     expect(alert).toHaveTextContent('ลองโหลดหน้าใหม่');
@@ -44,13 +48,7 @@ describe('ResultBox', () => {
 
 describe('EmptyState', () => {
   it('ต้องมีทางออกเสมอ ไม่ใช่บอกว่าไม่เจอแล้วปล่อยค้าง', () => {
-    render(
-      <EmptyState
-        title="ไม่พบเครื่องมือ"
-        description="ลองคำค้นอื่น"
-        action={<Button>ล้างตัวกรอง</Button>}
-      />,
-    );
+    render(<EmptyState title="ไม่พบเครื่องมือ" description="ลองคำค้นอื่น" action={<Button>ล้างตัวกรอง</Button>} />);
     expect(screen.getByRole('heading', { name: 'ไม่พบเครื่องมือ' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ล้างตัวกรอง' })).toBeInTheDocument();
   });

@@ -65,10 +65,12 @@ ToolSiam/
 ### Task 1: Project scaffold (Astro + React + Tailwind + Cloudflare adapter)
 
 **Files:**
+
 - Create: `package.json`, `tsconfig.json`, `astro.config.mjs`, `vitest.config.ts`, `src/styles/global.css`, `src/layouts/Base.astro`, `src/components/Header.astro`, `src/components/Footer.astro`, `src/pages/index.astro`, `public/favicon.svg`, `public/robots.txt`
 - Modify: `.gitignore` (มีอยู่แล้ว)
 
 **Interfaces:**
+
 - Produces: `Base.astro` props `{ title: string; description: string; jsonLd?: object[] }` — ทุกหน้าใช้ layout นี้; alias `@/` ใช้ได้ทั้ง astro/ts/tsx/vitest
 
 - [ ] **Step 1: สร้าง package.json**
@@ -175,10 +177,10 @@ export default defineConfig({
 - [ ] **Step 6: สร้าง src/styles/global.css**
 
 ```css
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: "Noto Sans Thai", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --color-brand-50: #ecfdf5;
   --color-brand-600: #059669;
   --color-brand-700: #047857;
@@ -188,6 +190,7 @@ export default defineConfig({
 - [ ] **Step 7: สร้าง src/components/Header.astro และ Footer.astro**
 
 `src/components/Header.astro`:
+
 ```astro
 ---
 const links = [
@@ -196,19 +199,30 @@ const links = [
 ];
 const current = Astro.url.pathname;
 ---
+
 <header class="border-b border-slate-200 bg-white">
   <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-    <a href="/" class="text-xl font-bold text-brand-700">ทูลสยาม <span class="text-slate-400 font-normal text-sm">ToolSiam</span></a>
+    <a href="/" class="text-xl font-bold text-brand-700"
+      >ทูลสยาม <span class="text-slate-400 font-normal text-sm">ToolSiam</span></a
+    >
     <nav class="flex gap-4 text-sm">
-      {links.map((l) => (
-        <a href={l.href} class:list={['hover:text-brand-700', { 'font-semibold text-brand-700': current.startsWith(l.href) }]}>{l.label}</a>
-      ))}
+      {
+        links.map((l) => (
+          <a
+            href={l.href}
+            class:list={['hover:text-brand-700', { 'font-semibold text-brand-700': current.startsWith(l.href) }]}
+          >
+            {l.label}
+          </a>
+        ))
+      }
     </nav>
   </div>
 </header>
 ```
 
 `src/components/Footer.astro`:
+
 ```astro
 <footer class="mt-16 border-t border-slate-200 bg-white">
   <div class="mx-auto max-w-5xl px-4 py-6 text-sm text-slate-500">
@@ -233,6 +247,7 @@ interface Props {
 const { title, description, jsonLd = [] } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
+
 <!doctype html>
 <html lang="th">
   <head>
@@ -251,7 +266,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
   </head>
   <body class="min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -267,21 +285,28 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 - [ ] **Step 9: สร้างหน้าแรกชั่วคราว, favicon, robots**
 
 `src/pages/index.astro`:
+
 ```astro
 ---
 import Base from '@/layouts/Base.astro';
 ---
-<Base title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay และอีกมาก">
+
+<Base
+  title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย"
+  description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay และอีกมาก"
+>
   <h1 class="text-3xl font-bold">ทูลสยาม</h1>
 </Base>
 ```
 
 `public/favicon.svg`:
+
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#059669"/><text x="32" y="44" font-size="34" font-family="sans-serif" font-weight="700" text-anchor="middle" fill="#fff">ท</text></svg>
 ```
 
 `public/robots.txt`:
+
 ```
 User-agent: *
 Allow: /
@@ -309,10 +334,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 2: Tool registry types, categories, registry + loaders (พร้อม test)
 
 **Files:**
+
 - Create: `src/tools/types.ts`, `src/tools/categories.ts`, `src/tools/registry.ts`, `src/tools/loaders.ts`, `src/tools/ToolIsland.tsx`
 - Test: `src/tools/registry.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `type CategoryId = 'finance'|'text'|'date'|'qr'|'image'|'pdf'|'dev'|'web'`, `type Tier = 'free'|'premium'`
   - `interface ToolMeta { slug; name; nameEn; category: CategoryId; tier: Tier; description; keywords: string[]; howTo: string[]; faq: {q,a}[] }`
@@ -324,6 +351,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - [ ] **Step 1: เขียน test ของ registry (จะ fail เพราะยังไม่มีไฟล์)**
 
 `src/tools/registry.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { tools, categories, getTool, getToolsByCategory, getCategory } from './registry';
@@ -369,6 +397,7 @@ Expected: FAIL — `Cannot find module './registry'`
 - [ ] **Step 3: สร้าง types.ts และ categories.ts**
 
 `src/tools/types.ts`:
+
 ```ts
 export type CategoryId = 'finance' | 'text' | 'date' | 'qr' | 'image' | 'pdf' | 'dev' | 'web';
 export type Tier = 'free' | 'premium';
@@ -402,14 +431,39 @@ export interface CategoryMeta {
 ```
 
 `src/tools/categories.ts`:
+
 ```ts
 import type { CategoryMeta } from './types';
 
 export const categories: CategoryMeta[] = [
-  { id: 'finance', name: 'การเงินและภาษี', nameEn: 'Finance & Tax', description: 'คำนวณภาษี ค่างวด ดอกเบี้ย เงินเดือนสุทธิ', icon: '💰' },
-  { id: 'text', name: 'ข้อความภาษาไทย', nameEn: 'Thai Text', description: 'บาทถ้วน นับคำ แปลงเลขไทย จัดการข้อความ', icon: '🔤' },
-  { id: 'date', name: 'วันที่และเวลา', nameEn: 'Date & Time', description: 'คำนวณอายุ นับวัน แปลง พ.ศ./ค.ศ. วันหยุด', icon: '📅' },
-  { id: 'qr', name: 'QR และ PromptPay', nameEn: 'QR & PromptPay', description: 'สร้าง QR รับเงิน PromptPay, WiFi, vCard', icon: '🔳' },
+  {
+    id: 'finance',
+    name: 'การเงินและภาษี',
+    nameEn: 'Finance & Tax',
+    description: 'คำนวณภาษี ค่างวด ดอกเบี้ย เงินเดือนสุทธิ',
+    icon: '💰',
+  },
+  {
+    id: 'text',
+    name: 'ข้อความภาษาไทย',
+    nameEn: 'Thai Text',
+    description: 'บาทถ้วน นับคำ แปลงเลขไทย จัดการข้อความ',
+    icon: '🔤',
+  },
+  {
+    id: 'date',
+    name: 'วันที่และเวลา',
+    nameEn: 'Date & Time',
+    description: 'คำนวณอายุ นับวัน แปลง พ.ศ./ค.ศ. วันหยุด',
+    icon: '📅',
+  },
+  {
+    id: 'qr',
+    name: 'QR และ PromptPay',
+    nameEn: 'QR & PromptPay',
+    description: 'สร้าง QR รับเงิน PromptPay, WiFi, vCard',
+    icon: '🔳',
+  },
   { id: 'image', name: 'รูปภาพ', nameEn: 'Image', description: 'ย่อ บีบอัด แปลงไฟล์ ลบ EXIF', icon: '🖼️' },
   { id: 'pdf', name: 'PDF', nameEn: 'PDF', description: 'รวม แยก หมุน แปลงรูปเป็น PDF', icon: '📄' },
   { id: 'dev', name: 'นักพัฒนา', nameEn: 'Developer', description: 'JSON, Base64, UUID, hash, regex', icon: '💻' },
@@ -420,6 +474,7 @@ export const categories: CategoryMeta[] = [
 - [ ] **Step 4: สร้าง registry.ts, loaders.ts (ยังว่าง), ToolIsland.tsx**
 
 `src/tools/registry.ts`:
+
 ```ts
 import type { CategoryId, CategoryMeta, ToolMeta } from './types';
 import { categories } from './categories';
@@ -446,6 +501,7 @@ export function getCategory(id: CategoryId): CategoryMeta {
 ```
 
 `src/tools/loaders.ts`:
+
 ```ts
 import type { ComponentType } from 'react';
 
@@ -456,6 +512,7 @@ export const toolLoaders: Record<string, ToolLoader> = {};
 ```
 
 `src/tools/ToolIsland.tsx`:
+
 ```tsx
 import { lazy, Suspense, useMemo } from 'react';
 import { toolLoaders } from './loaders';
@@ -495,10 +552,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 3: Shared UI + format helpers + SEO JSON-LD helpers
 
 **Files:**
+
 - Create: `src/components/ui.tsx`, `src/lib/format.ts`, `src/lib/seo.ts`
 - Test: `src/lib/format.test.ts`, `src/lib/seo.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `formatBaht(n: number): string` → `"1,234.50"`; `formatNumber(n: number, digits = 0): string`
   - `toolJsonLd(tool: ToolMeta, url: string): Record<string, unknown>[]` (SoftwareApplication + FAQPage)
@@ -507,6 +566,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - [ ] **Step 1: เขียน test format และ seo**
 
 `src/lib/format.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { formatBaht, formatNumber } from './format';
@@ -526,16 +586,25 @@ describe('format', () => {
 ```
 
 `src/lib/seo.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { toolJsonLd } from './seo';
 import type { ToolMeta } from '@/tools/types';
 
 const tool: ToolMeta = {
-  slug: 'x', name: 'เครื่องมือ X', nameEn: 'X', category: 'dev', tier: 'free',
+  slug: 'x',
+  name: 'เครื่องมือ X',
+  nameEn: 'X',
+  category: 'dev',
+  tier: 'free',
   description: 'คำอธิบายยาวพอสมควรสำหรับทดสอบ JSON-LD ของเครื่องมือ',
-  keywords: ['a', 'b', 'c'], howTo: ['1', '2'],
-  faq: [{ q: 'ถาม1', a: 'ตอบ1' }, { q: 'ถาม2', a: 'ตอบ2' }],
+  keywords: ['a', 'b', 'c'],
+  howTo: ['1', '2'],
+  faq: [
+    { q: 'ถาม1', a: 'ตอบ1' },
+    { q: 'ถาม2', a: 'ตอบ2' },
+  ],
 };
 
 describe('toolJsonLd', () => {
@@ -564,6 +633,7 @@ Expected: FAIL — cannot find `./format`, `./seo`
 - [ ] **Step 3: สร้าง format.ts และ seo.ts**
 
 `src/lib/format.ts`:
+
 ```ts
 const baht = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -577,6 +647,7 @@ export function formatNumber(n: number, digits = 0): string {
 ```
 
 `src/lib/seo.ts`:
+
 ```ts
 import type { ToolMeta } from '@/tools/types';
 
@@ -616,8 +687,12 @@ Expected: PASS (registry 4 + format 2 + seo 2)
 
 ```tsx
 import type {
-  ButtonHTMLAttributes, InputHTMLAttributes, LabelHTMLAttributes, ReactNode,
-  SelectHTMLAttributes, TextareaHTMLAttributes,
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  LabelHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
 } from 'react';
 
 const field =
@@ -654,7 +729,11 @@ export function Button({ variant = 'primary', className, ...props }: ButtonProps
     <button
       type="button"
       {...props}
-      className={cx('rounded-lg px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50', styles, className)}
+      className={cx(
+        'rounded-lg px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50',
+        styles,
+        className,
+      )}
     />
   );
 }
@@ -677,7 +756,17 @@ export function Stat({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-export function Field({ label, htmlFor, children, hint }: { label: string; htmlFor: string; children: ReactNode; hint?: string }) {
+export function Field({
+  label,
+  htmlFor,
+  children,
+  hint,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+  hint?: string;
+}) {
   return (
     <div>
       <Label htmlFor={htmlFor}>{label}</Label>
@@ -705,11 +794,13 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 4: เครื่องมือ "ตัวเลขเป็นคำอ่านไทย (บาทถ้วน)"
 
 **Files:**
+
 - Create: `src/tools/text/baht-text/logic.ts`, `src/tools/text/baht-text/meta.ts`, `src/tools/text/baht-text/Tool.tsx`
 - Modify: `src/tools/registry.ts` (เพิ่มใน `tools`), `src/tools/loaders.ts` (เพิ่ม loader)
 - Test: `src/tools/text/baht-text/logic.test.ts`
 
 **Interfaces:**
+
 - Produces: `bahtText(input: number | string): string` (throw `Error('รูปแบบตัวเลขไม่ถูกต้อง')` ถ้า parse ไม่ได้), `readInteger(digits: string): string`
 
 กติกาภาษาไทย: หน่วย สิบ/ร้อย/พัน/หมื่น/แสน วนทุก 6 หลักด้วย "ล้าน"; `1` ในหลักหน่วยอ่าน "เอ็ด" เมื่อกลุ่ม 6 หลักนั้นมีค่ามากกว่า 1 (11→สิบเอ็ด, 101→หนึ่งร้อยเอ็ด แต่ 1,000,001→หนึ่งล้านหนึ่ง); `2` หลักสิบอ่าน "ยี่สิบ"; `1` หลักสิบอ่าน "สิบ"; สตางค์ปัดเป็น 2 ตำแหน่ง; ไม่มีสตางค์ลงท้าย "ถ้วน"
@@ -717,6 +808,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - [ ] **Step 1: เขียน test**
 
 `src/tools/text/baht-text/logic.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { bahtText, readInteger } from './logic';
@@ -875,7 +967,10 @@ export const bahtTextMeta: ToolMeta = {
     'กด "คัดลอก" เพื่อนำไปใส่ในเอกสาร',
   ],
   faq: [
-    { q: 'ต่างจากสูตร BAHTTEXT ใน Excel อย่างไร', a: 'ให้ผลลัพธ์แบบเดียวกับ BAHTTEXT ของ Excel รวมถึงการใช้ "เอ็ด" และ "ยี่สิบ" แต่ไม่ต้องเปิดโปรแกรม ใช้บนมือถือได้' },
+    {
+      q: 'ต่างจากสูตร BAHTTEXT ใน Excel อย่างไร',
+      a: 'ให้ผลลัพธ์แบบเดียวกับ BAHTTEXT ของ Excel รวมถึงการใช้ "เอ็ด" และ "ยี่สิบ" แต่ไม่ต้องเปิดโปรแกรม ใช้บนมือถือได้',
+    },
     { q: 'รองรับสตางค์ไหม', a: 'รองรับ ทศนิยม 2 ตำแหน่งจะอ่านเป็นสตางค์ ถ้าไม่มีทศนิยมจะลงท้ายด้วย "ถ้วน"' },
     { q: 'ตัวเลขใหญ่แค่ไหนที่รองรับ', a: 'ไม่จำกัด อ่านทุก 6 หลักด้วยคำว่า "ล้าน" ซ้อนกันได้ เช่น หนึ่งล้านล้านบาท' },
   ],
@@ -916,7 +1011,9 @@ export default function BahtTextTool() {
       </Field>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <ResultBox label="คำอ่านภาษาไทย">{result || '—'}</ResultBox>
-      <Button onClick={copy} disabled={!result}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}</Button>
+      <Button onClick={copy} disabled={!result}>
+        {copied ? 'คัดลอกแล้ว ✓' : 'คัดลอก'}
+      </Button>
     </div>
   );
 }
@@ -925,6 +1022,7 @@ export default function BahtTextTool() {
 - [ ] **Step 7: ลงทะเบียนใน registry และ loaders**
 
 `src/tools/registry.ts` — เพิ่ม import และใส่ใน array:
+
 ```ts
 import { bahtTextMeta } from './text/baht-text/meta';
 // ...
@@ -932,6 +1030,7 @@ export const tools: ToolMeta[] = [bahtTextMeta];
 ```
 
 `src/tools/loaders.ts`:
+
 ```ts
 export const toolLoaders: Record<string, ToolLoader> = {
   'baht-text': () => import('./text/baht-text/Tool'),
@@ -957,10 +1056,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 5: หน้าเว็บทั้งหมด (tool page, category, all tools + search, index, pricing)
 
 **Files:**
+
 - Create: `src/components/ToolCard.astro`, `src/components/ToolShell.astro`, `src/components/ToolSearch.tsx`, `src/pages/t/[slug].astro`, `src/pages/c/[category].astro`, `src/pages/tools.astro`, `src/pages/pricing.astro`
 - Modify: `src/pages/index.astro`
 
 **Interfaces:**
+
 - Consumes: `tools`, `categories`, `getCategory`, `getToolsByCategory` (Task 2); `toolJsonLd` (Task 3); `ToolIsland` (Task 2)
 - Produces: URL scheme `/t/<slug>`, `/c/<category>`, `/tools`, `/pricing` ที่ Phase 2–4 จะเติม (ไม่ต้องเปลี่ยนโครง)
 
@@ -970,14 +1071,25 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ---
 import type { ToolMeta } from '@/tools/types';
 import { getCategory } from '@/tools/registry';
-interface Props { tool: ToolMeta }
+interface Props {
+  tool: ToolMeta;
+}
 const { tool } = Astro.props;
 const cat = getCategory(tool.category);
 ---
-<a href={`/t/${tool.slug}`} class="block rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm">
+
+<a
+  href={`/t/${tool.slug}`}
+  class="block rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm"
+>
   <div class="flex items-start justify-between gap-2">
     <h3 class="font-semibold leading-snug">{tool.name}</h3>
-    <span class:list={['shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', tool.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700']}>
+    <span
+      class:list={[
+        'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+        tool.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700',
+      ]}
+    >
       {tool.tier === 'premium' ? 'พรีเมียม' : 'ฟรี'}
     </span>
   </div>
@@ -993,17 +1105,27 @@ const cat = getCategory(tool.category);
 import type { ToolMeta } from '@/tools/types';
 import { getCategory, getToolsByCategory } from '@/tools/registry';
 import ToolCard from './ToolCard.astro';
-interface Props { tool: ToolMeta }
+interface Props {
+  tool: ToolMeta;
+}
 const { tool } = Astro.props;
 const cat = getCategory(tool.category);
-const related = getToolsByCategory(tool.category).filter((t) => t.slug !== tool.slug).slice(0, 4);
+const related = getToolsByCategory(tool.category)
+  .filter((t) => t.slug !== tool.slug)
+  .slice(0, 4);
 ---
+
 <nav class="text-sm text-slate-500" aria-label="breadcrumb">
   <a href="/" class="hover:underline">หน้าแรก</a> › <a href={`/c/${cat.id}`} class="hover:underline">{cat.name}</a>
 </nav>
 <div class="mt-2 flex flex-wrap items-center gap-2">
   <h1 class="text-2xl font-bold sm:text-3xl">{tool.name}</h1>
-  <span class:list={['rounded-full px-2 py-0.5 text-xs font-medium', tool.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700']}>
+  <span
+    class:list={[
+      'rounded-full px-2 py-0.5 text-xs font-medium',
+      tool.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700',
+    ]}
+  >
     {tool.tier === 'premium' ? 'พรีเมียม' : 'ฟรี'}
   </span>
 </div>
@@ -1023,24 +1145,30 @@ const related = getToolsByCategory(tool.category).filter((t) => t.slug !== tool.
   <div>
     <h2 class="text-xl font-semibold">คำถามที่พบบ่อย</h2>
     <dl class="mt-3 space-y-3">
-      {tool.faq.map((f) => (
-        <div>
-          <dt class="font-medium">{f.q}</dt>
-          <dd class="text-slate-600">{f.a}</dd>
-        </div>
-      ))}
+      {
+        tool.faq.map((f) => (
+          <div>
+            <dt class="font-medium">{f.q}</dt>
+            <dd class="text-slate-600">{f.a}</dd>
+          </div>
+        ))
+      }
     </dl>
   </div>
 </section>
 
-{related.length > 0 && (
-  <section class="mt-10">
-    <h2 class="text-xl font-semibold">เครื่องมืออื่นในหมวด {cat.name}</h2>
-    <div class="mt-3 grid gap-3 sm:grid-cols-2">
-      {related.map((t) => <ToolCard tool={t} />)}
-    </div>
-  </section>
-)}
+{
+  related.length > 0 && (
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">เครื่องมืออื่นในหมวด {cat.name}</h2>
+      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        {related.map((t) => (
+          <ToolCard tool={t} />
+        ))}
+      </div>
+    </section>
+  )
+}
 ```
 
 - [ ] **Step 3: หน้า t/[slug].astro**
@@ -1059,6 +1187,7 @@ export function getStaticPaths() {
 const { tool } = Astro.props;
 const url = new URL(`/t/${tool.slug}`, Astro.site).toString();
 ---
+
 <Base title={`${tool.name} — ทูลสยาม`} description={tool.description} jsonLd={toolJsonLd(tool, url)}>
   <ToolShell tool={tool}>
     <ToolIsland client:load slug={tool.slug} />
@@ -1080,16 +1209,24 @@ export function getStaticPaths() {
 const { category } = Astro.props;
 const list = getToolsByCategory(category.id);
 ---
-<Base title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`} description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`}>
+
+<Base
+  title={`${category.name} — เครื่องมือออนไลน์ ทูลสยาม`}
+  description={`เครื่องมือหมวด${category.name}: ${category.description} ใช้ฟรีบนเว็บ ไม่ต้องติดตั้ง`}
+>
   <h1 class="text-3xl font-bold">{category.icon} {category.name}</h1>
   <p class="mt-2 text-slate-600">{category.description}</p>
-  {list.length === 0 ? (
-    <p class="mt-8 rounded-lg bg-white p-6 text-slate-500">กำลังเพิ่มเครื่องมือในหมวดนี้ เร็ว ๆ นี้</p>
-  ) : (
-    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {list.map((t) => <ToolCard tool={t} />)}
-    </div>
-  )}
+  {
+    list.length === 0 ? (
+      <p class="mt-8 rounded-lg bg-white p-6 text-slate-500">กำลังเพิ่มเครื่องมือในหมวดนี้ เร็ว ๆ นี้</p>
+    ) : (
+      <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((t) => (
+          <ToolCard tool={t} />
+        ))}
+      </div>
+    )
+  }
 </Base>
 ```
 
@@ -1127,10 +1264,24 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
   return (
     <div>
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-        <Input type="search" placeholder="ค้นหาเครื่องมือ เช่น ภาษี, บาทถ้วน, QR" value={q} onChange={(e) => setQ(e.target.value)} aria-label="ค้นหาเครื่องมือ" />
-        <Select value={category} onChange={(e) => setCategory(e.target.value as CategoryId | 'all')} aria-label="หมวดหมู่">
+        <Input
+          type="search"
+          placeholder="ค้นหาเครื่องมือ เช่น ภาษี, บาทถ้วน, QR"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          aria-label="ค้นหาเครื่องมือ"
+        />
+        <Select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as CategoryId | 'all')}
+          aria-label="หมวดหมู่"
+        >
           <option value="all">ทุกหมวด</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.icon} {c.name}
+            </option>
+          ))}
         </Select>
         <Select value={tier} onChange={(e) => setTier(e.target.value as TierFilter)} aria-label="ประเภท">
           <option value="all">ฟรี + พรีเมียม</option>
@@ -1146,15 +1297,22 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
           const cat = categories.find((c) => c.id === t.category)!;
           return (
             <li key={t.slug}>
-              <a href={`/t/${t.slug}`} className="block h-full rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm">
+              <a
+                href={`/t/${t.slug}`}
+                className="block h-full rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-600 hover:shadow-sm"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold leading-snug">{t.name}</h3>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${t.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700'}`}>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${t.tier === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-brand-50 text-brand-700'}`}
+                  >
                     {t.tier === 'premium' ? 'พรีเมียม' : 'ฟรี'}
                   </span>
                 </div>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-600">{t.description}</p>
-                <div className="mt-2 text-xs text-slate-400">{cat.icon} {cat.name}</div>
+                <div className="mt-2 text-xs text-slate-400">
+                  {cat.icon} {cat.name}
+                </div>
               </a>
             </li>
           );
@@ -1168,13 +1326,18 @@ export default function ToolSearch({ initialCategory }: { initialCategory?: Cate
 - [ ] **Step 6: หน้า tools.astro, pricing.astro และแก้ index.astro**
 
 `src/pages/tools.astro`:
+
 ```astro
 ---
 import Base from '@/layouts/Base.astro';
 import ToolSearch from '@/components/ToolSearch';
 import { tools } from '@/tools/registry';
 ---
-<Base title="เครื่องมือทั้งหมด — ทูลสยาม" description={`รวมเครื่องมือออนไลน์ภาษาไทย ${tools.length} รายการ ค้นหาตามหมวดหมู่ ฟรีและพรีเมียม ใช้งานได้ทันทีบนเบราว์เซอร์`}>
+
+<Base
+  title="เครื่องมือทั้งหมด — ทูลสยาม"
+  description={`รวมเครื่องมือออนไลน์ภาษาไทย ${tools.length} รายการ ค้นหาตามหมวดหมู่ ฟรีและพรีเมียม ใช้งานได้ทันทีบนเบราว์เซอร์`}
+>
   <h1 class="text-3xl font-bold">เครื่องมือทั้งหมด</h1>
   <p class="mt-2 text-slate-600">ค้นหาหรือกรองตามหมวดหมู่ เครื่องมือฟรีใช้ได้ทันทีไม่ต้องสมัคร</p>
   <div class="mt-6">
@@ -1184,6 +1347,7 @@ import { tools } from '@/tools/registry';
 ```
 
 `src/pages/pricing.astro`:
+
 ```astro
 ---
 import Base from '@/layouts/Base.astro';
@@ -1192,20 +1356,38 @@ const plans = [
   { name: '3 เดือน', price: 279, note: 'ประหยัด 6%' },
   { name: '12 เดือน', price: 990, note: 'ประหยัด 17% — คุ้มสุด' },
 ];
-const perks = ['ใช้เครื่องมือพรีเมียมทุกตัวไม่จำกัด', 'ไม่มีโฆษณา', 'บันทึกประวัติและรายการโปรด', 'ประมวลผลหลายไฟล์พร้อมกัน', 'ดาวน์โหลดไม่มีลายน้ำ'];
+const perks = [
+  'ใช้เครื่องมือพรีเมียมทุกตัวไม่จำกัด',
+  'ไม่มีโฆษณา',
+  'บันทึกประวัติและรายการโปรด',
+  'ประมวลผลหลายไฟล์พร้อมกัน',
+  'ดาวน์โหลดไม่มีลายน้ำ',
+];
 ---
-<Base title="สมาชิกพรีเมียม 99 บาท/เดือน — ทูลสยาม" description="อัปเกรดเป็นพรีเมียมเพียง 99 บาทต่อเดือน ใช้เครื่องมือทุกตัวไม่จำกัด ไม่มีโฆษณา จ่ายผ่าน PromptPay">
+
+<Base
+  title="สมาชิกพรีเมียม 99 บาท/เดือน — ทูลสยาม"
+  description="อัปเกรดเป็นพรีเมียมเพียง 99 บาทต่อเดือน ใช้เครื่องมือทุกตัวไม่จำกัด ไม่มีโฆษณา จ่ายผ่าน PromptPay"
+>
   <h1 class="text-3xl font-bold">สมาชิกพรีเมียม</h1>
-  <p class="mt-2 text-slate-600">เครื่องมือฟรีใช้ได้ตลอดไป พรีเมียมปลดล็อกทุกอย่างในราคาเริ่มต้น 99 บาท/เดือน ชำระผ่าน PromptPay</p>
+  <p class="mt-2 text-slate-600">
+    เครื่องมือฟรีใช้ได้ตลอดไป พรีเมียมปลดล็อกทุกอย่างในราคาเริ่มต้น 99 บาท/เดือน ชำระผ่าน PromptPay
+  </p>
   <div class="mt-8 grid gap-4 sm:grid-cols-3">
-    {plans.map((p) => (
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="text-sm text-slate-500">{p.name}</div>
-        <div class="mt-1 text-3xl font-bold">{p.price.toLocaleString('en-US')} <span class="text-base font-normal text-slate-500">บาท</span></div>
-        <div class="mt-1 text-xs text-brand-700">{p.note}</div>
-        <button type="button" disabled class="mt-4 w-full rounded-lg bg-slate-200 px-4 py-2 text-sm text-slate-500">เปิดรับสมัครเร็ว ๆ นี้</button>
-      </div>
-    ))}
+    {
+      plans.map((p) => (
+        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="text-sm text-slate-500">{p.name}</div>
+          <div class="mt-1 text-3xl font-bold">
+            {p.price.toLocaleString('en-US')} <span class="text-base font-normal text-slate-500">บาท</span>
+          </div>
+          <div class="mt-1 text-xs text-brand-700">{p.note}</div>
+          <button type="button" disabled class="mt-4 w-full rounded-lg bg-slate-200 px-4 py-2 text-sm text-slate-500">
+            เปิดรับสมัครเร็ว ๆ นี้
+          </button>
+        </div>
+      ))
+    }
   </div>
   <ul class="mt-8 space-y-2 text-slate-700">
     {perks.map((x) => <li>✅ {x}</li>)}
@@ -1214,29 +1396,42 @@ const perks = ['ใช้เครื่องมือพรีเมียม�
 ```
 
 `src/pages/index.astro` (แทนที่ทั้งไฟล์):
+
 ```astro
 ---
 import Base from '@/layouts/Base.astro';
 import ToolCard from '@/components/ToolCard.astro';
 import { tools, categories, getToolsByCategory } from '@/tools/registry';
 ---
-<Base title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี" description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง">
+
+<Base
+  title="ทูลสยาม — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี"
+  description="รวมเครื่องมือออนไลน์ใช้ง่าย คำนวณภาษี ผ่อนบ้าน บาทถ้วน QR PromptPay JSON และอีกมาก ใช้ฟรีบนเบราว์เซอร์ ไม่ต้องติดตั้ง"
+>
   <section class="py-8 text-center">
     <h1 class="text-3xl font-bold sm:text-4xl">เครื่องมือออนไลน์ภาษาไทย ใช้ง่าย ใช้ฟรี</h1>
-    <p class="mx-auto mt-3 max-w-2xl text-slate-600">คำนวณภาษี ค่างวด บาทถ้วน สร้าง QR PromptPay จัดการไฟล์และข้อความ ทั้งหมดในที่เดียว ไม่ต้องติดตั้งโปรแกรม</p>
-    <a href="/tools" class="mt-6 inline-block rounded-lg bg-brand-600 px-5 py-2.5 font-medium text-white hover:bg-brand-700">ดูเครื่องมือทั้งหมด ({tools.length})</a>
+    <p class="mx-auto mt-3 max-w-2xl text-slate-600">
+      คำนวณภาษี ค่างวด บาทถ้วน สร้าง QR PromptPay จัดการไฟล์และข้อความ ทั้งหมดในที่เดียว ไม่ต้องติดตั้งโปรแกรม
+    </p>
+    <a
+      href="/tools"
+      class="mt-6 inline-block rounded-lg bg-brand-600 px-5 py-2.5 font-medium text-white hover:bg-brand-700"
+      >ดูเครื่องมือทั้งหมด ({tools.length})</a
+    >
   </section>
 
   <section class="mt-8">
     <h2 class="text-xl font-semibold">หมวดหมู่</h2>
     <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {categories.map((c) => (
-        <a href={`/c/${c.id}`} class="rounded-xl border border-slate-200 bg-white p-4 hover:border-brand-600">
-          <div class="text-2xl">{c.icon}</div>
-          <div class="mt-1 font-medium">{c.name}</div>
-          <div class="text-xs text-slate-500">{getToolsByCategory(c.id).length} เครื่องมือ</div>
-        </a>
-      ))}
+      {
+        categories.map((c) => (
+          <a href={`/c/${c.id}`} class="rounded-xl border border-slate-200 bg-white p-4 hover:border-brand-600">
+            <div class="text-2xl">{c.icon}</div>
+            <div class="mt-1 font-medium">{c.name}</div>
+            <div class="text-xs text-slate-500">{getToolsByCategory(c.id).length} เครื่องมือ</div>
+          </a>
+        ))
+      }
     </div>
   </section>
 
@@ -1276,10 +1471,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 6: เครื่องมือ "คำนวณค่างวดผ่อนบ้าน/รถ"
 
 **Files:**
+
 - Create: `src/tools/finance/loan-installment/{logic.ts,logic.test.ts,meta.ts,Tool.tsx}`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `monthlyPayment(principal, annualRatePercent, months): number`; `calculateLoan(input: LoanInput): LoanResult` โดย
   `LoanInput = { principal: number; annualRatePercent: number; months: number }`,
   `LoanResult = { monthlyPayment; totalPayment; totalInterest; schedule: LoanRow[] }`,
@@ -1288,6 +1485,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - [ ] **Step 1: เขียน test**
 
 `src/tools/finance/loan-installment/logic.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { monthlyPayment, calculateLoan } from './logic';
@@ -1425,9 +1623,18 @@ export const loanInstallmentMeta: ToolMeta = {
     'ดูค่างวดต่อเดือน ดอกเบี้ยรวม และตารางผ่อนรายงวด',
   ],
   faq: [
-    { q: 'ใช้สูตรอะไรคำนวณ', a: 'ใช้สูตรค่างวดคงที่แบบลดต้นลดดอก (EMI) ซึ่งเป็นวิธีที่ธนาคารส่วนใหญ่ใช้สำหรับสินเชื่อบ้านและสินเชื่อส่วนบุคคล' },
-    { q: 'ผ่อนรถที่คิดดอกเบี้ยแบบคงที่ (flat rate) ใช้ได้ไหม', a: 'สินเชื่อรถแบบ flat rate คิดดอกเบี้ยจากเงินต้นเต็มตลอดสัญญา ค่างวดจะสูงกว่าผลลัพธ์ที่นี่ ให้เทียบเป็นอัตราลดต้นลดดอกโดยประมาณ ×1.8 ก่อนกรอก' },
-    { q: 'ผลลัพธ์ต่างจากธนาคารเล็กน้อยเพราะอะไร', a: 'ธนาคารอาจปัดเศษต่างกัน คิดดอกเบี้ยรายวัน หรือมีค่าธรรมเนียมเพิ่ม ตัวเลขที่นี่ใช้เพื่อวางแผนเบื้องต้น' },
+    {
+      q: 'ใช้สูตรอะไรคำนวณ',
+      a: 'ใช้สูตรค่างวดคงที่แบบลดต้นลดดอก (EMI) ซึ่งเป็นวิธีที่ธนาคารส่วนใหญ่ใช้สำหรับสินเชื่อบ้านและสินเชื่อส่วนบุคคล',
+    },
+    {
+      q: 'ผ่อนรถที่คิดดอกเบี้ยแบบคงที่ (flat rate) ใช้ได้ไหม',
+      a: 'สินเชื่อรถแบบ flat rate คิดดอกเบี้ยจากเงินต้นเต็มตลอดสัญญา ค่างวดจะสูงกว่าผลลัพธ์ที่นี่ ให้เทียบเป็นอัตราลดต้นลดดอกโดยประมาณ ×1.8 ก่อนกรอก',
+    },
+    {
+      q: 'ผลลัพธ์ต่างจากธนาคารเล็กน้อยเพราะอะไร',
+      a: 'ธนาคารอาจปัดเศษต่างกัน คิดดอกเบี้ยรายวัน หรือมีค่าธรรมเนียมเพิ่ม ตัวเลขที่นี่ใช้เพื่อวางแผนเบื้องต้น',
+    },
   ],
 };
 ```
@@ -1448,7 +1655,14 @@ export default function LoanInstallmentTool() {
 
   const result = useMemo(() => {
     try {
-      return { ok: true as const, value: calculateLoan({ principal: Number(principal), annualRatePercent: Number(rate), months: Math.round(Number(years) * 12) }) };
+      return {
+        ok: true as const,
+        value: calculateLoan({
+          principal: Number(principal),
+          annualRatePercent: Number(rate),
+          months: Math.round(Number(years) * 12),
+        }),
+      };
     } catch (e) {
       return { ok: false as const, error: (e as Error).message };
     }
@@ -1484,7 +1698,11 @@ export default function LoanInstallmentTool() {
             <table className="w-full text-sm">
               <thead className="bg-slate-100 text-left">
                 <tr>
-                  <th className="px-2 py-1">งวด</th><th className="px-2 py-1">ค่างวด</th><th className="px-2 py-1">ดอกเบี้ย</th><th className="px-2 py-1">เงินต้น</th><th className="px-2 py-1">คงเหลือ</th>
+                  <th className="px-2 py-1">งวด</th>
+                  <th className="px-2 py-1">ค่างวด</th>
+                  <th className="px-2 py-1">ดอกเบี้ย</th>
+                  <th className="px-2 py-1">เงินต้น</th>
+                  <th className="px-2 py-1">คงเหลือ</th>
                 </tr>
               </thead>
               <tbody>
@@ -1534,24 +1752,37 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 7: เครื่องมือ "คำนวณภาษีเงินได้บุคคลธรรมดา" (premium)
 
 **Files:**
+
 - Create: `src/tools/finance/thai-income-tax/{logic.ts,logic.test.ts,meta.ts,Tool.tsx}`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `TAX_BRACKETS`, `TAX_LIMITS`, `progressiveTax(netIncome): { tax; lines: TaxBracketLine[] }`, `calculateTax(input: TaxInput): TaxResult`
 - หมายเหตุ: อัตราขั้นบันไดและเพดานลดหย่อนเป็น**ค่าคงที่ที่แก้ได้ในไฟล์เดียว** (`TAX_LIMITS`) เพราะเปลี่ยนรายปี; ค่าปัจจุบัน = ปีภาษี 2568 (ยื่นต้นปี 2569)
 
 - [ ] **Step 1: เขียน test**
 
 `src/tools/finance/thai-income-tax/logic.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { progressiveTax, calculateTax, TAX_LIMITS, type TaxInput } from './logic';
 
 const base: TaxInput = {
-  annualIncome: 0, hasSpouseNoIncome: false, children: 0, childrenBorn2018Plus: 0, parents: 0,
-  socialSecurity: 0, lifeInsurance: 0, healthInsurance: 0, retirementFunds: 0, homeLoanInterest: 0,
-  donations: 0, otherDeductions: 0, withheldTax: 0,
+  annualIncome: 0,
+  hasSpouseNoIncome: false,
+  children: 0,
+  childrenBorn2018Plus: 0,
+  parents: 0,
+  socialSecurity: 0,
+  lifeInsurance: 0,
+  healthInsurance: 0,
+  retirementFunds: 0,
+  homeLoanInterest: 0,
+  donations: 0,
+  otherDeductions: 0,
+  withheldTax: 0,
 };
 
 describe('progressiveTax', () => {
@@ -1595,17 +1826,34 @@ describe('calculateTax', () => {
   });
   it('ลดหย่อนถูกจำกัดเพดาน: ประกันสังคม, ประกันชีวิต+สุขภาพ, กองทุนเกษียณ, ดอกเบี้ยบ้าน, บิดามารดา', () => {
     const r = calculateTax({
-      ...base, annualIncome: 3_000_000,
-      socialSecurity: 20_000, lifeInsurance: 150_000, healthInsurance: 50_000,
-      retirementFunds: 900_000, homeLoanInterest: 200_000, parents: 6,
+      ...base,
+      annualIncome: 3_000_000,
+      socialSecurity: 20_000,
+      lifeInsurance: 150_000,
+      healthInsurance: 50_000,
+      retirementFunds: 900_000,
+      homeLoanInterest: 200_000,
+      parents: 6,
     });
     const expected =
-      TAX_LIMITS.personal + TAX_LIMITS.socialSecurityCap + TAX_LIMITS.lifeInsuranceCap +
-      TAX_LIMITS.retirementCap + TAX_LIMITS.homeLoanCap + TAX_LIMITS.parentMax * TAX_LIMITS.parent;
+      TAX_LIMITS.personal +
+      TAX_LIMITS.socialSecurityCap +
+      TAX_LIMITS.lifeInsuranceCap +
+      TAX_LIMITS.retirementCap +
+      TAX_LIMITS.homeLoanCap +
+      TAX_LIMITS.parentMax * TAX_LIMITS.parent;
     expect(r.allowances).toBe(expected);
   });
   it('คู่สมรส + บุตร 2 คน (คนที่สองเกิดหลัง 2561) + ประกันสังคม', () => {
-    const r = calculateTax({ ...base, annualIncome: 1_500_000, hasSpouseNoIncome: true, children: 1, childrenBorn2018Plus: 1, socialSecurity: 9_000, lifeInsurance: 100_000 });
+    const r = calculateTax({
+      ...base,
+      annualIncome: 1_500_000,
+      hasSpouseNoIncome: true,
+      children: 1,
+      childrenBorn2018Plus: 1,
+      socialSecurity: 9_000,
+      lifeInsurance: 100_000,
+    });
     // 1,500,000 - 100,000 - (60,000+60,000+30,000+60,000+9,000+100,000) = 1,081,000
     expect(r.netIncome).toBe(1_081_000);
     expect(r.tax).toBe(115_000 + 81_000 * 0.25);
@@ -1658,9 +1906,9 @@ export const TAX_LIMITS = {
   parent: 30_000,
   parentMax: 4,
   socialSecurityCap: 9_000,
-  lifeInsuranceCap: 100_000,     // ประกันชีวิต + สุขภาพ รวมกันไม่เกิน
+  lifeInsuranceCap: 100_000, // ประกันชีวิต + สุขภาพ รวมกันไม่เกิน
   healthInsuranceCap: 25_000,
-  retirementCap: 500_000,        // PVD + RMF + SSF/TESG + ประกันบำนาญ รวม
+  retirementCap: 500_000, // PVD + RMF + SSF/TESG + ประกันบำนาญ รวม
   homeLoanCap: 100_000,
   donationRate: 0.1,
 } as const;
@@ -1730,7 +1978,10 @@ export function calculateTax(input: TaxInput): TaxResult {
 
   const expense = Math.min(income * L.expenseRate, L.expenseCap);
 
-  const insurance = Math.min(clamp(input.lifeInsurance, L.lifeInsuranceCap) + clamp(input.healthInsurance, L.healthInsuranceCap), L.lifeInsuranceCap);
+  const insurance = Math.min(
+    clamp(input.lifeInsurance, L.lifeInsuranceCap) + clamp(input.healthInsurance, L.healthInsuranceCap),
+    L.lifeInsuranceCap,
+  );
   const allowances =
     L.personal +
     (input.hasSpouseNoIncome ? L.spouse : 0) +
@@ -1779,7 +2030,15 @@ export const thaiIncomeTaxMeta: ToolMeta = {
   tier: 'premium',
   description:
     'คำนวณภาษีเงินได้บุคคลธรรมดาจากเงินเดือนและรายได้ทั้งปี พร้อมค่าลดหย่อนครบ คู่สมรส บุตร บิดามารดา ประกันสังคม ประกันชีวิต กองทุน RMF SSF ดอกเบี้ยบ้าน เงินบริจาค แสดงภาษีแต่ละขั้นและยอดต้องจ่ายเพิ่มหรือได้คืน',
-  keywords: ['คำนวณภาษี', 'ภาษีเงินได้บุคคลธรรมดา', 'ภงด.90', 'ภงด.91', 'ลดหย่อนภาษี', 'ภาษีเงินเดือน', 'ยื่นภาษี 2569'],
+  keywords: [
+    'คำนวณภาษี',
+    'ภาษีเงินได้บุคคลธรรมดา',
+    'ภงด.90',
+    'ภงด.91',
+    'ลดหย่อนภาษี',
+    'ภาษีเงินเดือน',
+    'ยื่นภาษี 2569',
+  ],
   howTo: [
     'กรอกเงินได้รวมทั้งปี (เงินเดือน × 12 + โบนัส)',
     'เลือกและกรอกค่าลดหย่อนที่มี เช่น ประกันสังคม ประกันชีวิต กองทุน',
@@ -1787,10 +2046,22 @@ export const thaiIncomeTaxMeta: ToolMeta = {
     'ดูภาษีที่ต้องเสีย รายละเอียดแต่ละขั้น และยอดที่ต้องจ่ายเพิ่มหรือได้คืน',
   ],
   faq: [
-    { q: 'ใช้อัตราภาษีปีไหน', a: 'อัตราขั้นบันได 0–35% และเพดานลดหย่อนของปีภาษี 2568 (ยื่นแบบต้นปี 2569) ค่าใช้จ่ายเหมา 50% ไม่เกิน 100,000 บาท ลดหย่อนส่วนตัว 60,000 บาท' },
-    { q: 'รายได้จากฟรีแลนซ์หรือค่าเช่าใช้ได้ไหม', a: 'เครื่องมือนี้ออกแบบสำหรับเงินได้ประเภท 40(1) และ 40(2) เช่น เงินเดือน ค่าจ้าง ค่านายหน้า เงินได้ประเภทอื่นหักค่าใช้จ่ายต่างกัน' },
-    { q: 'เงินบริจาคลดหย่อนได้เท่าไร', a: 'ลดหย่อนได้ตามจริงแต่ไม่เกิน 10% ของเงินได้หลังหักค่าใช้จ่ายและค่าลดหย่อนอื่น บริจาคการศึกษา/โรงพยาบาลรัฐบางประเภทลดหย่อนได้ 2 เท่า ให้กรอกยอดที่คูณแล้ว' },
-    { q: 'ผลลัพธ์ใช้ยื่นภาษีได้เลยไหม', a: 'ใช้เพื่อวางแผนและประมาณการ การยื่นจริงให้ตรวจสอบกับระบบ e-Filing ของกรมสรรพากรอีกครั้ง' },
+    {
+      q: 'ใช้อัตราภาษีปีไหน',
+      a: 'อัตราขั้นบันได 0–35% และเพดานลดหย่อนของปีภาษี 2568 (ยื่นแบบต้นปี 2569) ค่าใช้จ่ายเหมา 50% ไม่เกิน 100,000 บาท ลดหย่อนส่วนตัว 60,000 บาท',
+    },
+    {
+      q: 'รายได้จากฟรีแลนซ์หรือค่าเช่าใช้ได้ไหม',
+      a: 'เครื่องมือนี้ออกแบบสำหรับเงินได้ประเภท 40(1) และ 40(2) เช่น เงินเดือน ค่าจ้าง ค่านายหน้า เงินได้ประเภทอื่นหักค่าใช้จ่ายต่างกัน',
+    },
+    {
+      q: 'เงินบริจาคลดหย่อนได้เท่าไร',
+      a: 'ลดหย่อนได้ตามจริงแต่ไม่เกิน 10% ของเงินได้หลังหักค่าใช้จ่ายและค่าลดหย่อนอื่น บริจาคการศึกษา/โรงพยาบาลรัฐบางประเภทลดหย่อนได้ 2 เท่า ให้กรอกยอดที่คูณแล้ว',
+    },
+    {
+      q: 'ผลลัพธ์ใช้ยื่นภาษีได้เลยไหม',
+      a: 'ใช้เพื่อวางแผนและประมาณการ การยื่นจริงให้ตรวจสอบกับระบบ e-Filing ของกรมสรรพากรอีกครั้ง',
+    },
   ],
 };
 ```
@@ -1822,16 +2093,29 @@ const fields: { key: NumKey; label: string; hint?: string }[] = [
 ];
 
 const initial: Form = {
-  annualIncome: '600000', children: '0', childrenBorn2018Plus: '0', parents: '0', socialSecurity: '9000',
-  lifeInsurance: '0', healthInsurance: '0', retirementFunds: '0', homeLoanInterest: '0', donations: '0',
-  otherDeductions: '0', withheldTax: '0', hasSpouseNoIncome: false,
+  annualIncome: '600000',
+  children: '0',
+  childrenBorn2018Plus: '0',
+  parents: '0',
+  socialSecurity: '9000',
+  lifeInsurance: '0',
+  healthInsurance: '0',
+  retirementFunds: '0',
+  homeLoanInterest: '0',
+  donations: '0',
+  otherDeductions: '0',
+  withheldTax: '0',
+  hasSpouseNoIncome: false,
 };
 
 export default function ThaiIncomeTaxTool() {
   const [form, setForm] = useState<Form>(initial);
 
   const result = useMemo(() => {
-    const input = Object.fromEntries(fields.map((f) => [f.key, Number(form[f.key].replace(/,/g, '')) || 0])) as Record<NumKey, number>;
+    const input = Object.fromEntries(fields.map((f) => [f.key, Number(form[f.key].replace(/,/g, '')) || 0])) as Record<
+      NumKey,
+      number
+    >;
     try {
       return { ok: true as const, value: calculateTax({ ...input, hasSpouseNoIncome: form.hasSpouseNoIncome }) };
     } catch (e) {
@@ -1844,11 +2128,20 @@ export default function ThaiIncomeTaxTool() {
       <div className="space-y-3">
         {fields.map((f) => (
           <Field key={f.key} label={f.label} htmlFor={f.key} hint={f.hint}>
-            <Input id={f.key} inputMode="decimal" value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+            <Input
+              id={f.key}
+              inputMode="decimal"
+              value={form[f.key]}
+              onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+            />
           </Field>
         ))}
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={form.hasSpouseNoIncome} onChange={(e) => setForm({ ...form, hasSpouseNoIncome: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={form.hasSpouseNoIncome}
+            onChange={(e) => setForm({ ...form, hasSpouseNoIncome: e.target.checked })}
+          />
           คู่สมรสไม่มีเงินได้ (ลดหย่อน 60,000)
         </label>
       </div>
@@ -1859,7 +2152,10 @@ export default function ThaiIncomeTaxTool() {
           <>
             <div className="grid gap-3 sm:grid-cols-2">
               <Stat label="ภาษีที่ต้องเสีย" value={`${formatBaht(result.value.tax)} บาท`} />
-              <Stat label={result.value.balance >= 0 ? 'ต้องชำระเพิ่ม' : 'ได้คืน'} value={`${formatBaht(Math.abs(result.value.balance))} บาท`} />
+              <Stat
+                label={result.value.balance >= 0 ? 'ต้องชำระเพิ่ม' : 'ได้คืน'}
+                value={`${formatBaht(Math.abs(result.value.balance))} บาท`}
+              />
               <Stat label="เงินได้สุทธิ" value={`${formatBaht(result.value.netIncome)} บาท`} />
               <Stat label="อัตราภาษีเฉลี่ย" value={`${(result.value.effectiveRate * 100).toFixed(2)}%`} />
             </div>
@@ -1870,12 +2166,18 @@ export default function ThaiIncomeTaxTool() {
             </ul>
             <table className="w-full text-sm">
               <thead className="bg-slate-100 text-left">
-                <tr><th className="px-2 py-1">ขั้นเงินได้สุทธิ</th><th className="px-2 py-1">อัตรา</th><th className="px-2 py-1">ภาษี</th></tr>
+                <tr>
+                  <th className="px-2 py-1">ขั้นเงินได้สุทธิ</th>
+                  <th className="px-2 py-1">อัตรา</th>
+                  <th className="px-2 py-1">ภาษี</th>
+                </tr>
               </thead>
               <tbody>
                 {result.value.lines.map((l) => (
                   <tr key={l.from} className="border-t border-slate-100">
-                    <td className="px-2 py-1">{formatBaht(l.from)} – {l.to === Infinity ? 'ขึ้นไป' : formatBaht(l.to)}</td>
+                    <td className="px-2 py-1">
+                      {formatBaht(l.from)} – {l.to === Infinity ? 'ขึ้นไป' : formatBaht(l.to)}
+                    </td>
                     <td className="px-2 py-1">{l.rate * 100}%</td>
                     <td className="px-2 py-1">{formatBaht(l.tax)}</td>
                   </tr>
@@ -1912,16 +2214,19 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 8: เครื่องมือ "สร้าง QR PromptPay"
 
 **Files:**
+
 - Create: `src/types/promptpay-qr.d.ts`, `src/tools/qr/promptpay-qr/{logic.ts,logic.test.ts,meta.ts,Tool.tsx}`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `normalizeTarget(raw: string): { type: 'phone'|'nationalId'|'ewallet'; value: string }`; `buildPromptPayPayload(target: string, amount?: number): string` (EMVCo payload สำหรับทำ QR)
 - ไลบรารี `promptpay-qr` เป็น CommonJS ไม่มี type → ประกาศเอง
 
 - [ ] **Step 1: ประกาศ type ของ promptpay-qr**
 
 `src/types/promptpay-qr.d.ts`:
+
 ```ts
 declare module 'promptpay-qr' {
   /** สร้าง EMVCo payload สำหรับ PromptPay (เบอร์โทร 10 หลัก, เลขบัตร 13 หลัก, e-wallet 15 หลัก) */
@@ -1932,6 +2237,7 @@ declare module 'promptpay-qr' {
 - [ ] **Step 2: เขียน test**
 
 `src/tools/qr/promptpay-qr/logic.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { normalizeTarget, buildPromptPayPayload } from './logic';
@@ -2033,8 +2339,14 @@ export const promptpayQrMeta: ToolMeta = {
     'สแกนทดสอบด้วยแอปธนาคาร แล้วกดดาวน์โหลดรูป QR',
   ],
   faq: [
-    { q: 'QR ที่สร้างปลอดภัยไหม', a: 'QR PromptPay มีเพียงหมายเลขรับเงินและจำนวนเงิน ไม่มีข้อมูลลับ สร้างในเบราว์เซอร์ของคุณโดยตรง ไม่ส่งข้อมูลขึ้นเซิร์ฟเวอร์' },
-    { q: 'ใช้กับทุกธนาคารได้ไหม', a: 'ได้ เป็นมาตรฐาน Thai QR Payment ของธนาคารแห่งประเทศไทย สแกนได้กับแอปธนาคารทุกแห่งในไทย' },
+    {
+      q: 'QR ที่สร้างปลอดภัยไหม',
+      a: 'QR PromptPay มีเพียงหมายเลขรับเงินและจำนวนเงิน ไม่มีข้อมูลลับ สร้างในเบราว์เซอร์ของคุณโดยตรง ไม่ส่งข้อมูลขึ้นเซิร์ฟเวอร์',
+    },
+    {
+      q: 'ใช้กับทุกธนาคารได้ไหม',
+      a: 'ได้ เป็นมาตรฐาน Thai QR Payment ของธนาคารแห่งประเทศไทย สแกนได้กับแอปธนาคารทุกแห่งในไทย',
+    },
     { q: 'ทำไมสแกนแล้วไม่ขึ้นชื่อบัญชี', a: 'หมายเลขที่กรอกอาจยังไม่ได้ผูกพร้อมเพย์ ตรวจสอบกับแอปธนาคารของคุณก่อน' },
   ],
 };
@@ -2085,19 +2397,39 @@ export default function PromptPayQrTool() {
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       <div className="space-y-4">
-        <Field label="เบอร์โทร / เลขบัตรประชาชน / e-Wallet" htmlFor="target" hint={typeLabel ? `ตรวจพบ: ${typeLabel}` : 'เช่น 0812345678'}>
+        <Field
+          label="เบอร์โทร / เลขบัตรประชาชน / e-Wallet"
+          htmlFor="target"
+          hint={typeLabel ? `ตรวจพบ: ${typeLabel}` : 'เช่น 0812345678'}
+        >
           <Input id="target" inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value)} autoFocus />
         </Field>
         <Field label="จำนวนเงิน (บาท) — เว้นว่างให้ผู้โอนกรอกเอง" htmlFor="amount">
-          <Input id="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="เช่น 150.00" />
+          <Input
+            id="amount"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="เช่น 150.00"
+          />
         </Field>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
       <div className="flex flex-col items-center gap-3">
         {dataUrl ? (
           <>
-            <img src={dataUrl} alt="QR PromptPay" width={320} height={320} className="rounded-lg border border-slate-200 bg-white" />
-            <a href={dataUrl} download={`promptpay-${target.replace(/\D/g, '')}.png`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+            <img
+              src={dataUrl}
+              alt="QR PromptPay"
+              width={320}
+              height={320}
+              className="rounded-lg border border-slate-200 bg-white"
+            />
+            <a
+              href={dataUrl}
+              download={`promptpay-${target.replace(/\D/g, '')}.png`}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
               ดาวน์โหลดรูป QR
             </a>
           </>
@@ -2135,15 +2467,18 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 9: เครื่องมือ "JSON Formatter / Validator"
 
 **Files:**
+
 - Create: `src/tools/dev/json-formatter/{logic.ts,logic.test.ts,meta.ts,Tool.tsx}`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces: `formatJson(input, indent: 2|4|'tab' = 2): JsonResult`; `minifyJson(input): JsonResult`; `JsonResult = { ok: true; output: string } | { ok: false; error: { message; line; column; position } }`
 
 - [ ] **Step 1: เขียน test**
 
 `src/tools/dev/json-formatter/logic.test.ts`:
+
 ```ts
 import { describe, it, expect } from 'vitest';
 import { formatJson, minifyJson } from './logic';
@@ -2209,7 +2544,8 @@ function locate(input: string, position: number): { line: number; column: number
 }
 
 function parse(input: string): { ok: true; value: unknown } | { ok: false; error: JsonError } {
-  if (!input.trim()) return { ok: false, error: { message: 'ยังไม่ได้ใส่ข้อมูล JSON', line: 1, column: 1, position: 0 } };
+  if (!input.trim())
+    return { ok: false, error: { message: 'ยังไม่ได้ใส่ข้อมูล JSON', line: 1, column: 1, position: 0 } };
   try {
     return { ok: true, value: JSON.parse(input) };
   } catch (e) {
@@ -2265,9 +2601,15 @@ export const jsonFormatterMeta: ToolMeta = {
     'ถ้า JSON ผิด ระบบบอกบรรทัดและคอลัมน์ที่ผิด แก้แล้วกดใหม่',
   ],
   faq: [
-    { q: 'ข้อมูลของฉันปลอดภัยไหม', a: 'ปลอดภัย การประมวลผลทั้งหมดเกิดในเบราว์เซอร์ของคุณ ไม่มีการส่ง JSON ไปยังเซิร์ฟเวอร์' },
+    {
+      q: 'ข้อมูลของฉันปลอดภัยไหม',
+      a: 'ปลอดภัย การประมวลผลทั้งหมดเกิดในเบราว์เซอร์ของคุณ ไม่มีการส่ง JSON ไปยังเซิร์ฟเวอร์',
+    },
     { q: 'รองรับไฟล์ใหญ่แค่ไหน', a: 'ขึ้นกับหน่วยความจำของเครื่อง โดยทั่วไปหลายสิบ MB ยังใช้ได้ ถ้าช้าให้ลองย่อก่อน' },
-    { q: 'ทำไม JSON ที่มี comment หรือ trailing comma ถึงผิด', a: 'มาตรฐาน JSON ไม่อนุญาตให้มี comment และคอมมาท้ายรายการ ต้องลบออกก่อน (ต่างจาก JSON5)' },
+    {
+      q: 'ทำไม JSON ที่มี comment หรือ trailing comma ถึงผิด',
+      a: 'มาตรฐาน JSON ไม่อนุญาตให้มี comment และคอมมาท้ายรายการ ต้องลบออกก่อน (ต่างจาก JSON5)',
+    },
   ],
 };
 ```
@@ -2300,24 +2642,47 @@ export default function JsonFormatterTool() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={() => run(() => formatJson(input, indent))}>จัดรูปแบบ</Button>
-        <Button variant="secondary" onClick={() => run(() => minifyJson(input))}>ย่อ (minify)</Button>
-        <Select className="w-auto" value={String(indent)} onChange={(e) => setIndent(e.target.value === 'tab' ? 'tab' : (Number(e.target.value) as 2 | 4))} aria-label="ระยะเยื้อง">
+        <Button variant="secondary" onClick={() => run(() => minifyJson(input))}>
+          ย่อ (minify)
+        </Button>
+        <Select
+          className="w-auto"
+          value={String(indent)}
+          onChange={(e) => setIndent(e.target.value === 'tab' ? 'tab' : (Number(e.target.value) as 2 | 4))}
+          aria-label="ระยะเยื้อง"
+        >
           <option value="2">เยื้อง 2 ช่อง</option>
           <option value="4">เยื้อง 4 ช่อง</option>
           <option value="tab">เยื้องด้วยแท็บ</option>
         </Select>
-        <Button variant="secondary" onClick={copy} disabled={!result?.ok}>{copied ? 'คัดลอกแล้ว ✓' : 'คัดลอกผลลัพธ์'}</Button>
+        <Button variant="secondary" onClick={copy} disabled={!result?.ok}>
+          {copied ? 'คัดลอกแล้ว ✓' : 'คัดลอกผลลัพธ์'}
+        </Button>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <Textarea rows={16} value={input} onChange={(e) => setInput(e.target.value)} aria-label="JSON ต้นฉบับ" spellCheck={false} />
-        <Textarea rows={16} readOnly value={result?.ok ? result.output : ''} aria-label="ผลลัพธ์" placeholder="ผลลัพธ์จะแสดงที่นี่" />
+        <Textarea
+          rows={16}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          aria-label="JSON ต้นฉบับ"
+          spellCheck={false}
+        />
+        <Textarea
+          rows={16}
+          readOnly
+          value={result?.ok ? result.output : ''}
+          aria-label="ผลลัพธ์"
+          placeholder="ผลลัพธ์จะแสดงที่นี่"
+        />
       </div>
       {result && !result.ok && (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
           ผิดพลาดที่บรรทัด {result.error.line} คอลัมน์ {result.error.column}: {result.error.message}
         </p>
       )}
-      {result?.ok && <p className="text-sm text-brand-700">✓ JSON ถูกต้อง ({result.output.length.toLocaleString()} ตัวอักษร)</p>}
+      {result?.ok && (
+        <p className="text-sm text-brand-700">✓ JSON ถูกต้อง ({result.output.length.toLocaleString()} ตัวอักษร)</p>
+      )}
     </div>
   );
 }
@@ -2347,10 +2712,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 10: Wrangler config + deploy ขึ้น Cloudflare Workers + โดเมน
 
 **Files:**
+
 - Create: `wrangler.jsonc`
 - Modify: `README.md` (สร้างใหม่: วิธี dev/test/deploy)
 
 **Interfaces:**
+
 - Produces: Worker ชื่อ `toolsiam` บน account ที่มีอยู่ (subdomain `appsoom.workers.dev`), URL production `https://toolsiam.com` เมื่อโดเมนพร้อม
 
 - [ ] **Step 1: สร้าง wrangler.jsonc**
@@ -2364,10 +2731,10 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "observability": { "enabled": true },
-  "preview_urls": false
+  "preview_urls": false,
   // routes ใส่ใน Step 5 หลังโดเมน toolsiam.com อยู่ใน Cloudflare zone แล้ว
   // Phase 2/3 จะเพิ่ม d1_databases, kv_namespaces, triggers.crons ที่นี่
 }
@@ -2376,11 +2743,13 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - [ ] **Step 2: ทดสอบ Worker แบบ local**
 
 Run: `npm run preview` (= astro build + wrangler dev) แล้วในอีก terminal:
+
 ```bash
 curl -s http://localhost:8787/t/baht-text | grep -c "บาทถ้วน"
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8787/sitemap-index.xml
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8787/no-such-page
 ```
+
 Expected: `≥1`, `200`, `404`
 ถ้า wrangler ฟ้องเรื่อง `main` entrypoint ไม่พบ: ตรวจว่า `@astrojs/cloudflare` ≥ 14 และ `astro build` สร้าง `dist/_worker.js/` — ถ้ามี ให้เปลี่ยน `main` เป็น `"./dist/_worker.js/index.js"` ตามที่ build log บอก แล้วรันใหม่
 
@@ -2400,6 +2769,7 @@ Expected: ≥ 1
 เว็บรวมเครื่องมือออนไลน์ภาษาไทย บน Cloudflare Workers (Astro + React islands)
 
 ## คำสั่ง
+
 - `npm run dev` — dev server http://localhost:4321
 - `npm test` — unit test ทุก `logic.ts`
 - `npm run build` — build ลง `dist/`
@@ -2407,6 +2777,7 @@ Expected: ≥ 1
 - `npm run deploy` — build + deploy ขึ้น Cloudflare
 
 ## เพิ่มเครื่องมือใหม่
+
 1. สร้าง `src/tools/<category>/<slug>/` มี `logic.ts` + `logic.test.ts` (เขียน test ก่อน), `meta.ts`, `Tool.tsx`
 2. เพิ่ม meta ใน `src/tools/registry.ts` และ loader ใน `src/tools/loaders.ts`
 3. `npm test` ต้องผ่าน (registry test บังคับให้ meta/loader ครบ)
@@ -2417,9 +2788,11 @@ Spec: `docs/superpowers/specs/2026-09-07-toolsiam-design.md`
 - [ ] **Step 5: ผูกโดเมน toolsiam.com (ทำเมื่อโดเมนอยู่ใน Cloudflare แล้ว)**
 
 เพิ่มใน `wrangler.jsonc` ระดับบนสุด:
+
 ```jsonc
 "routes": [{ "pattern": "toolsiam.com", "custom_domain": true }, { "pattern": "www.toolsiam.com", "custom_domain": true }],
 ```
+
 Run: `npm run deploy` แล้ว `curl -sI https://toolsiam.com | head -1`
 Expected: `HTTP/2 200`
 ถ้าโดเมนยังไม่พร้อม: ข้ามขั้นนี้ บันทึกไว้ใน README ว่ายังใช้ workers.dev

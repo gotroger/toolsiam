@@ -1,13 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import {
-  assertValidDraw, assertValidFetchedDraw, distinctPermutations, DrawValidationError, expectedShuffle3,
-  HEADLINE_PRIZES, MAJOR_PRIZES, N3_PRIZE_STRUCTURE, neighboursOf, PRIZE_STRUCTURE, validateDrawIssues,
+  assertValidDraw,
+  assertValidFetchedDraw,
+  distinctPermutations,
+  DrawValidationError,
+  expectedShuffle3,
+  HEADLINE_PRIZES,
+  MAJOR_PRIZES,
+  N3_PRIZE_STRUCTURE,
+  neighboursOf,
+  PRIZE_STRUCTURE,
+  validateDrawIssues,
 } from './schema';
 
 /** งวดสมมติที่รูปแบบถูกต้องครบทุกด้าน — ใช้เป็นฐานแล้วดัดให้ผิดทีละจุด */
 function fixture(overrides: Record<string, unknown> = {}) {
-  const seq = (n: number, start: number) =>
-    Array.from({ length: n }, (_, i) => String(start + i).padStart(6, '0'));
+  const seq = (n: number, start: number) => Array.from({ length: n }, (_, i) => String(start + i).padStart(6, '0'));
   return {
     drawDate: '2026-09-01',
     prizes: {
@@ -31,18 +39,21 @@ function fixture(overrides: Record<string, unknown> = {}) {
 describe('โครงสร้างรางวัล', () => {
   it('ครบทุกประเภทตามที่ประกาศใช้อยู่', () => {
     expect([...PRIZE_STRUCTURE].map((p) => p.id).sort()).toEqual([
-      'fifth', 'first', 'firstNear', 'fourth', 'second',
-      'third', 'threeDigitBack', 'threeDigitFront', 'twoDigitBack',
+      'fifth',
+      'first',
+      'firstNear',
+      'fourth',
+      'second',
+      'third',
+      'threeDigitBack',
+      'threeDigitFront',
+      'twoDigitBack',
     ]);
   });
 
   it('เรียงตามที่ประกาศทางการจัดวาง — สี่ช่องบนสุดคือรางวัลที่ 1 และเลขหน้า/ท้าย', () => {
-    expect(HEADLINE_PRIZES.map((p) => p.id)).toEqual([
-      'first', 'threeDigitFront', 'threeDigitBack', 'twoDigitBack',
-    ]);
-    expect(MAJOR_PRIZES.map((p) => p.id)).toEqual([
-      'firstNear', 'second', 'third', 'fourth', 'fifth',
-    ]);
+    expect(HEADLINE_PRIZES.map((p) => p.id)).toEqual(['first', 'threeDigitFront', 'threeDigitBack', 'twoDigitBack']);
+    expect(MAJOR_PRIZES.map((p) => p.id)).toEqual(['firstNear', 'second', 'third', 'fourth', 'fifth']);
     expect(HEADLINE_PRIZES.length + MAJOR_PRIZES.length).toBe(PRIZE_STRUCTURE.length);
   });
 
@@ -115,8 +126,7 @@ describe('validator', () => {
   });
 
   it('บังคับให้อ้างอิงแหล่งทางการเท่านั้น', () => {
-    expect(validateDrawIssues(fixture({ sourceUrl: 'https://example.com/หวย' })).join(' '))
-      .toContain('glo.or.th');
+    expect(validateDrawIssues(fixture({ sourceUrl: 'https://example.com/หวย' })).join(' ')).toContain('glo.or.th');
   });
 
   it('บังคับรูปแบบวันที่และสถานะ', () => {
@@ -144,7 +154,6 @@ describe('validator', () => {
     expect(validateDrawIssues('123456').join(' ')).toContain('อ็อบเจกต์');
   });
 });
-
 
 describe('สลากตัวเลขสามหลัก (N3)', () => {
   const n3 = {
@@ -189,8 +198,9 @@ describe('สลากตัวเลขสามหลัก (N3)', () => {
   });
 
   it('จับเงินรางวัลที่ไม่ใช่ตัวเลขบวก — N3 แบ่งเงินรางวัลตามยอดขาย ต้องมีค่าเสมอ', () => {
-    expect(validateDrawIssues(fixture({ n3: { ...n3, straight2: { price: 0, numbers: ['04'] } } })).join(' '))
-      .toContain('เงินรางวัลต้องเป็นตัวเลขมากกว่า 0');
+    expect(
+      validateDrawIssues(fixture({ n3: { ...n3, straight2: { price: 0, numbers: ['04'] } } })).join(' '),
+    ).toContain('เงินรางวัลต้องเป็นตัวเลขมากกว่า 0');
   });
 
   it('จับจำนวนหลักที่ผิดของรางวัลพิเศษ', () => {

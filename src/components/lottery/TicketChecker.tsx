@@ -45,7 +45,9 @@ export default function TicketChecker({ draw }: { draw: LotteryDraw }) {
         />
       </Field>
 
-      <Button onClick={() => setSubmitted(input)} disabled={input.trim() === ''}>ตรวจรางวัล</Button>
+      <Button onClick={() => setSubmitted(input)} disabled={input.trim() === ''}>
+        ตรวจรางวัล
+      </Button>
 
       {checked && (
         <div aria-live="polite" className="space-y-3">
@@ -54,9 +56,7 @@ export default function TicketChecker({ draw }: { draw: LotteryDraw }) {
           </p>
 
           {checked.results.length > 0 && (
-            <ResultBox label="รวมเงินรางวัลทั้งหมด">
-              {formatBaht(checked.totalAmount)} บาท
-            </ResultBox>
+            <ResultBox label="รวมเงินรางวัลทั้งหมด">{formatBaht(checked.totalAmount)} บาท</ResultBox>
           )}
 
           {/* key เป็น index — ผู้ใช้มีสลากเลขเดียวกันหลายใบได้ และเลขรางวัลในประเภทเดียวกันซ้ำกันได้ */}

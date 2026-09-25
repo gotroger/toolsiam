@@ -75,7 +75,13 @@ const current = Astro.url.pathname;
       {
         membershipOn && (
           <>
-            <a href={getLoginUrl()} rel="nofollow" data-login data-me-url={getMeApiUrl()} class="header-login hidden md:inline-flex">
+            <a
+              href={getLoginUrl()}
+              rel="nofollow"
+              data-login
+              data-me-url={getMeApiUrl()}
+              class="header-login hidden md:inline-flex"
+            >
               เข้าสู่ระบบ
             </a>
             <details data-account-menu class="account-menu hidden md:block" hidden>

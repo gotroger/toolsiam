@@ -20,23 +20,25 @@ describe('normalizeUrl', () => {
 
 describe('buildWifiPayload', () => {
   it('รูปแบบมาตรฐาน WIFI:', () => {
-    expect(buildWifiPayload({ ssid: 'ToolSiam', password: 'secret123', encryption: 'WPA' }))
-      .toBe('WIFI:T:WPA;S:ToolSiam;P:secret123;;');
+    expect(buildWifiPayload({ ssid: 'ToolSiam', password: 'secret123', encryption: 'WPA' })).toBe(
+      'WIFI:T:WPA;S:ToolSiam;P:secret123;;',
+    );
   });
 
   it('เครือข่ายไม่มีรหัสผ่านไม่ต้องมีฟิลด์ P', () => {
-    expect(buildWifiPayload({ ssid: 'Free WiFi', encryption: 'nopass' }))
-      .toBe('WIFI:T:nopass;S:Free WiFi;;');
+    expect(buildWifiPayload({ ssid: 'Free WiFi', encryption: 'nopass' })).toBe('WIFI:T:nopass;S:Free WiFi;;');
   });
 
   it('เครือข่ายซ่อนชื่อเพิ่ม H:true', () => {
-    expect(buildWifiPayload({ ssid: 'Hidden', password: 'p', encryption: 'WPA', hidden: true }))
-      .toBe('WIFI:T:WPA;S:Hidden;P:p;H:true;;');
+    expect(buildWifiPayload({ ssid: 'Hidden', password: 'p', encryption: 'WPA', hidden: true })).toBe(
+      'WIFI:T:WPA;S:Hidden;P:p;H:true;;',
+    );
   });
 
   it('escape อักขระพิเศษ \\ ; , : "', () => {
-    expect(buildWifiPayload({ ssid: 'Cafe;1', password: 'a:b,c"d\\e', encryption: 'WPA' }))
-      .toBe('WIFI:T:WPA;S:Cafe\\;1;P:a\\:b\\,c\\"d\\\\e;;');
+    expect(buildWifiPayload({ ssid: 'Cafe;1', password: 'a:b,c"d\\e', encryption: 'WPA' })).toBe(
+      'WIFI:T:WPA;S:Cafe\\;1;P:a\\:b\\,c\\"d\\\\e;;',
+    );
   });
 
   it('ไม่มี SSID หรือมีรหัสผ่านว่างทั้งที่เลือกเข้ารหัส → error', () => {

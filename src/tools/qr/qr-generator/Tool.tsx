@@ -91,7 +91,13 @@ export default function QrGeneratorTool() {
         {kind === 'wifi' && (
           <>
             <Field label="ชื่อเครือข่าย (SSID)" htmlFor="ssid">
-              <Input id="ssid" autoComplete="off" spellCheck={false} value={ssid} onChange={(e) => setSsid(e.target.value)} />
+              <Input
+                id="ssid"
+                autoComplete="off"
+                spellCheck={false}
+                value={ssid}
+                onChange={(e) => setSsid(e.target.value)}
+              />
             </Field>
             <Field label="ระบบเข้ารหัส" htmlFor="enc">
               <Select id="enc" value={encryption} onChange={(e) => setEncryption(e.target.value as WifiEncryption)}>
@@ -102,29 +108,71 @@ export default function QrGeneratorTool() {
             </Field>
             {encryption !== 'nopass' && (
               <Field label="รหัสผ่าน" htmlFor="pw">
-                <Input id="pw" autoComplete="off" spellCheck={false} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input
+                  id="pw"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </Field>
             )}
-            <Checkbox label="เครือข่ายซ่อนชื่อ (hidden SSID)" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
+            <Checkbox
+              label="เครือข่ายซ่อนชื่อ (hidden SSID)"
+              checked={hidden}
+              onChange={(e) => setHidden(e.target.checked)}
+            />
           </>
         )}
 
         {kind === 'vcard' && (
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="ชื่อ" htmlFor="fn">
-              <Input id="fn" autoComplete="off" spellCheck={false} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              <Input
+                id="fn"
+                autoComplete="off"
+                spellCheck={false}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
             </Field>
             <Field label="นามสกุล" htmlFor="ln">
-              <Input id="ln" autoComplete="off" spellCheck={false} value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <Input
+                id="ln"
+                autoComplete="off"
+                spellCheck={false}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
             </Field>
             <Field label="เบอร์โทร" htmlFor="tel">
-              <Input id="tel" inputMode="tel" autoComplete="off" spellCheck={false} value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input
+                id="tel"
+                inputMode="tel"
+                autoComplete="off"
+                spellCheck={false}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </Field>
             <Field label="อีเมล" htmlFor="mail">
-              <Input id="mail" inputMode="email" autoComplete="off" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="mail"
+                inputMode="email"
+                autoComplete="off"
+                spellCheck={false}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </Field>
             <Field label="บริษัท/หน่วยงาน" htmlFor="org">
-              <Input id="org" autoComplete="off" spellCheck={false} value={org} onChange={(e) => setOrg(e.target.value)} />
+              <Input
+                id="org"
+                autoComplete="off"
+                spellCheck={false}
+                value={org}
+                onChange={(e) => setOrg(e.target.value)}
+              />
             </Field>
           </div>
         )}
@@ -144,7 +192,11 @@ export default function QrGeneratorTool() {
               className="rounded-lg border border-slate-200 bg-white"
             />
             <div className="flex flex-wrap justify-center gap-2">
-              <a href={dataUrl} download={`toolsiam-qr-${kind}.png`} className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action-hover">
+              <a
+                href={dataUrl}
+                download={`toolsiam-qr-${kind}.png`}
+                className="rounded-lg bg-action px-4 py-2 text-sm font-medium text-white hover:bg-action-hover"
+              >
                 ดาวน์โหลด PNG
               </a>
               <CopyButton text={payload} label="คัดลอกข้อมูลดิบ" />

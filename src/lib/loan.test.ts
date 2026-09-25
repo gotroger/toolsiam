@@ -32,10 +32,14 @@ describe('ตารางผ่อนลดต้นลดดอก', () => {
   });
 
   it('ดอกเบี้ยขั้นบันได — ค่างวดคงที่ แต่ตัดเงินต้นได้น้อยลงหลังขึ้นอัตรา', () => {
-    const r = amortize(1_000_000, [
-      { months: 36, annualRate: 0.03 },
-      { months: Infinity, annualRate: 0.065 },
-    ], 240);
+    const r = amortize(
+      1_000_000,
+      [
+        { months: 36, annualRate: 0.03 },
+        { months: Infinity, annualRate: 0.065 },
+      ],
+      240,
+    );
     expect(r.rows[0].annualRate).toBe(0.03);
     expect(r.rows[35].annualRate).toBe(0.03);
     expect(r.rows[36].annualRate).toBe(0.065);
@@ -44,18 +48,21 @@ describe('ตารางผ่อนลดต้นลดดอก', () => {
   });
 
   it('ค่างวดที่คิดจากอัตราโปรฯ ทำให้ผ่อนไม่หมด — ยอดค้างไปโผล่ที่ค่างวดสุดท้าย ไม่ใช่หายไปเงียบ ๆ', () => {
-    const stepped = amortize(1_000_000, [
-      { months: 36, annualRate: 0.03 },
-      { months: Infinity, annualRate: 0.065 },
-    ], 240);
+    const stepped = amortize(
+      1_000_000,
+      [
+        { months: 36, annualRate: 0.03 },
+        { months: Infinity, annualRate: 0.065 },
+      ],
+      240,
+    );
     const last = stepped.rows.at(-1)!;
     expect(last.balance).toBe(0);
     expect(last.payment).toBeGreaterThan(stepped.rows[0].payment * 2);
   });
 
   it('ค่างวดที่กำหนดเองน้อยกว่าดอกเบี้ยของงวด ต้องแจ้งเตือน ไม่ใช่คำนวณต่อ', () => {
-    expect(() => amortize(1_000_000, [{ months: Infinity, annualRate: 0.12 }], 240, 1_000))
-      .toThrow('หนี้ไม่ลดลง');
+    expect(() => amortize(1_000_000, [{ months: Infinity, annualRate: 0.12 }], 240, 1_000)).toThrow('หนี้ไม่ลดลง');
   });
 });
 

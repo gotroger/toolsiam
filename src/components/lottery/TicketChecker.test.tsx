@@ -39,7 +39,10 @@ function check(value: string) {
 
 beforeEach(() => {
   __setRemoteForTests(null);
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 204 })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response(null, { status: 204 })),
+  );
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -67,7 +70,15 @@ describe('TicketChecker', () => {
 
   it('ผลที่ตรวจไปแล้วถูกตรวจใหม่กับงวดใหม่ทันทีที่ข้อมูลมาถึง', async () => {
     let resolve!: (r: Response) => void;
-    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((r) => { resolve = r; })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((r) => {
+            resolve = r;
+          }),
+      ),
+    );
     render(<TicketChecker draw={staticDraw} />);
     check('123456');
     expect(await screen.findByText('ไม่ถูกรางวัลในงวดนี้')).toBeInTheDocument();

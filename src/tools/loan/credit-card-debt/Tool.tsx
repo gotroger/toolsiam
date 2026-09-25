@@ -34,20 +34,28 @@ export default function CreditCardDebtTool() {
   }
 
   // เรียงจากน้อยไปมากและตัดค่าซ้ำ เพื่อให้ตารางอ่านเป็นลำดับ "จ่ายเพิ่มแล้วดีขึ้นแค่ไหน" จริง ๆ
-  const candidates = [...new Set(
-    [minPay, num(payment), num(payment) * 1.5, num(payment) * 2]
-      .filter((p) => Number.isFinite(p) && p > 0)
-      .map((p) => Math.round(p * 100) / 100),
-  )].sort((a, b) => a - b);
+  const candidates = [
+    ...new Set(
+      [minPay, num(payment), num(payment) * 1.5, num(payment) * 2]
+        .filter((p) => Number.isFinite(p) && p > 0)
+        .map((p) => Math.round(p * 100) / 100),
+    ),
+  ].sort((a, b) => a - b);
 
-  const options = Number.isFinite(bal) && Number.isFinite(annualRate) && bal > 0
-    ? comparePayments(bal, annualRate, candidates)
-    : [];
+  const options =
+    Number.isFinite(bal) && Number.isFinite(annualRate) && bal > 0 ? comparePayments(bal, annualRate, candidates) : [];
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <NumberInput id="balance" label="ยอดหนี้คงเหลือ" mode="decimal" value={balance} onValueChange={setBalance} suffix="บาท" />
+        <NumberInput
+          id="balance"
+          label="ยอดหนี้คงเหลือ"
+          mode="decimal"
+          value={balance}
+          onValueChange={setBalance}
+          suffix="บาท"
+        />
         <NumberInput
           id="rate"
           label="ดอกเบี้ยและค่าธรรมเนียมรวม"
@@ -91,9 +99,24 @@ export default function CreditCardDebtTool() {
               caption="เปรียบเทียบระยะเวลาปลดหนี้และดอกเบี้ยรวมตามยอดที่จ่ายต่อเดือน"
               columns={[
                 { key: 'pay', header: 'จ่ายเดือนละ', align: 'right', render: (o) => formatBaht(o.monthlyPayment) },
-                { key: 'months', header: 'ปลดหนี้ใน', align: 'right', render: (o) => (o.feasible ? humanMonths(o.months) : 'ไม่มีวันหมด') },
-                { key: 'interest', header: 'ดอกเบี้ยรวม', align: 'right', render: (o) => (o.feasible ? formatBaht(o.totalInterest) : '—') },
-                { key: 'total', header: 'จ่ายรวม', align: 'right', render: (o) => (o.feasible ? formatBaht(o.totalPaid) : '—') },
+                {
+                  key: 'months',
+                  header: 'ปลดหนี้ใน',
+                  align: 'right',
+                  render: (o) => (o.feasible ? humanMonths(o.months) : 'ไม่มีวันหมด'),
+                },
+                {
+                  key: 'interest',
+                  header: 'ดอกเบี้ยรวม',
+                  align: 'right',
+                  render: (o) => (o.feasible ? formatBaht(o.totalInterest) : '—'),
+                },
+                {
+                  key: 'total',
+                  header: 'จ่ายรวม',
+                  align: 'right',
+                  render: (o) => (o.feasible ? formatBaht(o.totalPaid) : '—'),
+                },
               ]}
               rows={options}
               rowKey={(o) => String(o.monthlyPayment)}
@@ -105,8 +128,8 @@ export default function CreditCardDebtTool() {
       {error && (
         <Disclaimer>
           เมื่อยอดที่จ่ายต่อเดือนน้อยกว่าดอกเบี้ยที่เกิดขึ้น ยอดหนี้จะเพิ่มขึ้นทุกเดือนแม้จ่ายตรงเวลา
-          การจ่ายขั้นต่ำอย่างเดียว (ราว {(MINIMUM_PAYMENT_RATE * 100).toFixed(0)}% ของยอดคงเหลือ)
-          ทำให้ปลดหนี้ช้ามาก เพราะยอดขั้นต่ำลดลงตามยอดหนี้ที่เหลือไปด้วย
+          การจ่ายขั้นต่ำอย่างเดียว (ราว {(MINIMUM_PAYMENT_RATE * 100).toFixed(0)}% ของยอดคงเหลือ) ทำให้ปลดหนี้ช้ามาก
+          เพราะยอดขั้นต่ำลดลงตามยอดหนี้ที่เหลือไปด้วย
         </Disclaimer>
       )}
     </div>

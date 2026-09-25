@@ -53,9 +53,7 @@ describe('pickForGroup', () => {
   });
 
   it('กลุ่มเดิมได้ข้อความครบทั้ง pool เมื่อเวลาผ่านไปพอ', () => {
-    const seen = new Set(
-      Array.from({ length: 2_000 }, (_, i) => pickForGroup(pool, `day-${i}`, 0, 12)),
-    );
+    const seen = new Set(Array.from({ length: 2_000 }, (_, i) => pickForGroup(pool, `day-${i}`, 0, 12)));
     expect(seen.size).toBe(pool.length);
   });
 

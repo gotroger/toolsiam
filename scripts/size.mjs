@@ -80,7 +80,11 @@ function measure() {
   const pages = [];
   for (const file of all.filter((f) => f.endsWith('.html'))) {
     const html = readFileSync(file, 'utf8');
-    const route = '/' + relative(DIST, file).replace(/\.html$/, '').replace(/\/?index$/, '');
+    const route =
+      '/' +
+      relative(DIST, file)
+        .replace(/\.html$/, '')
+        .replace(/\/?index$/, '');
 
     const entries = [...html.matchAll(/(?:component-url|renderer-url|src)="(\/[^"]+\.js)"/g)].map((m) => fromUrl(m[1]));
     const slug = route.startsWith('/tools/') ? route.slice('/tools/'.length) : null;
@@ -138,7 +142,9 @@ function main() {
   }
   console.log('\nสรุป');
   console.log(`  CSS รวมทั้งเว็บ            ${kb(summary.cssGzip)} KB`);
-  console.log(`  หน้าเครื่องมือ JS p95      ${kb(summary.toolPageJsP95)} KB   (สูงสุด ${kb(summary.toolPageJsMax)} KB)`);
+  console.log(
+    `  หน้าเครื่องมือ JS p95      ${kb(summary.toolPageJsP95)} KB   (สูงสุด ${kb(summary.toolPageJsMax)} KB)`,
+  );
   console.log(`  หน้าเครื่องมือ HTML p95    ${kb(summary.toolPageHtmlP95)} KB`);
   console.log(`  หน้าเนื้อหา JS p95         ${kb(summary.contentPageJsP95)} KB`);
   console.log(`  หน้าเนื้อหา HTML p95       ${kb(summary.contentPageHtmlP95)} KB`);
@@ -156,13 +162,16 @@ function main() {
   // หน้าใดหน้าหนึ่งที่โดดขึ้นมาเกิน budget ของกลุ่มตัวเอง ต้องรู้ตัวแม้ p95 จะยังผ่าน
   for (const p of pages) {
     const limit = p.kind === 'tool' ? budget.limits.toolPageJsP95 : budget.limits.contentPageJsP95;
-    if (limit !== undefined && p.jsGzip > limit) over.push(`${p.route} JS = ${kb(p.jsGzip)} KB เกิน budget ${kb(limit)} KB`);
+    if (limit !== undefined && p.jsGzip > limit)
+      over.push(`${p.route} JS = ${kb(p.jsGzip)} KB เกิน budget ${kb(limit)} KB`);
   }
 
   if (over.length) {
     console.error(`\n❌ เกิน budget (${BUDGET_FILE} · baseline ${budget.measuredAt})`);
     for (const line of over) console.error(`   - ${line}`);
-    console.error('\nถ้าการเพิ่มขึ้นมีเหตุผล ให้ยกระดับ budget พร้อมบันทึกเหตุผลและชื่อ Phase ลงใน docs/perf-budget.md');
+    console.error(
+      '\nถ้าการเพิ่มขึ้นมีเหตุผล ให้ยกระดับ budget พร้อมบันทึกเหตุผลและชื่อ Phase ลงใน docs/perf-budget.md',
+    );
     process.exit(1);
   }
   console.log(`\n✅ อยู่ใน budget ทั้งหมด (${BUDGET_FILE} · baseline ${budget.measuredAt})`);

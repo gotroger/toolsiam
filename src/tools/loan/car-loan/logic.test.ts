@@ -20,8 +20,8 @@ describe('ผ่อนรถดอกเบี้ยคงที่', () => {
   });
 
   it('ดอกเบี้ยรวมแปรผันตรงกับยอดจัด ไม่ใช่กับเงินดาวน์', () => {
-    const low = carLoan(base);                                   // จัด 640,000
-    const high = carLoan({ ...base, downPayment: 320_000 });      // จัด 480,000
+    const low = carLoan(base); // จัด 640,000
+    const high = carLoan({ ...base, downPayment: 320_000 }); // จัด 480,000
     expect(high.totalInterest / low.totalInterest).toBeCloseTo(480_000 / 640_000, 6);
   });
 

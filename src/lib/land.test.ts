@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  convertArea, fromRaiNganWa, landPrice, SQM_PER_UNIT, toRaiNganWa, toSquareMeters,
-} from './land';
+import { convertArea, fromRaiNganWa, landPrice, SQM_PER_UNIT, toRaiNganWa, toSquareMeters } from './land';
 
 describe('หน่วยที่ดิน', () => {
   it('ความสัมพันธ์พื้นฐานถูกต้อง', () => {
@@ -21,7 +19,7 @@ describe('หน่วยที่ดิน', () => {
 
   it('1 เฮกตาร์ = 6.25 ไร่ และ 1 เอเคอร์ ≈ 2.529 ไร่', () => {
     expect(convertArea(1, 'hectare', 'rai')).toBeCloseTo(6.25, 10);
-    expect(convertArea(1, 'acre', 'rai')).toBeCloseTo(2.5292852640, 8);
+    expect(convertArea(1, 'acre', 'rai')).toBeCloseTo(2.529285264, 8);
   });
 
   it('ปฏิเสธค่าที่ไม่ใช่ตัวเลขหรือติดลบ', () => {

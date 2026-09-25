@@ -38,7 +38,14 @@ export default function FuelCostTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <NumberInput id="distance" label="ระยะทางเที่ยวเดียว" mode="decimal" value={distance} onValueChange={setDistance} suffix="กม." />
+        <NumberInput
+          id="distance"
+          label="ระยะทางเที่ยวเดียว"
+          mode="decimal"
+          value={distance}
+          onValueChange={setDistance}
+          suffix="กม."
+        />
         <NumberInput
           id="km-per-litre"
           label="อัตราสิ้นเปลืองของรถ"
@@ -57,8 +64,22 @@ export default function FuelCostTool() {
           suffix="บาท"
           hint="กรอกราคาจากป้ายหน้าปั๊มวันที่เดินทาง — เครื่องมือไม่ได้ดึงราคาปัจจุบันให้"
         />
-        <NumberInput id="tolls" label="ค่าทางด่วน + ค่าจอดรถ" mode="decimal" value={tolls} onValueChange={setTolls} suffix="บาท" />
-        <NumberInput id="people" label="หารกันกี่คน" mode="numeric" value={people} onValueChange={setPeople} suffix="คน" />
+        <NumberInput
+          id="tolls"
+          label="ค่าทางด่วน + ค่าจอดรถ"
+          mode="decimal"
+          value={tolls}
+          onValueChange={setTolls}
+          suffix="บาท"
+        />
+        <NumberInput
+          id="people"
+          label="หารกันกี่คน"
+          mode="numeric"
+          value={people}
+          onValueChange={setPeople}
+          suffix="คน"
+        />
         <div className="flex items-end">
           <Checkbox label="คิดระยะทางไป-กลับ" checked={roundTrip} onChange={(e) => setRoundTrip(e.target.checked)} />
         </div>

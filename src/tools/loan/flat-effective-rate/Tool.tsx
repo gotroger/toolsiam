@@ -33,8 +33,22 @@ export default function FlatEffectiveRateTool() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <NumberInput id="principal" label="ยอดจัด / เงินต้น" mode="decimal" value={principal} onValueChange={setPrincipal} suffix="บาท" />
-        <NumberInput id="months" label="จำนวนงวด" mode="numeric" value={months} onValueChange={setMonths} suffix="งวด" />
+        <NumberInput
+          id="principal"
+          label="ยอดจัด / เงินต้น"
+          mode="decimal"
+          value={principal}
+          onValueChange={setPrincipal}
+          suffix="บาท"
+        />
+        <NumberInput
+          id="months"
+          label="จำนวนงวด"
+          mode="numeric"
+          value={months}
+          onValueChange={setMonths}
+          suffix="งวด"
+        />
       </div>
 
       <Tabs
@@ -50,10 +64,24 @@ export default function FlatEffectiveRateTool() {
       />
 
       <TabPanel id="flat" idPrefix={ID} active={tab === 'flat'}>
-        <NumberInput id="flat-rate" label="ดอกเบี้ยคงที่" mode="decimal" value={flatRate} onValueChange={setFlatRate} suffix="% ต่อปี" />
+        <NumberInput
+          id="flat-rate"
+          label="ดอกเบี้ยคงที่"
+          mode="decimal"
+          value={flatRate}
+          onValueChange={setFlatRate}
+          suffix="% ต่อปี"
+        />
       </TabPanel>
       <TabPanel id="effective" idPrefix={ID} active={tab === 'effective'}>
-        <NumberInput id="eff-rate" label="ดอกเบี้ยลดต้นลดดอก" mode="decimal" value={effRate} onValueChange={setEffRate} suffix="% ต่อปี" />
+        <NumberInput
+          id="eff-rate"
+          label="ดอกเบี้ยลดต้นลดดอก"
+          mode="decimal"
+          value={effRate}
+          onValueChange={setEffRate}
+          suffix="% ต่อปี"
+        />
       </TabPanel>
       <TabPanel id="payment" idPrefix={ID} active={tab === 'payment'}>
         <NumberInput
@@ -72,7 +100,8 @@ export default function FlatEffectiveRateTool() {
       {result && !error && (
         <>
           <ResultBox label="อัตราที่เทียบเท่ากัน">
-            คงที่ {formatNumber(result.flatRate * 100, 2)}% ต่อปี = ลดต้นลดดอก {formatNumber(result.effectiveRate * 100, 2)}% ต่อปี
+            คงที่ {formatNumber(result.flatRate * 100, 2)}% ต่อปี = ลดต้นลดดอก{' '}
+            {formatNumber(result.effectiveRate * 100, 2)}% ต่อปี
           </ResultBox>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

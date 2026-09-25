@@ -5,25 +5,11 @@
     "jsxImportSource": "react",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     },
-    "types": [
-      "@cloudflare/workers-types",
-      "vitest/globals"
-    ],
+    "types": ["@cloudflare/workers-types", "vitest/globals"],
     "noEmit": true
   },
-  "include": [
-    ".astro/types.d.ts",
-    "src/**/*",
-    "workers/**/*",
-    "vitest.config.ts",
-    "vitest.setup.ts"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "include": [".astro/types.d.ts", "src/**/*", "workers/**/*", "vitest.config.ts", "vitest.setup.ts"],
+  "exclude": ["dist", "node_modules"]
 }

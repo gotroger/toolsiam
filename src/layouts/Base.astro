@@ -78,8 +78,10 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
       }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    {/* เว็บมีทั้งโหมดสว่างและมืด (global.css) — สีแถบเบราว์เซอร์ตรงกับ --color-surface ของ header
-        ผู้ใช้ที่สลับธีมเอง Header.astro จะเขียนทับ content ของทั้งสองแท็กให้ตรงกับธีมที่เลือก */}
+    {
+      /* เว็บมีทั้งโหมดสว่างและมืด (global.css) — สีแถบเบราว์เซอร์ตรงกับ --color-surface ของ header
+        ผู้ใช้ที่สลับธีมเอง Header.astro จะเขียนทับ content ของทั้งสองแท็กให้ตรงกับธีมที่เลือก */
+    }
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)" />

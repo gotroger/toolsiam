@@ -6,7 +6,10 @@ import PrizeBoard from './PrizeBoard';
  * ผลรางวัลของหนึ่งงวด — render ตอน build เป็น HTML ล้วน ไม่มี JS (ไม่มี client directive)
  * markup จริงอยู่ที่ `PrizeBoard.tsx` ซึ่ง `LiveResults` ใช้แสดงงวดใหม่จาก KV ด้วย
  */
-interface Props { draw: LotteryDraw }
+interface Props {
+  draw: LotteryDraw;
+}
 const { draw } = Astro.props;
 ---
+
 <PrizeBoard draw={draw} />

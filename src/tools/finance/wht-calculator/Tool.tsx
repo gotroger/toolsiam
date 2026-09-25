@@ -50,8 +50,17 @@ export default function WhtCalculatorTool() {
           suffix="บาท"
         />
         <Field label="ประเภทเงินได้" htmlFor="wht-rate" hint={selected?.examples}>
-          <Select id="wht-rate" value={whtRate} onChange={(e) => setWhtRate(e.target.value)} aria-describedby="wht-rate-hint">
-            {WHT_RATE_OPTIONS.map((o) => <option key={o.rate} value={String(o.rate)}>{o.label}</option>)}
+          <Select
+            id="wht-rate"
+            value={whtRate}
+            onChange={(e) => setWhtRate(e.target.value)}
+            aria-describedby="wht-rate-hint"
+          >
+            {WHT_RATE_OPTIONS.map((o) => (
+              <option key={o.rate} value={String(o.rate)}>
+                {o.label}
+              </option>
+            ))}
           </Select>
         </Field>
         <NumberInput
@@ -65,8 +74,12 @@ export default function WhtCalculatorTool() {
         />
       </div>
 
-      <TabPanel id="fromBase" idPrefix={ID} active={mode === 'fromBase'}><span className="sr-only">คำนวณจากค่าบริการ</span></TabPanel>
-      <TabPanel id="fromNet" idPrefix={ID} active={mode === 'fromNet'}><span className="sr-only">คำนวณย้อนกลับจากยอดที่ได้รับ</span></TabPanel>
+      <TabPanel id="fromBase" idPrefix={ID} active={mode === 'fromBase'}>
+        <span className="sr-only">คำนวณจากค่าบริการ</span>
+      </TabPanel>
+      <TabPanel id="fromNet" idPrefix={ID} active={mode === 'fromNet'}>
+        <span className="sr-only">คำนวณย้อนกลับจากยอดที่ได้รับ</span>
+      </TabPanel>
 
       {error && <ErrorText>{error}</ErrorText>}
 
@@ -99,7 +112,10 @@ export default function WhtCalculatorTool() {
 
           <p className="text-sm text-slate-600">
             ต้องการคำนวณหรือถอด VAT อย่างเดียว ใช้{' '}
-            <a href={getToolUrl('vat-wht')} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+            <a
+              href={getToolUrl('vat-wht')}
+              className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+            >
               เครื่องมือคำนวณ VAT
             </a>
           </p>

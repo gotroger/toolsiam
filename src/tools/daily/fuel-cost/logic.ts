@@ -34,8 +34,10 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export function fuelCost(input: FuelInput): FuelResult {
   if (!Number.isFinite(input.distanceKm) || input.distanceKm < 0) throw new Error('ระยะทางต้องเป็นตัวเลขไม่ติดลบ');
-  if (!Number.isFinite(input.kmPerLitre) || input.kmPerLitre <= 0) throw new Error('อัตราสิ้นเปลืองต้องมากกว่า 0 กม./ลิตร');
-  if (!Number.isFinite(input.pricePerLitre) || input.pricePerLitre < 0) throw new Error('ราคาน้ำมันต้องเป็นตัวเลขไม่ติดลบ');
+  if (!Number.isFinite(input.kmPerLitre) || input.kmPerLitre <= 0)
+    throw new Error('อัตราสิ้นเปลืองต้องมากกว่า 0 กม./ลิตร');
+  if (!Number.isFinite(input.pricePerLitre) || input.pricePerLitre < 0)
+    throw new Error('ราคาน้ำมันต้องเป็นตัวเลขไม่ติดลบ');
   if (!Number.isFinite(input.tolls) || input.tolls < 0) throw new Error('ค่าทางด่วนต้องเป็นตัวเลขไม่ติดลบ');
   if (!Number.isInteger(input.people) || input.people < 1) throw new Error('จำนวนคนต้องเป็นจำนวนเต็มอย่างน้อย 1 คน');
 

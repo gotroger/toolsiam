@@ -35,7 +35,10 @@ const staticDraw = drawOf('2026-09-01', '654321');
 const newDraw = drawOf('2026-09-16', '123456');
 
 const serve = (body: unknown) =>
-  vi.stubGlobal('fetch', vi.fn(async () => (body ? new Response(JSON.stringify(body)) : new Response(null, { status: 204 }))));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => (body ? new Response(JSON.stringify(body)) : new Response(null, { status: 204 }))),
+  );
 
 /** ตั้ง "วันนี้" ตามเวลาไทย — 12:00 น. ของวันที่ระบุ */
 const today = (date: string) => vi.setSystemTime(new Date(`${date}T05:00:00Z`));
@@ -108,7 +111,10 @@ describe('LiveDrawNotice — เตือนเมื่อข้อมูลไ
 
   it('ยังถาม KV ไม่เสร็จ → ไม่เตือนก่อน (กันคำเตือนโผล่วาบแล้วหายไป)', () => {
     today('2026-10-10');
-    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>(() => {})),
+    );
     const { container } = render(<LiveDrawNotice staticDrawDate="2026-09-01" />);
     expect(container).toBeEmptyDOMElement();
   });

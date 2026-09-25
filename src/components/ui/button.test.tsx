@@ -13,7 +13,11 @@ describe('Button', () => {
   it('กดไม่ได้ตอน disabled', async () => {
     const onClick = vi.fn();
     const user = userEvent.setup();
-    render(<Button disabled onClick={onClick}>บันทึก</Button>);
+    render(
+      <Button disabled onClick={onClick}>
+        บันทึก
+      </Button>,
+    );
     await user.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();
   });

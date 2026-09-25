@@ -9,14 +9,16 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const CSS_URL = 'https://fonts.googleapis.com/css2'
-  + '?family=Prompt:wght@500'
-  + '&family=Sarabun:wght@400;500;600;700'
-  + '&display=swap';
+const CSS_URL =
+  'https://fonts.googleapis.com/css2' +
+  '?family=Prompt:wght@500' +
+  '&family=Sarabun:wght@400;500;600;700' +
+  '&display=swap';
 
 /** ต้องส่ง UA ของเบราว์เซอร์จริง ไม่งั้น Google ส่ง CSS ที่อ้าง ttf แทน woff2 */
-const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
-  + '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 const KEEP = new Set(['thai', 'latin']);
 const OUT_DIR = join('public', 'fonts');

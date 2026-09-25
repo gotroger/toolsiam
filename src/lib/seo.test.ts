@@ -3,10 +3,17 @@ import { breadcrumbJsonLd, collectionPageJsonLd, organizationJsonLd, toolJsonLd,
 import type { ToolMeta } from '@/tools/types';
 
 const tool: ToolMeta = {
-  slug: 'x', name: 'เครื่องมือ X', nameEn: 'X', category: 'daily',
+  slug: 'x',
+  name: 'เครื่องมือ X',
+  nameEn: 'X',
+  category: 'daily',
   description: 'คำอธิบายยาวพอสมควรสำหรับทดสอบ JSON-LD ของเครื่องมือ',
-  keywords: ['a', 'b', 'c'], howTo: ['1', '2'],
-  faq: [{ q: 'ถาม1', a: 'ตอบ1' }, { q: 'ถาม2', a: 'ตอบ2' }],
+  keywords: ['a', 'b', 'c'],
+  howTo: ['1', '2'],
+  faq: [
+    { q: 'ถาม1', a: 'ตอบ1' },
+    { q: 'ถาม2', a: 'ตอบ2' },
+  ],
 };
 
 describe('toolJsonLd', () => {
@@ -59,7 +66,10 @@ describe('structured data ของหน้ารวมและ breadcrumb', (
       name: 'การเงินและภาษี',
       description: 'คำอธิบาย',
       path: '/categories/finance',
-      items: [{ name: 'ก', path: '/tools/a' }, { name: 'ข', path: '/tools/b' }],
+      items: [
+        { name: 'ก', path: '/tools/a' },
+        { name: 'ข', path: '/tools/b' },
+      ],
     }) as any;
     expect(c['@type']).toBe('CollectionPage');
     expect(c.url).toBe('https://toolsiam.com/categories/finance');

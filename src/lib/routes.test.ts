@@ -2,10 +2,26 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  SITE, absoluteUrl, getCategoryUrl, getDreamEntryUrl, getDreamUrl, getHomeUrl,
-  getHoroscopePageUrl, getHoroscopeUrl, getLotteryDrawUrl, getLotteryUrl,
-  getToolUrl, getToolsUrl, getZodiacSignUrl,
-  getAccountUrl, getBillingStatusUrl, getLoginUrl, getLogoutUrl, getPremiumUrl, getPrivacyUrl, getTermsUrl,
+  SITE,
+  absoluteUrl,
+  getCategoryUrl,
+  getDreamEntryUrl,
+  getDreamUrl,
+  getHomeUrl,
+  getHoroscopePageUrl,
+  getHoroscopeUrl,
+  getLotteryDrawUrl,
+  getLotteryUrl,
+  getToolUrl,
+  getToolsUrl,
+  getZodiacSignUrl,
+  getAccountUrl,
+  getBillingStatusUrl,
+  getLoginUrl,
+  getLogoutUrl,
+  getPremiumUrl,
+  getPrivacyUrl,
+  getTermsUrl,
 } from './routes';
 import { isNoindexPath, normalizePath } from './noindex';
 
@@ -106,4 +122,3 @@ describe('ไม่มี URL เก่าหลงเหลือในซอ�
     expect(OLD_PATH_RE.test("import { x } from '@/lib/pricing';")).toBe(false);
   });
 });
-

@@ -8,3 +8,6 @@ package-lock.json
 # Local browser QA artifacts
 output/
 .playwright-cli/
+
+# ผลหวยที่ scripts/fetch-lottery.mjs เขียนออกมา — ปล่อยรูปแบบตามที่สคริปต์เขียน
+src/data/lottery/*.json

@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import {
-  BE_OFFSET, THAI_MONTHS, THAI_WEEKDAYS, THAI_DAY_COLORS,
-  toBuddhistYear, toChristianYear, describeDate, formatThaiDate,
+  BE_OFFSET,
+  THAI_MONTHS,
+  THAI_WEEKDAYS,
+  THAI_DAY_COLORS,
+  toBuddhistYear,
+  toChristianYear,
+  describeDate,
+  formatThaiDate,
 } from './thai-date';
 
 describe('แปลงปี', () => {

@@ -38,6 +38,7 @@ const BRAND = [
   { name: 'brand-900', cls: 'bg-brand-900' },
 ];
 ---
+
 <Base
   title="Design system — ทูลสยาม"
   description="หน้ารวม primitive ของทูลสยามสำหรับคนทำเว็บ"
@@ -47,25 +48,29 @@ const BRAND = [
 >
   <h1 class="text-2xl font-medium tracking-tight text-slate-900 sm:text-[1.75rem]">Design system</h1>
   <p class="mt-2 max-w-3xl text-slate-600">
-    รวม primitive ทุกตัวไว้ที่เดียวเพื่อดูผลของ token พร้อมกัน หน้านี้ไม่เข้า sitemap
-    และไม่มีลิงก์จากเมนู — เข้าถึงด้วยการพิมพ์ URL เท่านั้น
+    รวม primitive ทุกตัวไว้ที่เดียวเพื่อดูผลของ token พร้อมกัน หน้านี้ไม่เข้า sitemap และไม่มีลิงก์จากเมนู —
+    เข้าถึงด้วยการพิมพ์ URL เท่านั้น
   </p>
 
   <Section title="สีแบรนด์" class="mt-8">
     <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5 lg:grid-cols-10">
-      {BRAND.map((c) => (
-        <div>
-          <div class:list={['h-14 rounded-lg border border-slate-200', c.cls]}></div>
-          <p class="mt-1 text-xs text-slate-600">{c.name}</p>
-        </div>
-      ))}
+      {
+        BRAND.map((c) => (
+          <div>
+            <div class:list={['h-14 rounded-lg border border-slate-200', c.cls]} />
+            <p class="mt-1 text-xs text-slate-600">{c.name}</p>
+          </div>
+        ))
+      }
     </div>
   </Section>
 
   <Section title="ตัวอักษร" class="mt-10">
     <div class="mt-4 space-y-3">
       <p class="text-2xl font-medium tracking-tight text-slate-900">หัวเรื่องหน้า · Prompt 500 · 1.75rem</p>
-      <p class="text-lg font-medium tracking-tight text-slate-900 sm:text-xl">หัวข้อ section · Prompt 500 · 1.125–1.25rem</p>
+      <p class="text-lg font-medium tracking-tight text-slate-900 sm:text-xl">
+        หัวข้อ section · Prompt 500 · 1.125–1.25rem
+      </p>
       <p class="text-base text-slate-700">เนื้อความ · Sarabun 400 · 1rem — ตัวเลข 0123456789 กว้างเท่ากันทุกหลัก</p>
       <p class="text-sm text-slate-600">ข้อความรอง · Sarabun 400 · 0.875rem</p>
       <p class="font-mono text-sm text-slate-700">โค้ดเท่านั้น · font-mono · {'{ "ok": true }'}</p>

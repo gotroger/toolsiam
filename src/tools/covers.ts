@@ -98,15 +98,14 @@ export interface OgImage {
  * เครื่องมือที่ยังใช้ปกสำรอง (หรือมีปกจริงที่ไม่ใช่ WebP ในโฟลเดอร์ /covers จึงไม่มีคู่ JPEG)
  * ใช้ภาพเริ่มต้นของเว็บ **โดยตั้งใจ ไม่ใช่บังเอิญ** (P8) — `isDefault` บอกสถานะนี้ให้ผู้เรียกตรวจได้
  */
-export function resolveOgImage(tool: Pick<ToolMeta, 'slug' | 'name' | 'category' | 'coverImage' | 'coverAlt'>): OgImage {
+export function resolveOgImage(
+  tool: Pick<ToolMeta, 'slug' | 'name' | 'category' | 'coverImage' | 'coverAlt'>,
+): OgImage {
   const cover = resolveCover(tool);
-  const hasJpegTwin =
-    cover.kind === 'tool' && cover.src.startsWith(`${COVER_DIR}/`) && cover.src.endsWith('.webp');
+  const hasJpegTwin = cover.kind === 'tool' && cover.src.startsWith(`${COVER_DIR}/`) && cover.src.endsWith('.webp');
 
   return {
-    src: hasJpegTwin
-      ? cover.src.replace(COVER_DIR, OG_DIR).replace(/\.webp$/, '.jpg')
-      : DEFAULT_OG_IMAGE,
+    src: hasJpegTwin ? cover.src.replace(COVER_DIR, OG_DIR).replace(/\.webp$/, '.jpg') : DEFAULT_OG_IMAGE,
     alt: hasJpegTwin ? cover.alt : 'ทูลสยาม ToolSiam — เครื่องมือออนไลน์ภาษาไทย ใช้ฟรี',
     width: COVER_WIDTH,
     height: COVER_HEIGHT,

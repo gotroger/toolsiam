@@ -14,7 +14,9 @@ describe('internal linking audit', () => {
     for (const tool of getVisibleTools()) {
       for (const t of getRelatedTools(tool, 6)) linkedTo.add(t.slug);
     }
-    const orphans = getVisibleTools().map((t) => t.slug).filter((s) => !linkedTo.has(s));
+    const orphans = getVisibleTools()
+      .map((t) => t.slug)
+      .filter((s) => !linkedTo.has(s));
     expect(orphans).toEqual([]);
   });
 

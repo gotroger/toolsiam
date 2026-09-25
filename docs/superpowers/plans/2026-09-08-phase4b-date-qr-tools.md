@@ -11,6 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-09-07-toolsiam-design.md` (หัวข้อ 4 — ตารางเครื่องมือ MVP แถวหมวด "วันที่/เวลา" 3 แถว และหมวด "QR / PromptPay" 2 แถวที่ยังไม่ได้ทำ, หัวข้อ 8 โครงสร้าง, หัวข้อ 9 เฟส 4)
 
 **แผนพี่น้อง (นอกขอบเขตแผนนี้ โดยตั้งใจ):**
+
 - 4a (เสร็จแล้ว): การเงิน 3 + ข้อความไทย 4 — `docs/superpowers/plans/2026-09-07-phase4a-finance-text-tools.md`
 - 4c: หมวดรูปภาพ (3 ตัว) + PDF (2 ตัว) — ต้องเพิ่ม `pdf-lib`, ใช้ canvas/File API
 - 4d: dev เพิ่ม (2 ตัว) + web/SEO (3 ตัว) + ถอดอักษรไทยเป็นโรมัน RTGS + AdSlot + Cloudflare Web Analytics
@@ -51,11 +52,13 @@ src/tools/loaders.ts     ← แก้ทุก Task (เพิ่ม 1 บร�
 สร้าง `src/lib/date.ts` ที่อีกสองเครื่องมือในเฟสนี้จะใช้ต่อ แล้วทำเครื่องมือแรกของหมวดวันที่
 
 **Files:**
+
 - Create: `src/lib/date.ts`, `src/tools/date/age-days/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/lib/date.test.ts`, `src/tools/date/age-days/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Produces (ใช้ต่อใน Task 2 และ 3):
   `MS_PER_DAY`, `parseIsoDate(iso: string): number`, `toIsoDate(ms: number): string`,
   `daysBetweenDates(aIso: string, bIso: string): number`, `addDays(iso: string, n: number): string`,
@@ -70,8 +73,15 @@ src/tools/loaders.ts     ← แก้ทุก Task (เพิ่ม 1 บร�
 ```ts
 import { describe, it, expect } from 'vitest';
 import {
-  MS_PER_DAY, parseIsoDate, toIsoDate, daysBetweenDates, addDays,
-  weekdayIndex, isWeekend, daysInMonth, isLeapYear,
+  MS_PER_DAY,
+  parseIsoDate,
+  toIsoDate,
+  daysBetweenDates,
+  addDays,
+  weekdayIndex,
+  isWeekend,
+  daysInMonth,
+  isLeapYear,
 } from './date';
 
 describe('parseIsoDate', () => {
@@ -454,9 +464,18 @@ export const ageDaysMeta: ToolMeta = {
     'อ่านผลลัพธ์ทันที ทั้งแบบปี/เดือน/วัน และจำนวนวันรวม',
   ],
   faq: [
-    { q: 'กรอกปี พ.ศ. ได้เลยไหม', a: 'ได้ เลือกหน่วยปีเป็น พ.ศ. แล้วกรอกปีแบบไทยได้เลย เช่น 2533 ระบบจะลบ 543 ให้เป็น ค.ศ. ก่อนคำนวณโดยอัตโนมัติ' },
-    { q: 'คนเกิด 29 กุมภาพันธ์ นับวันเกิดวันไหนในปีที่ไม่มี 29', a: 'เครื่องมือนี้นับวันเกิดเป็นวันที่ 1 มีนาคมในปีที่ไม่ใช่ปีอธิกสุรทิน ซึ่งเป็นแนวปฏิบัติที่ใช้กันทั่วไปในการนับอายุครบรอบ' },
-    { q: 'จำนวนวันทำการที่แสดงรวมวันหยุดนักขัตฤกษ์ด้วยไหม', a: 'ไม่รวม โหมดนับวันที่นี่ตัดเฉพาะเสาร์-อาทิตย์ ถ้าต้องการหักวันหยุดราชการหรือวันหยุดธนาคารด้วย ให้ใช้เครื่องมือวันหยุดและวันทำการ 2569' },
+    {
+      q: 'กรอกปี พ.ศ. ได้เลยไหม',
+      a: 'ได้ เลือกหน่วยปีเป็น พ.ศ. แล้วกรอกปีแบบไทยได้เลย เช่น 2533 ระบบจะลบ 543 ให้เป็น ค.ศ. ก่อนคำนวณโดยอัตโนมัติ',
+    },
+    {
+      q: 'คนเกิด 29 กุมภาพันธ์ นับวันเกิดวันไหนในปีที่ไม่มี 29',
+      a: 'เครื่องมือนี้นับวันเกิดเป็นวันที่ 1 มีนาคมในปีที่ไม่ใช่ปีอธิกสุรทิน ซึ่งเป็นแนวปฏิบัติที่ใช้กันทั่วไปในการนับอายุครบรอบ',
+    },
+    {
+      q: 'จำนวนวันทำการที่แสดงรวมวันหยุดนักขัตฤกษ์ด้วยไหม',
+      a: 'ไม่รวม โหมดนับวันที่นี่ตัดเฉพาะเสาร์-อาทิตย์ ถ้าต้องการหักวันหยุดราชการหรือวันหยุดธนาคารด้วย ให้ใช้เครื่องมือวันหยุดและวันทำการ 2569',
+    },
   ],
 };
 ```
@@ -596,11 +615,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 2: เครื่องมือ "แปลง พ.ศ. ↔ ค.ศ. และดูวันในสัปดาห์" (`thai-year-convert`, free)
 
 **Files:**
+
 - Create: `src/tools/date/thai-year-convert/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/date/thai-year-convert/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `parseIsoDate`, `weekdayIndex`, `isLeapYear`, `daysBetweenDates` จาก `@/lib/date` (Task 1)
 - Produces: `BE_OFFSET`, `THAI_MONTHS`, `THAI_MONTHS_SHORT`, `THAI_WEEKDAYS`, `THAI_DAY_COLORS`, `toBuddhistYear(ce)`, `toChristianYear(be)`, `describeDate(iso): ThaiDateInfo`, `formatThaiDate(iso, opts?)`
 
@@ -611,8 +632,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```ts
 import { describe, it, expect } from 'vitest';
 import {
-  BE_OFFSET, THAI_MONTHS, THAI_WEEKDAYS, THAI_DAY_COLORS,
-  toBuddhistYear, toChristianYear, describeDate, formatThaiDate,
+  BE_OFFSET,
+  THAI_MONTHS,
+  THAI_WEEKDAYS,
+  THAI_DAY_COLORS,
+  toBuddhistYear,
+  toChristianYear,
+  describeDate,
+  formatThaiDate,
 } from './logic';
 
 describe('แปลงปี', () => {
@@ -717,13 +744,33 @@ import { daysBetweenDates, isLeapYear, parseIsoDate, weekdayIndex } from '@/lib/
 export const BE_OFFSET = 543;
 
 export const THAI_MONTHS = [
-  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+  'มกราคม',
+  'กุมภาพันธ์',
+  'มีนาคม',
+  'เมษายน',
+  'พฤษภาคม',
+  'มิถุนายน',
+  'กรกฎาคม',
+  'สิงหาคม',
+  'กันยายน',
+  'ตุลาคม',
+  'พฤศจิกายน',
+  'ธันวาคม',
 ] as const;
 
 export const THAI_MONTHS_SHORT = [
-  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+  'ม.ค.',
+  'ก.พ.',
+  'มี.ค.',
+  'เม.ย.',
+  'พ.ค.',
+  'มิ.ย.',
+  'ก.ค.',
+  'ส.ค.',
+  'ก.ย.',
+  'ต.ค.',
+  'พ.ย.',
+  'ธ.ค.',
 ] as const;
 
 export const THAI_WEEKDAYS = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'] as const;
@@ -828,16 +875,31 @@ export const thaiYearConvertMeta: ToolMeta = {
   tier: 'free',
   description:
     'แปลงปี พ.ศ. เป็น ค.ศ. และกลับกันด้วยส่วนต่าง 543 ปี พร้อมบอกว่าวันที่ที่กรอกตรงกับวันอะไรในสัปดาห์ สีประจำวัน วันที่เท่าไหร่ของปี และเขียนเป็นภาษาไทยแบบเต็มให้พร้อมคัดลอก',
-  keywords: ['แปลง พ.ศ. เป็น ค.ศ.', 'แปลง ค.ศ. เป็น พ.ศ.', 'วันนี้วันอะไร', 'ปี 2569 ตรงกับ ค.ศ. อะไร', 'สีประจำวันเกิด'],
+  keywords: [
+    'แปลง พ.ศ. เป็น ค.ศ.',
+    'แปลง ค.ศ. เป็น พ.ศ.',
+    'วันนี้วันอะไร',
+    'ปี 2569 ตรงกับ ค.ศ. อะไร',
+    'สีประจำวันเกิด',
+  ],
   howTo: [
     'กรอกปีในช่อง พ.ศ. หรือ ค.ศ. ช่องใดช่องหนึ่ง อีกช่องจะอัปเดตทันที',
     'เลือกวันที่ในปฏิทินเพื่อดูวันในสัปดาห์ สีประจำวัน และวันที่เท่าไหร่ของปี',
     'กดคัดลอกเพื่อนำข้อความวันที่ภาษาไทยไปใช้ในเอกสาร',
   ],
   faq: [
-    { q: 'พ.ศ. กับ ค.ศ. ต่างกันกี่ปี', a: 'ต่างกัน 543 ปี ปี ค.ศ. บวก 543 จะได้ปี พ.ศ. เช่น ค.ศ. 2026 ตรงกับ พ.ศ. 2569 และปี พ.ศ. ลบ 543 จะได้ปี ค.ศ.' },
-    { q: 'ทำไมบางเอกสารเก่าแปลงแล้วคลาดเคลื่อน 1 ปี', a: 'ก่อน พ.ศ. 2484 ปีไทยขึ้นปีใหม่วันที่ 1 เมษายน วันที่ระหว่างมกราคมถึงมีนาคมของเอกสารยุคนั้นจึงต่างจากสูตร 543 อยู่ 1 ปี เครื่องมือนี้ใช้สูตรมาตรฐานปัจจุบัน' },
-    { q: 'สีประจำวันคิดจากอะไร', a: 'ยึดตามคติไทยเรื่องสีประจำวันทั้งเจ็ด คือ อาทิตย์สีแดง จันทร์สีเหลือง อังคารสีชมพู พุธสีเขียว พฤหัสบดีสีส้ม ศุกร์สีฟ้า และเสาร์สีม่วง' },
+    {
+      q: 'พ.ศ. กับ ค.ศ. ต่างกันกี่ปี',
+      a: 'ต่างกัน 543 ปี ปี ค.ศ. บวก 543 จะได้ปี พ.ศ. เช่น ค.ศ. 2026 ตรงกับ พ.ศ. 2569 และปี พ.ศ. ลบ 543 จะได้ปี ค.ศ.',
+    },
+    {
+      q: 'ทำไมบางเอกสารเก่าแปลงแล้วคลาดเคลื่อน 1 ปี',
+      a: 'ก่อน พ.ศ. 2484 ปีไทยขึ้นปีใหม่วันที่ 1 เมษายน วันที่ระหว่างมกราคมถึงมีนาคมของเอกสารยุคนั้นจึงต่างจากสูตร 543 อยู่ 1 ปี เครื่องมือนี้ใช้สูตรมาตรฐานปัจจุบัน',
+    },
+    {
+      q: 'สีประจำวันคิดจากอะไร',
+      a: 'ยึดตามคติไทยเรื่องสีประจำวันทั้งเจ็ด คือ อาทิตย์สีแดง จันทร์สีเหลือง อังคารสีชมพู พุธสีเขียว พฤหัสบดีสีส้ม ศุกร์สีฟ้า และเสาร์สีม่วง',
+    },
   ],
 };
 ```
@@ -951,18 +1013,21 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 3: เครื่องมือ "วันหยุดราชการ/ธนาคาร 2569 + นับวันทำการ" (`thai-holidays`, premium)
 
 ข้อมูลวันหยุดในแผนนี้ **ตรวจสอบมาแล้ว** จากการรายงานประกาศ ธปท. โดย PPTV และ Thai PBS (ทั้งสองแหล่งตรงกันว่าวันหยุดธนาคาร 2569 = 19 วันทำการ) ต่างจากไฟล์ร่างเดิมที่ `docs/data/thai-holidays-2569-DRAFT.md` สองจุด:
+
 1. **ตัด "16 ต.ค. วันหยุดพิเศษธนาคาร" ออก** — ไม่มีในประกาศ ธปท. และเป็นสาเหตุที่ร่างเดิมนับได้ไม่ตรง 19 วัน
 2. **แก้ชื่อ 13 ต.ค. เป็น "วันนวมินทรมหาราช"** ตามชื่อทางการ
 
 จุดที่ยังต้องระวัง (มีคอมเมนต์กำกับไว้ใน `data.ts`): **1 พ.ค. วันแรงงานแห่งชาติ** — เป็นวันหยุดของธนาคารและภาคเอกชน แต่ไม่ใช่วันหยุดราชการ (บางเว็บรวมข่าวเหมารวมไว้ในตารางวันหยุดราชการ) แผนนี้เลือกตามหลักที่ถูกต้อง คือ `government: false, bank: true`
 
 **Files:**
+
 - Create: `src/tools/date/thai-holidays/data.ts`, `logic.ts`, `meta.ts`, `Tool.tsx`, `docs/data/thai-holidays-2569.md`
 - Test: `src/tools/date/thai-holidays/logic.test.ts`
 - Delete: `docs/data/thai-holidays-2569-DRAFT.md`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `addDays`, `daysBetweenDates`, `isWeekend`, `parseIsoDate`, `toIsoDate` จาก `@/lib/date` (Task 1); `formatThaiDate`, `THAI_WEEKDAYS` จาก `@/tools/date/thai-year-convert/logic` (Task 2 — ใช้ใน `Tool.tsx` เท่านั้น)
 - Produces: `Holiday`, `HolidayCalendar`, `HOLIDAYS_2569`, `COVERED_YEAR`, `listHolidays(cal)`, `findHoliday(iso, cal)`, `isBusinessDay(iso, cal)`, `businessDaysBetween(startIso, endIso, cal): BusinessDaySpan`, `addBusinessDays(iso, count, cal): string`
 
@@ -1007,14 +1072,38 @@ export const HOLIDAYS_2569: readonly Holiday[] = [
   { date: '2026-05-13', name: 'วันพืชมงคล', government: true, bank: false, type: 'ปกติ' },
   { date: '2026-05-31', name: 'วันวิสาขบูชา', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-06-01', name: 'ชดเชยวันวิสาขบูชา', government: true, bank: true, type: 'ชดเชย' },
-  { date: '2026-06-03', name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดาฯ พระบรมราชินี', government: true, bank: true, type: 'ปกติ' },
-  { date: '2026-07-28', name: 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว', government: true, bank: true, type: 'ปกติ' },
+  {
+    date: '2026-06-03',
+    name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดาฯ พระบรมราชินี',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
+  {
+    date: '2026-07-28',
+    name: 'วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
   { date: '2026-07-29', name: 'วันอาสาฬหบูชา', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-07-30', name: 'วันเข้าพรรษา', government: true, bank: false, type: 'ปกติ' },
-  { date: '2026-08-12', name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระบรมราชชนนีพันปีหลวง / วันแม่แห่งชาติ', government: true, bank: true, type: 'ปกติ' },
+  {
+    date: '2026-08-12',
+    name: 'วันเฉลิมพระชนมพรรษา สมเด็จพระบรมราชชนนีพันปีหลวง / วันแม่แห่งชาติ',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
   { date: '2026-10-13', name: 'วันนวมินทรมหาราช (วันคล้ายวันสวรรคต ร.9)', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-10-23', name: 'วันปิยมหาราช', government: true, bank: true, type: 'ปกติ' },
-  { date: '2026-12-05', name: 'วันคล้ายวันพระบรมราชสมภพ ร.9 / วันชาติ / วันพ่อแห่งชาติ', government: true, bank: true, type: 'ปกติ' },
+  {
+    date: '2026-12-05',
+    name: 'วันคล้ายวันพระบรมราชสมภพ ร.9 / วันชาติ / วันพ่อแห่งชาติ',
+    government: true,
+    bank: true,
+    type: 'ปกติ',
+  },
   { date: '2026-12-07', name: 'ชดเชยวันพ่อแห่งชาติ', government: true, bank: true, type: 'ชดเชย' },
   { date: '2026-12-10', name: 'วันรัฐธรรมนูญ', government: true, bank: true, type: 'ปกติ' },
   { date: '2026-12-31', name: 'วันสิ้นปี', government: true, bank: true, type: 'ปกติ' },
@@ -1029,9 +1118,7 @@ export const HOLIDAYS_2569: readonly Holiday[] = [
 import { describe, it, expect } from 'vitest';
 import { isWeekend } from '@/lib/date';
 import { HOLIDAYS_2569 } from './data';
-import {
-  COVERED_YEAR, listHolidays, findHoliday, isBusinessDay, businessDaysBetween, addBusinessDays,
-} from './logic';
+import { COVERED_YEAR, listHolidays, findHoliday, isBusinessDay, businessDaysBetween, addBusinessDays } from './logic';
 
 describe('ข้อมูลวันหยุด 2569', () => {
   it('รูปแบบวันที่ถูกต้อง เรียงจากน้อยไปมาก และไม่ซ้ำ', () => {
@@ -1192,8 +1279,7 @@ export function isBusinessDay(iso: string, cal: HolidayCalendar): boolean {
 export function businessDaysBetween(startIso: string, endIso: string, cal: HolidayCalendar): BusinessDaySpan {
   assertCovered(startIso);
   assertCovered(endIso);
-  const [fromIso, toIso] =
-    parseIsoDate(startIso) <= parseIsoDate(endIso) ? [startIso, endIso] : [endIso, startIso];
+  const [fromIso, toIso] = parseIsoDate(startIso) <= parseIsoDate(endIso) ? [startIso, endIso] : [endIso, startIso];
 
   const totalDays = daysBetweenDates(fromIso, toIso) + 1;
   let businessDays = 0;
@@ -1259,9 +1345,18 @@ export const thaiHolidaysMeta: ToolMeta = {
     'กรอกวันเริ่มและวันสิ้นสุดเพื่อนับวันทำการ หรือกรอกจำนวนวันทำการเพื่อหาว่าครบกำหนดวันไหน',
   ],
   faq: [
-    { q: 'วันหยุดธนาคารกับวันหยุดราชการต่างกันอย่างไร', a: 'ไม่เหมือนกันทุกวัน เช่น วันแรงงานแห่งชาติ 1 พฤษภาคม ธนาคารหยุดแต่ราชการเปิด ส่วนวันพืชมงคลและวันเข้าพรรษา ราชการหยุดแต่ธนาคารเปิดทำการตามปกติ' },
-    { q: 'ปี 2569 ธนาคารหยุดกี่วัน', a: 'ตามประกาศธนาคารแห่งประเทศไทย วันหยุดของสถาบันการเงินปี 2569 ที่ตรงกับวันทำการมี 19 วัน โดยรวมวันหยุดพิเศษวันที่ 2 มกราคม และวันหยุดชดเชยแล้ว' },
-    { q: 'นับวันทำการรวมวันเริ่มต้นด้วยไหม', a: 'ตัวนับช่วงวันที่นับรวมทั้งวันเริ่มต้นและวันสิ้นสุด ส่วนโหมดบวกวันทำการจะนับจากวันถัดจากวันที่กรอก ซึ่งตรงกับวิธีนับเครดิตเทอมและกำหนดส่งเอกสารส่วนใหญ่' },
+    {
+      q: 'วันหยุดธนาคารกับวันหยุดราชการต่างกันอย่างไร',
+      a: 'ไม่เหมือนกันทุกวัน เช่น วันแรงงานแห่งชาติ 1 พฤษภาคม ธนาคารหยุดแต่ราชการเปิด ส่วนวันพืชมงคลและวันเข้าพรรษา ราชการหยุดแต่ธนาคารเปิดทำการตามปกติ',
+    },
+    {
+      q: 'ปี 2569 ธนาคารหยุดกี่วัน',
+      a: 'ตามประกาศธนาคารแห่งประเทศไทย วันหยุดของสถาบันการเงินปี 2569 ที่ตรงกับวันทำการมี 19 วัน โดยรวมวันหยุดพิเศษวันที่ 2 มกราคม และวันหยุดชดเชยแล้ว',
+    },
+    {
+      q: 'นับวันทำการรวมวันเริ่มต้นด้วยไหม',
+      a: 'ตัวนับช่วงวันที่นับรวมทั้งวันเริ่มต้นและวันสิ้นสุด ส่วนโหมดบวกวันทำการจะนับจากวันถัดจากวันที่กรอก ซึ่งตรงกับวิธีนับเครดิตเทอมและกำหนดส่งเอกสารส่วนใหญ่',
+    },
   ],
 };
 ```
@@ -1314,10 +1409,24 @@ export default function ThaiHolidaysTool() {
         <h2 className="text-lg font-semibold">นับวันทำการระหว่างสองวันที่</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="วันเริ่มต้น" htmlFor="start">
-            <Input id="start" type="date" min="2026-01-01" max="2026-12-31" value={start} onChange={(e) => setStart(e.target.value)} />
+            <Input
+              id="start"
+              type="date"
+              min="2026-01-01"
+              max="2026-12-31"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            />
           </Field>
           <Field label="วันสิ้นสุด" htmlFor="end">
-            <Input id="end" type="date" min="2026-01-01" max="2026-12-31" value={end} onChange={(e) => setEnd(e.target.value)} />
+            <Input
+              id="end"
+              type="date"
+              min="2026-01-01"
+              max="2026-12-31"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            />
           </Field>
         </div>
         {spanError && <p className="text-sm text-red-600">{spanError}</p>}
@@ -1335,7 +1444,14 @@ export default function ThaiHolidaysTool() {
         <h2 className="text-lg font-semibold">อีกกี่วันทำการจะครบกำหนด</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="นับจากวันที่" htmlFor="addFrom">
-            <Input id="addFrom" type="date" min="2026-01-01" max="2026-12-31" value={addFrom} onChange={(e) => setAddFrom(e.target.value)} />
+            <Input
+              id="addFrom"
+              type="date"
+              min="2026-01-01"
+              max="2026-12-31"
+              value={addFrom}
+              onChange={(e) => setAddFrom(e.target.value)}
+            />
           </Field>
           <Field label="จำนวนวันทำการ" htmlFor="addCount" hint="ใส่เลขติดลบเพื่อนับย้อนหลัง">
             <Input id="addCount" inputMode="numeric" value={addCount} onChange={(e) => setAddCount(e.target.value)} />
@@ -1382,7 +1498,9 @@ export default function ThaiHolidaysTool() {
                 return (
                   <tr key={h.date} className="border-t border-slate-100">
                     <td className="px-3 py-2 whitespace-nowrap">{info.shortThai}</td>
-                    <td className={`px-3 py-2 whitespace-nowrap ${weekend ? 'text-slate-400' : ''}`}>{info.weekdayName}</td>
+                    <td className={`px-3 py-2 whitespace-nowrap ${weekend ? 'text-slate-400' : ''}`}>
+                      {info.weekdayName}
+                    </td>
                     <td className="px-3 py-2">{h.name}</td>
                     <td className="px-3 py-2 text-slate-500">{h.type}</td>
                   </tr>
@@ -1392,8 +1510,9 @@ export default function ThaiHolidaysTool() {
           </table>
         </div>
         <p className="text-xs text-slate-500">
-          วันที่แสดงเป็นสีจางคือวันหยุดที่ตรงกับเสาร์-อาทิตย์อยู่แล้ว ข้อมูลอ้างอิงประกาศธนาคารแห่งประเทศไทยและมติคณะรัฐมนตรี
-          หากมีประกาศวันหยุดพิเศษเพิ่มเติมระหว่างปี ตัวเลขอาจเปลี่ยนแปลงได้
+          วันที่แสดงเป็นสีจางคือวันหยุดที่ตรงกับเสาร์-อาทิตย์อยู่แล้ว
+          ข้อมูลอ้างอิงประกาศธนาคารแห่งประเทศไทยและมติคณะรัฐมนตรี หากมีประกาศวันหยุดพิเศษเพิ่มเติมระหว่างปี
+          ตัวเลขอาจเปลี่ยนแปลงได้
         </p>
       </section>
     </div>
@@ -1411,22 +1530,26 @@ export default function ThaiHolidaysTool() {
 **Source of truth ของโค้ดคือ `src/tools/date/thai-holidays/data.ts`** ไฟล์นี้เก็บที่มาและเหตุผลของข้อมูลนั้น
 
 ที่มา: ประกาศธนาคารแห่งประเทศไทย เรื่องวันหยุดของสถาบันการเงินประจำปี 2569 ตามที่รายงานโดย
+
 - https://www.pptvhd36.com/wealth/trick-trend/254884 (ระบุวันหยุดธนาคาร 19 วัน พร้อมรายวัน)
 - https://www.thaipbs.or.th/news/content/500481 (วันหยุดราชการ + วันหยุดธนาคาร)
 
 ทั้งสองแหล่งให้รายการวันตรงกันทุกวัน จำนวนวันหยุดธนาคารที่ตรงวันทำการ = 19 วัน ซึ่ง `logic.test.ts` ตรวจไว้เป็น assertion
 
 ## ต่างจากไฟล์ร่างเดิม (`thai-holidays-2569-DRAFT.md`) สองจุด
+
 1. ตัด "16 ต.ค. วันหยุดพิเศษธนาคาร" ออก — ไม่มีในประกาศ และเป็นสาเหตุที่ร่างเดิมนับได้ไม่ตรง 19 วัน
 2. แก้ชื่อ 13 ต.ค. เป็น "วันนวมินทรมหาราช" ตามชื่อทางการ
 
 ## จุดที่ต้องระวัง
+
 - **1 พ.ค. วันแรงงานแห่งชาติ** — วันหยุดธนาคารและภาคเอกชน **ไม่ใช่วันหยุดราชการ** (เว็บรวมข่าวบางแห่งเหมารวมไว้ในตารางวันหยุดราชการ) โค้ดใช้ `government: false, bank: true`
 - **13 พ.ค. วันพืชมงคล** และ **30 ก.ค. วันเข้าพรรษา** — ราชการหยุด ธนาคารเปิด
 - **31 พ.ค. (อาทิตย์)** และ **5 ธ.ค. (เสาร์)** ตรงวันหยุดสุดสัปดาห์ จึงมีวันชดเชย 1 มิ.ย. และ 7 ธ.ค.
 - ถ้ารัฐบาลประกาศวันหยุดพิเศษเพิ่มระหว่างปี ต้องเพิ่มแถวใน `data.ts` และแก้ตัวเลข 19/20/242/241 ใน `logic.test.ts` ให้ตรงกัน
 
 ## การขยายไปปีถัดไป
+
 `logic.ts` ผูกกับปีเดียวผ่าน `COVERED_YEAR` และ `assertCovered()` เมื่อจะเพิ่มปี 2570 ให้เปลี่ยน `HOLIDAYS_2569` เป็นแมปปี → รายการ แล้วให้ `assertCovered` ตรวจจากคีย์ของแมปแทน
 ```
 
@@ -1464,11 +1587,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ใช้ `qrcode` ที่ติดตั้งไว้แล้วตั้งแต่ Phase 1 (เครื่องมือ `promptpay-qr` ใช้อยู่) — **ไม่ต้องเพิ่ม dependency**
 
 **Files:**
+
 - Create: `src/tools/qr/qr-generator/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/qr/qr-generator/logic.test.ts`
 - Modify: `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `QRCode.toDataURL` จาก `qrcode` (ใน Tool.tsx เท่านั้น — pattern เดียวกับ `src/tools/qr/promptpay-qr/Tool.tsx`)
 - Produces: `normalizeUrl(raw): string`, `buildWifiPayload(input: WifiInput): string`, `buildVCardPayload(input: VCardInput): string`, `buildQrPayload(input: QrInput): string`, types `WifiInput`, `VCardInput`, `QrInput`
 
@@ -1499,23 +1624,25 @@ describe('normalizeUrl', () => {
 
 describe('buildWifiPayload', () => {
   it('รูปแบบมาตรฐาน WIFI:', () => {
-    expect(buildWifiPayload({ ssid: 'ToolSiam', password: 'secret123', encryption: 'WPA' }))
-      .toBe('WIFI:T:WPA;S:ToolSiam;P:secret123;;');
+    expect(buildWifiPayload({ ssid: 'ToolSiam', password: 'secret123', encryption: 'WPA' })).toBe(
+      'WIFI:T:WPA;S:ToolSiam;P:secret123;;',
+    );
   });
 
   it('เครือข่ายไม่มีรหัสผ่านไม่ต้องมีฟิลด์ P', () => {
-    expect(buildWifiPayload({ ssid: 'Free WiFi', encryption: 'nopass' }))
-      .toBe('WIFI:T:nopass;S:Free WiFi;;');
+    expect(buildWifiPayload({ ssid: 'Free WiFi', encryption: 'nopass' })).toBe('WIFI:T:nopass;S:Free WiFi;;');
   });
 
   it('เครือข่ายซ่อนชื่อเพิ่ม H:true', () => {
-    expect(buildWifiPayload({ ssid: 'Hidden', password: 'p', encryption: 'WPA', hidden: true }))
-      .toBe('WIFI:T:WPA;S:Hidden;P:p;H:true;;');
+    expect(buildWifiPayload({ ssid: 'Hidden', password: 'p', encryption: 'WPA', hidden: true })).toBe(
+      'WIFI:T:WPA;S:Hidden;P:p;H:true;;',
+    );
   });
 
   it('escape อักขระพิเศษ \\ ; , : "', () => {
-    expect(buildWifiPayload({ ssid: 'Cafe;1', password: 'a:b,c"d\\e', encryption: 'WPA' }))
-      .toBe('WIFI:T:WPA;S:Cafe\\;1;P:a\\:b\\,c\\"d\\\\e;;');
+    expect(buildWifiPayload({ ssid: 'Cafe;1', password: 'a:b,c"d\\e', encryption: 'WPA' })).toBe(
+      'WIFI:T:WPA;S:Cafe\\;1;P:a\\:b\\,c\\"d\\\\e;;',
+    );
   });
 
   it('ไม่มี SSID หรือมีรหัสผ่านว่างทั้งที่เลือกเข้ารหัส → error', () => {
@@ -1713,9 +1840,18 @@ export const qrGeneratorMeta: ToolMeta = {
     'กด "ดาวน์โหลด PNG" เพื่อบันทึกรูป หรือกดคัดลอกข้อมูลดิบไปใช้ต่อ',
   ],
   faq: [
-    { q: 'QR WiFi ใช้อย่างไร', a: 'สแกนด้วยกล้องมือถือแล้วเครื่องจะถามว่าต้องการเชื่อมต่อเครือข่ายนี้หรือไม่ รองรับทั้ง iPhone และ Android รุ่นใหม่ เหมาะกับร้านกาแฟหรือออฟฟิศที่ไม่อยากบอกรหัสผ่านทีละคน' },
-    { q: 'ข้อมูลที่กรอกถูกส่งขึ้นเซิร์ฟเวอร์ไหม', a: 'ไม่ QR ถูกสร้างด้วย JavaScript ในเบราว์เซอร์ของคุณทั้งหมด รหัส WiFi และข้อมูลนามบัตรจึงไม่ถูกส่งออกจากเครื่อง' },
-    { q: 'QR ที่สร้างมีวันหมดอายุไหม', a: 'ไม่มี QR ที่ได้เป็นแบบคงที่ (static) ข้อมูลฝังอยู่ในตัวรูปโดยตรง ใช้ได้ตลอดไปตราบใดที่ข้อมูลข้างในยังถูกต้อง' },
+    {
+      q: 'QR WiFi ใช้อย่างไร',
+      a: 'สแกนด้วยกล้องมือถือแล้วเครื่องจะถามว่าต้องการเชื่อมต่อเครือข่ายนี้หรือไม่ รองรับทั้ง iPhone และ Android รุ่นใหม่ เหมาะกับร้านกาแฟหรือออฟฟิศที่ไม่อยากบอกรหัสผ่านทีละคน',
+    },
+    {
+      q: 'ข้อมูลที่กรอกถูกส่งขึ้นเซิร์ฟเวอร์ไหม',
+      a: 'ไม่ QR ถูกสร้างด้วย JavaScript ในเบราว์เซอร์ของคุณทั้งหมด รหัส WiFi และข้อมูลนามบัตรจึงไม่ถูกส่งออกจากเครื่อง',
+    },
+    {
+      q: 'QR ที่สร้างมีวันหมดอายุไหม',
+      a: 'ไม่มี QR ที่ได้เป็นแบบคงที่ (static) ข้อมูลฝังอยู่ในตัวรูปโดยตรง ใช้ได้ตลอดไปตราบใดที่ข้อมูลข้างในยังถูกต้อง',
+    },
   ],
 };
 ```
@@ -1828,7 +1964,12 @@ export default function QrGeneratorTool() {
               </Field>
             )}
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} className="size-4" />
+              <input
+                type="checkbox"
+                checked={hidden}
+                onChange={(e) => setHidden(e.target.checked)}
+                className="size-4"
+              />
               เครือข่ายซ่อนชื่อ (hidden SSID)
             </label>
           </>
@@ -1860,9 +2001,19 @@ export default function QrGeneratorTool() {
       <div className="flex flex-col items-center gap-3">
         {dataUrl ? (
           <>
-            <img src={dataUrl} alt="QR Code" width={320} height={320} className="rounded-lg border border-slate-200 bg-white" />
+            <img
+              src={dataUrl}
+              alt="QR Code"
+              width={320}
+              height={320}
+              className="rounded-lg border border-slate-200 bg-white"
+            />
             <div className="flex flex-wrap justify-center gap-2">
-              <a href={dataUrl} download={`toolsiam-qr-${kind}.png`} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+              <a
+                href={dataUrl}
+                download={`toolsiam-qr-${kind}.png`}
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              >
                 ดาวน์โหลด PNG
               </a>
               <Button variant="secondary" onClick={() => navigator.clipboard.writeText(payload)}>
@@ -1906,11 +2057,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 Task เดียวในเฟสนี้ที่เพิ่ม dependency — `jsqr@1.4.0` (มี `.d.ts` ในตัว) `logic.ts` เก็บเฉพาะส่วนที่ pure คือการตีความข้อความที่อ่านได้ ส่วนการถอดรหัสภาพอยู่ใน `Tool.tsx` เพราะต้องใช้ canvas
 
 **Files:**
+
 - Create: `src/tools/qr/qr-reader/logic.ts`, `meta.ts`, `Tool.tsx`
 - Test: `src/tools/qr/qr-reader/logic.test.ts`
 - Modify: `package.json`, `package-lock.json`, `src/tools/registry.ts`, `src/tools/loaders.ts`
 
 **Interfaces:**
+
 - Consumes: `jsQR(data: Uint8ClampedArray, width: number, height: number)` จาก `jsqr` (ใน Tool.tsx เท่านั้น)
 - Produces: `QrKind`, `QrParsed`, `classifyQrText(raw: string): QrParsed`
 
@@ -1953,7 +2106,15 @@ describe('classifyQrText', () => {
   });
 
   it('vCard ดึงชื่อ เบอร์ อีเมล', () => {
-    const raw = ['BEGIN:VCARD', 'VERSION:3.0', 'N:ใจดี;สมชาย;;;', 'FN:สมชาย ใจดี', 'TEL;TYPE=CELL:0812345678', 'EMAIL:somchai@example.com', 'END:VCARD'].join('\r\n');
+    const raw = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      'N:ใจดี;สมชาย;;;',
+      'FN:สมชาย ใจดี',
+      'TEL;TYPE=CELL:0812345678',
+      'EMAIL:somchai@example.com',
+      'END:VCARD',
+    ].join('\r\n');
     const r = classifyQrText(raw);
     expect(r.kind).toBe('vcard');
     expect(r.fields).toContainEqual({ label: 'ชื่อ', value: 'สมชาย ใจดี' });
@@ -2136,9 +2297,18 @@ export const qrReaderMeta: ToolMeta = {
     'กดคัดลอกข้อความ หรือกดเปิดลิงก์เมื่อตรวจสอบแล้วว่าปลอดภัย',
   ],
   faq: [
-    { q: 'รูปถูกอัปโหลดขึ้นเซิร์ฟเวอร์ไหม', a: 'ไม่ รูปถูกวาดลงบน canvas และถอดรหัสด้วย JavaScript ในเครื่องของคุณเอง ไฟล์ไม่เคยถูกส่งออกจากเบราว์เซอร์' },
-    { q: 'ทำไมบางรูปอ่านไม่ออก', a: 'มักเกิดจากรูปเบลอ แสงสะท้อน QR เล็กเกินไป หรือถูกครอบตัดจนขาดมุมระบุตำแหน่ง ลองถ่ายใหม่ให้ QR อยู่กลางภาพ คมชัด และมีขอบขาวรอบด้าน' },
-    { q: 'เครื่องมือนี้ช่วยตรวจ QR หลอกลวงได้ไหม', a: 'ช่วยได้ระดับหนึ่ง เพราะแสดงลิงก์เต็มให้เห็นก่อนกด ทำให้ตรวจชื่อโดเมนได้ว่าเป็นเว็บจริงหรือไม่ แต่ไม่ได้ตรวจสอบว่าปลายทางอันตรายหรือไม่ ควรพิจารณาก่อนเปิดทุกครั้ง' },
+    {
+      q: 'รูปถูกอัปโหลดขึ้นเซิร์ฟเวอร์ไหม',
+      a: 'ไม่ รูปถูกวาดลงบน canvas และถอดรหัสด้วย JavaScript ในเครื่องของคุณเอง ไฟล์ไม่เคยถูกส่งออกจากเบราว์เซอร์',
+    },
+    {
+      q: 'ทำไมบางรูปอ่านไม่ออก',
+      a: 'มักเกิดจากรูปเบลอ แสงสะท้อน QR เล็กเกินไป หรือถูกครอบตัดจนขาดมุมระบุตำแหน่ง ลองถ่ายใหม่ให้ QR อยู่กลางภาพ คมชัด และมีขอบขาวรอบด้าน',
+    },
+    {
+      q: 'เครื่องมือนี้ช่วยตรวจ QR หลอกลวงได้ไหม',
+      a: 'ช่วยได้ระดับหนึ่ง เพราะแสดงลิงก์เต็มให้เห็นก่อนกด ทำให้ตรวจชื่อโดเมนได้ว่าเป็นเว็บจริงหรือไม่ แต่ไม่ได้ตรวจสอบว่าปลายทางอันตรายหรือไม่ ควรพิจารณาก่อนเปิดทุกครั้ง',
+    },
   ],
 };
 ```
@@ -2285,25 +2455,30 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ### Task 6: ตรวจในเบราว์เซอร์ + deploy
 
 **Files:**
+
 - Modify: ไม่มี (เว้นแต่พบบั๊กจากการตรวจ)
 
 **Interfaces:**
+
 - Consumes: เครื่องมือทั้ง 5 ตัวจาก Task 1–5 ที่ลงทะเบียนใน registry แล้ว
 
 - [ ] **Step 1: ตรวจ HTML ที่ build ออกมาว่ามีเนื้อหา SEO โดยไม่ต้องรัน JS**
 
 Run:
+
 ```bash
 npm run build
 grep -c "คำถามที่พบบ่อย" dist/client/t/age-days.html dist/client/t/thai-year-convert.html dist/client/t/thai-holidays.html dist/client/t/qr-generator.html dist/client/t/qr-reader.html
 grep -o "FAQPage" dist/client/t/thai-holidays.html | head -1
 grep -c "loc>" dist/client/sitemap-0.xml
 ```
+
 Expected: ทุกไฟล์เจอ "คำถามที่พบบ่อย" อย่างน้อย 1 ครั้ง, เจอ `FAQPage`, และจำนวน `<loc>` เพิ่มขึ้นจากเดิม 5 รายการ (12 เครื่องมือ → 17 เครื่องมือ)
 
 - [ ] **Step 2: ทดสอบ 5 เครื่องมือใหม่ใน dev server**
 
 Run: `npm run dev` แล้วเปิดทีละหน้า (ใช้ Browser pane ผ่าน `.claude/launch.json` ที่มีอยู่แล้ว)
+
 - `/t/age-days` — โหมด "คำนวณอายุ": เปลี่ยนวันเกิดแล้วตัวเลขอัปเดต และ hint บอก พ.ศ. ถูก; สลับเป็นโหมด "นับวันระหว่างสองวันที่" แล้วกรอกวันสิ้นสุดก่อนวันเริ่มต้น → ต้องได้ผลเท่ากันไม่ error
 - `/t/thai-year-convert` — พิมพ์ปีในช่อง พ.ศ. แล้วช่อง ค.ศ. อัปเดต และกลับกัน; กด "คัดลอกแบบเต็ม" แล้วปุ่มขึ้น "คัดลอกแล้ว ✓"
 - `/t/thai-holidays` — สลับปฏิทินธนาคาร/ราชการ แล้วจำนวนแถวเปลี่ยน (ธนาคาร 21 แถว vs ราชการ 22 แถว); ใส่ช่วง 10–17 เม.ย. แล้ววันทำการ = 3; ใส่จำนวนวันทำการติดลบแล้วได้วันย้อนหลัง
@@ -2322,11 +2497,13 @@ Expected: deploy สำเร็จ และแสดง `toolsiam.com (custom 
 - [ ] **Step 4: ตรวจ production**
 
 Run:
+
 ```bash
 for p in /t/age-days /t/thai-year-convert /t/thai-holidays /t/qr-generator /t/qr-reader /c/date /c/qr; do
   echo "$(curl -s -o /dev/null -w '%{http_code}' "https://toolsiam.com$p")  $p"
 done
 ```
+
 Expected: `200` ทุกบรรทัด
 
 - [ ] **Step 5: ตรวจว่าไม่มีไฟล์ค้าง**
@@ -2345,6 +2522,7 @@ Expected: ว่าง — งานทั้งหมด commit ไปแล้
 **3. Type consistency** — helper ใน `src/lib/date.ts` (`parseIsoDate`, `toIsoDate`, `daysBetweenDates`, `addDays`, `weekdayIndex`, `isWeekend`, `daysInMonth`, `isLeapYear`) ถูก import ด้วยชื่อเดียวกันทุกที่ใน Task 1–3 ✓ `DiffParts`/`AgeResult`/`DateSpan`, `ThaiDateInfo`/`FormatOptions`, `Holiday`/`HolidayCalendar`/`BusinessDaySpan`, `WifiInput`/`VCardInput`/`QrInput`, `QrKind`/`QrField`/`QrParsed` — ชื่อ field ใน test ตรงกับ interface ใน logic ทุกตัว ✓ ชื่อ export ของ meta ที่ใส่ใน registry (`ageDaysMeta`, `thaiYearConvertMeta`, `thaiHolidaysMeta`, `qrGeneratorMeta`, `qrReaderMeta`) ตรงกับที่ประกาศในแต่ละ `meta.ts` และคีย์ใน `loaders.ts` ตรงกับ `slug` ทุกตัว (มี `registry.test.ts` บังคับอยู่แล้ว) ✓ `Tool.tsx` ใช้เฉพาะ component ที่มีจริงใน `src/components/ui.tsx` (`Button`, `Field`, `Input`, `Select`, `Textarea`, `Stat`, `ResultBox`) ✓
 
 **ความเสี่ยงที่รู้ตัว:**
+
 - **ข้อมูลวันหยุด** ยืนยันจากการรายงานประกาศ ธปท. โดย PPTV และ Thai PBS (ตรงกันทั้งสองแหล่ง และจำนวน 19 วันตรงกับที่ประกาศระบุ) **ไม่ได้อ่านจากไฟล์ประกาศของ ธปท. โดยตรง** เพราะหน้า bot.or.th เรนเดอร์ด้วย JavaScript ทั้งหมด — ถ้าต้องการความมั่นใจสูงสุด ให้เปิด https://www.bot.or.th/th/financial-institutions-holiday.html ใน Browser pane ระหว่าง Task 3 แล้วเทียบทีละวัน; assertion "19 วัน" ใน test จะจับได้ทันทีถ้าข้อมูลถูกแก้ผิด
 - **1 พ.ค. เป็นวันหยุดราชการหรือไม่** — แหล่งข่าวรวมบางแห่งจัดไว้ในตารางวันหยุดราชการด้วย แผนนี้เลือก `government: false` ตามหลักที่ว่าวันแรงงานเป็นวันหยุดของภาคเอกชนและสถาบันการเงิน ถ้าต้องแก้ทีหลัง ให้แก้ 1 บรรทัดใน `data.ts` และตัวเลข 20/241 ใน `logic.test.ts`
 - **`createImageBitmap` ใน `qr-reader`** รองรับทุกเบราว์เซอร์ปัจจุบัน แต่ Safari รุ่นเก่า (< 15) ไม่รองรับ — ถ้าเจอปัญหาใน Task 6 ให้ fallback เป็น `new Image()` + `onload` แล้ววาดลง canvas เหมือนกัน

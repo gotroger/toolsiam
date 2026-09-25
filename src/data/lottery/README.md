@@ -18,9 +18,9 @@ npm test                     # validator ตรวจไฟล์ทั้งห
 
 ## endpoint ที่ใช้
 
-| endpoint | body | ได้อะไร |
-|---|---|---|
-| `POST /api/lottery/getPeriodList` | — | รายการวันที่ทุกงวด |
+| endpoint                              | body                                       | ได้อะไร                  |
+| ------------------------------------- | ------------------------------------------ | ------------------------ |
+| `POST /api/lottery/getPeriodList`     | —                                          | รายการวันที่ทุกงวด       |
 | `POST /api/checking/getLotteryResult` | `{"date":"01","month":"09","year":"2026"}` | ผลครบทุกรางวัลของงวดนั้น |
 
 ⚠️ **ทั้งสองไม่ใช่ public API ที่ประกาศ** เป็น endpoint ที่หน้าเว็บของสำนักงานสลากฯ เรียกใช้เอง

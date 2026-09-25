@@ -50,7 +50,9 @@ export default function CarLoanTool() {
         />
         <Field label="จำนวนงวด" htmlFor="months">
           <Select id="months" value={months} onChange={(e) => setMonths(e.target.value)}>
-            {COMMON_TERMS.map((t) => <option key={t} value={String(t)}>{`${t} งวด (${t / 12} ปี)`}</option>)}
+            {COMMON_TERMS.map((t) => (
+              <option key={t} value={String(t)}>{`${t} งวด (${t / 12} ปี)`}</option>
+            ))}
           </Select>
         </Field>
       </div>
@@ -71,13 +73,19 @@ export default function CarLoanTool() {
           <Disclaimer>
             ดอกเบี้ยคงที่ {formatNumber(num(rate), 2)}% ของสินเชื่อรถ คิดจากยอดจัดเต็มจำนวนตลอดสัญญา
             ไม่ลดตามเงินต้นที่ผ่อนไปแล้ว ภาระจริงจึงเทียบเท่าดอกเบี้ยแบบลดต้นลดดอกที่{' '}
-            {formatNumber(result.effectiveAnnualRate * 100, 2)}% ต่อปี — สูงกว่าตัวเลขบนป้ายราว {result.effectiveAnnualRate && num(rate) ? formatNumber(result.effectiveAnnualRate / (num(rate) / 100), 2) : '—'} เท่า
-            ใช้ตัวเลขนี้เวลาเทียบกับสินเชื่อบ้านหรือสินเชื่อส่วนบุคคลที่คิดแบบลดต้นลดดอก
+            {formatNumber(result.effectiveAnnualRate * 100, 2)}% ต่อปี — สูงกว่าตัวเลขบนป้ายราว{' '}
+            {result.effectiveAnnualRate && num(rate)
+              ? formatNumber(result.effectiveAnnualRate / (num(rate) / 100), 2)
+              : '—'}{' '}
+            เท่า ใช้ตัวเลขนี้เวลาเทียบกับสินเชื่อบ้านหรือสินเชื่อส่วนบุคคลที่คิดแบบลดต้นลดดอก
           </Disclaimer>
 
           <p className="text-sm text-slate-600">
             ต้องการแปลงอัตราสองแบบนี้ไปมาโดยตรง ใช้{' '}
-            <a href={getToolUrl('flat-effective-rate')} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+            <a
+              href={getToolUrl('flat-effective-rate')}
+              className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+            >
               เครื่องมือแปลงดอกเบี้ยคงที่เป็นลดต้นลดดอก
             </a>
           </p>

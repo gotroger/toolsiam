@@ -34,8 +34,13 @@ const ICON_SIZE = 260;
 export function fallbackCoverSvg({ id, from, to }) {
   // จุดวงกลมจาง ๆ ให้ภาพไม่ว่างเปล่าเกินไป — ตำแหน่งคงที่ ไม่สุ่ม เพื่อให้ build ซ้ำได้ผลเดิม
   const dots = [
-    [210, 170, 96], [980, 210, 130], [330, 520, 74], [900, 540, 60],
-  ].map(([cx, cy, r]) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" opacity="0.35"/>`).join('');
+    [210, 170, 96],
+    [980, 210, 130],
+    [330, 520, 74],
+    [900, 540, 60],
+  ]
+    .map(([cx, cy, r]) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" opacity="0.35"/>`)
+    .join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="${WIDTH}" height="${HEIGHT}" role="img" aria-label="ภาพปกหมวด ${id}">
   <defs>

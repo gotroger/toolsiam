@@ -7,7 +7,7 @@ describe('ภาษีหัก ณ ที่จ่าย', () => {
     expect(r.base).toBe(10_000);
     expect(r.vat).toBe(700);
     expect(r.invoiceTotal).toBe(10_700);
-    expect(r.wht).toBe(300);          // 3% ของ 10,000 ไม่ใช่ของ 10,700
+    expect(r.wht).toBe(300); // 3% ของ 10,000 ไม่ใช่ของ 10,700
     expect(r.netReceived).toBe(10_400);
   });
 

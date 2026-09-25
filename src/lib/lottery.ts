@@ -45,10 +45,14 @@ export function normalizeTicket(input: string): string {
 
 function matches(ticket: string, prizeNumber: string, spec: PrizeSpec): boolean {
   switch (spec.match) {
-    case 'full': return ticket === prizeNumber;
-    case 'prefix3': return ticket.slice(0, 3) === prizeNumber;
-    case 'suffix3': return ticket.slice(-3) === prizeNumber;
-    case 'suffix2': return ticket.slice(-2) === prizeNumber;
+    case 'full':
+      return ticket === prizeNumber;
+    case 'prefix3':
+      return ticket.slice(0, 3) === prizeNumber;
+    case 'suffix3':
+      return ticket.slice(-3) === prizeNumber;
+    case 'suffix2':
+      return ticket.slice(-2) === prizeNumber;
   }
 }
 

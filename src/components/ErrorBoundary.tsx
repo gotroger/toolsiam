@@ -6,7 +6,9 @@ interface Props {
   /** ชื่อส่วนที่พัง ใช้ในข้อความและใน log — เช่น slug ของเครื่องมือ */
   name?: string;
 }
-interface State { error: Error | null }
+interface State {
+  error: Error | null;
+}
 
 /**
  * กันหน้าเปล่า — ถ้า island ตัวใดตัวหนึ่ง throw ระหว่าง render
@@ -39,7 +41,9 @@ export default class ErrorBoundary extends Component<Props, State> {
           ลองโหลดหน้าใหม่อีกครั้ง ถ้ายังไม่หายแปลว่าเป็นที่ตัวเว็บ ไม่ใช่ที่ข้อมูลที่คุณกรอก —
           ข้อมูลที่กรอกไว้ไม่ได้ถูกส่งออกไปที่ไหนอยู่แล้ว
         </p>
-        <Button className="mt-3" onClick={() => window.location.reload()}>โหลดหน้าใหม่</Button>
+        <Button className="mt-3" onClick={() => window.location.reload()}>
+          โหลดหน้าใหม่
+        </Button>
       </Alert>
     );
   }

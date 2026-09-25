@@ -69,13 +69,21 @@ export function toRaiNganWa(sqm: number): RaiNganWa {
   let ngan = Math.floor((totalWa - rai * 400) / 100);
   let wa2 = Math.round((totalWa - rai * 400 - ngan * 100) * 100) / 100;
 
-  if (wa2 >= 100) { wa2 -= 100; ngan += 1; }
-  if (ngan >= 4) { ngan -= 4; rai += 1; }
+  if (wa2 >= 100) {
+    wa2 -= 100;
+    ngan += 1;
+  }
+  if (ngan >= 4) {
+    ngan -= 4;
+    rai += 1;
+  }
   return { rai, ngan, wa2 };
 }
 
 export function fromRaiNganWa({ rai, ngan, wa2 }: RaiNganWa): number {
-  assertArea(rai); assertArea(ngan); assertArea(wa2);
+  assertArea(rai);
+  assertArea(ngan);
+  assertArea(wa2);
   return rai * SQM_PER_UNIT.rai + ngan * SQM_PER_UNIT.ngan + wa2 * SQM_PER_UNIT.wa2;
 }
 

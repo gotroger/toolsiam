@@ -17,7 +17,8 @@ describe('ราคาที่ดิน', () => {
 describe('เงินดาวน์', () => {
   it('แยกเงินดาวน์กับส่วนที่ต้องกู้', () => {
     expect(splitDownPayment({ totalPrice: 3_000_000, downPercent: 20 })).toEqual({
-      downPayment: 600_000, financed: 2_400_000,
+      downPayment: 600_000,
+      financed: 2_400_000,
     });
   });
 

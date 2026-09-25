@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
-  tools, categories, getTool, getToolsByCategory, getCategory,
-  getActiveCategories, getBrowsableCategories, getFeaturedTools, getRelatedTools, getVisibleTools,
+  tools,
+  categories,
+  getTool,
+  getToolsByCategory,
+  getCategory,
+  getActiveCategories,
+  getBrowsableCategories,
+  getFeaturedTools,
+  getRelatedTools,
+  getVisibleTools,
 } from './registry';
 import { toolLoaders } from './loaders';
 import { categoryCoverPath, DEFAULT_OG_IMAGE, FALLBACK_COVER, resolveCover, resolveOgImage } from './covers';
@@ -137,7 +145,9 @@ describe('featuredRank', () => {
 
 describe('noindex list ตรงกับ registry', () => {
   it('NOINDEX_CATEGORY_IDS = หมวดที่ build แล้วแต่ยังว่าง (ตั้งแต่ 0B ต้องไม่มีเลย)', () => {
-    const empty = getBrowsableCategories().filter((c) => getToolsByCategory(c.id).length === 0).map((c) => c.id);
+    const empty = getBrowsableCategories()
+      .filter((c) => getToolsByCategory(c.id).length === 0)
+      .map((c) => c.id);
     expect([...NOINDEX_CATEGORY_IDS].sort()).toEqual(empty.sort());
   });
 
@@ -214,8 +224,15 @@ describe('covers', () => {
 /** P9 — public/ ต้องมีแต่ไฟล์ที่ตั้งใจ deploy */
 describe('public/ ไม่มีไฟล์ขยะ', () => {
   const ALLOWED_ROOT = new Set([
-    '_redirects', '_headers', 'robots.txt', 'favicon.ico', 'favicon.svg', 'favicon-32.png',
-    'favicon-192.png', 'apple-touch-icon.png', 'logo.png',
+    '_redirects',
+    '_headers',
+    'robots.txt',
+    'favicon.ico',
+    'favicon.svg',
+    'favicon-32.png',
+    'favicon-192.png',
+    'apple-touch-icon.png',
+    'logo.png',
   ]);
   const ALLOWED_DIRS = new Set(['covers', 'og', 'fonts', 'ffmpeg', 'ocr']);
 

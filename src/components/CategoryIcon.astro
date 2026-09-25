@@ -14,6 +14,7 @@ interface Props {
 }
 const { category, class: className = 'h-5 w-5' } = Astro.props;
 ---
+
 <svg
   class={className}
   viewBox={`0 0 ${CATEGORY_ICON_VIEWBOX} ${CATEGORY_ICON_VIEWBOX}`}
@@ -25,5 +26,5 @@ const { category, class: className = 'h-5 w-5' } = Astro.props;
   aria-hidden="true"
   focusable="false"
 >
-  <path d={CATEGORY_ICON_PATHS[category]} />
+  <path d={CATEGORY_ICON_PATHS[category]}></path>
 </svg>

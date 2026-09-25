@@ -50,7 +50,8 @@ describe('คลังข้อความดวงรายวัน', () => {
     for (const day of ['2026-09-08', '2026-09-09', '2027-02-01']) {
       for (const c of DAILY_CATEGORIES) {
         const picks = ZODIAC_SIGNS.map((_, i) =>
-          pickForGroup(DAILY_POOL[c.id], `${c.id}-${day}`, i, ZODIAC_SIGNS.length));
+          pickForGroup(DAILY_POOL[c.id], `${c.id}-${day}`, i, ZODIAC_SIGNS.length),
+        );
         expect(new Set(picks).size, `${day} ${c.id}`).toBe(ZODIAC_SIGNS.length);
       }
     }

@@ -9,8 +9,15 @@
  */
 
 export type PrizeId =
-  | 'first' | 'firstNear' | 'second' | 'third' | 'fourth' | 'fifth'
-  | 'threeDigitFront' | 'threeDigitBack' | 'twoDigitBack';
+  | 'first'
+  | 'firstNear'
+  | 'second'
+  | 'third'
+  | 'fourth'
+  | 'fifth'
+  | 'threeDigitFront'
+  | 'threeDigitBack'
+  | 'twoDigitBack';
 
 export interface PrizeSpec {
   id: PrizeId;
@@ -39,10 +46,42 @@ export interface PrizeSpec {
  */
 export const PRIZE_STRUCTURE: PrizeSpec[] = [
   { id: 'first', name: 'รางวัลที่ 1', digits: 6, count: 1, amount: 6_000_000, match: 'full', displayGroup: 'headline' },
-  { id: 'threeDigitFront', name: 'รางวัลเลขหน้า 3 ตัว', digits: 3, count: 2, amount: 4_000, match: 'prefix3', displayGroup: 'headline' },
-  { id: 'threeDigitBack', name: 'รางวัลเลขท้าย 3 ตัว', digits: 3, count: 2, amount: 4_000, match: 'suffix3', displayGroup: 'headline' },
-  { id: 'twoDigitBack', name: 'รางวัลเลขท้าย 2 ตัว', digits: 2, count: 1, amount: 2_000, match: 'suffix2', displayGroup: 'headline' },
-  { id: 'firstNear', name: 'รางวัลข้างเคียงรางวัลที่ 1', digits: 6, count: 2, amount: 100_000, match: 'full', displayGroup: 'major' },
+  {
+    id: 'threeDigitFront',
+    name: 'รางวัลเลขหน้า 3 ตัว',
+    digits: 3,
+    count: 2,
+    amount: 4_000,
+    match: 'prefix3',
+    displayGroup: 'headline',
+  },
+  {
+    id: 'threeDigitBack',
+    name: 'รางวัลเลขท้าย 3 ตัว',
+    digits: 3,
+    count: 2,
+    amount: 4_000,
+    match: 'suffix3',
+    displayGroup: 'headline',
+  },
+  {
+    id: 'twoDigitBack',
+    name: 'รางวัลเลขท้าย 2 ตัว',
+    digits: 2,
+    count: 1,
+    amount: 2_000,
+    match: 'suffix2',
+    displayGroup: 'headline',
+  },
+  {
+    id: 'firstNear',
+    name: 'รางวัลข้างเคียงรางวัลที่ 1',
+    digits: 6,
+    count: 2,
+    amount: 100_000,
+    match: 'full',
+    displayGroup: 'major',
+  },
   { id: 'second', name: 'รางวัลที่ 2', digits: 6, count: 5, amount: 200_000, match: 'full', displayGroup: 'major' },
   { id: 'third', name: 'รางวัลที่ 3', digits: 6, count: 10, amount: 80_000, match: 'full', displayGroup: 'major' },
   { id: 'fourth', name: 'รางวัลที่ 4', digits: 6, count: 50, amount: 40_000, match: 'full', displayGroup: 'major' },
@@ -182,7 +221,9 @@ export function validateDrawIssues(input: unknown): string[] {
     }
     for (const n of numbers) {
       if (typeof n !== 'string' || !new RegExp(`^\\d{${spec.digits}}$`).test(n)) {
-        issues.push(`${spec.name}: "${String(n)}" ต้องเป็นตัวเลข ${spec.digits} หลักในรูปสตริง (ห้ามตัดเลขศูนย์นำหน้า)`);
+        issues.push(
+          `${spec.name}: "${String(n)}" ต้องเป็นตัวเลข ${spec.digits} หลักในรูปสตริง (ห้ามตัดเลขศูนย์นำหน้า)`,
+        );
       }
     }
     // เลขซ้ำในรางวัลเดียวกันแทบทุกกรณีคือพิมพ์ผิด ไม่ใช่ผลจริง — ยกเว้นรางวัลที่ออกแยกกันคนละครั้ง
@@ -199,7 +240,9 @@ export function validateDrawIssues(input: unknown): string[] {
     const expected = neighboursOf(first);
     const got = [...near].sort();
     if (JSON.stringify(got) !== JSON.stringify([...expected].sort())) {
-      issues.push(`รางวัลข้างเคียงต้องเป็น ${expected.join(' และ ')} ตามรางวัลที่ 1 (${first}) แต่พบ ${near.join(' และ ')}`);
+      issues.push(
+        `รางวัลข้างเคียงต้องเป็น ${expected.join(' และ ')} ตามรางวัลที่ 1 (${first}) แต่พบ ${near.join(' และ ')}`,
+      );
     }
   }
 
@@ -224,7 +267,9 @@ export function distinctPermutations(value: string): string[] {
  * เลขที่มีตัวซ้ำอย่าง 212 จึงได้ 2 รางวัล ส่วนเลขที่ไม่ซ้ำอย่าง 209 ได้ 5 รางวัล
  */
 export function expectedShuffle3(straight3: string): string[] {
-  return distinctPermutations(straight3).filter((v) => v !== straight3).sort();
+  return distinctPermutations(straight3)
+    .filter((v) => v !== straight3)
+    .sort();
 }
 
 function validateN3(n3: unknown, issues: string[]): void {

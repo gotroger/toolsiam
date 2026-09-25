@@ -35,16 +35,21 @@ export default function HomeLoanTool() {
   }
 
   // ตารางเต็ม 360 แถวอ่านไม่ไหว — สรุปเป็นรายปีแทน โดยเก็บงวดสุดท้ายของแต่ละปี
-  const yearly = result
-    ? result.rows.filter((r) => r.period % 12 === 0 || r.period === result!.months)
-    : [];
+  const yearly = result ? result.rows.filter((r) => r.period % 12 === 0 || r.period === result!.months) : [];
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <NumberInput id="price" label="ราคาบ้าน" mode="decimal" value={price} onValueChange={setPrice} suffix="บาท" />
         <NumberInput id="down" label="เงินดาวน์" mode="decimal" value={down} onValueChange={setDown} suffix="บาท" />
-        <NumberInput id="years" label="ระยะเวลาผ่อน" mode="numeric" value={years} onValueChange={setYears} suffix="ปี" />
+        <NumberInput
+          id="years"
+          label="ระยะเวลาผ่อน"
+          mode="numeric"
+          value={years}
+          onValueChange={setYears}
+          suffix="ปี"
+        />
         <NumberInput
           id="promo-rate"
           label="ดอกเบี้ยช่วงโปรโมชัน"
@@ -54,7 +59,14 @@ export default function HomeLoanTool() {
           suffix="% ต่อปี"
           hint="อัตราเฉลี่ยของ 3 ปีแรกตามที่แบงก์เสนอ"
         />
-        <NumberInput id="promo-months" label="โปรโมชันนานกี่เดือน" mode="numeric" value={promoMonths} onValueChange={setPromoMonths} suffix="เดือน" />
+        <NumberInput
+          id="promo-months"
+          label="โปรโมชันนานกี่เดือน"
+          mode="numeric"
+          value={promoMonths}
+          onValueChange={setPromoMonths}
+          suffix="เดือน"
+        />
         <NumberInput
           id="after-rate"
           label="ดอกเบี้ยหลังหมดโปรโมชัน"
@@ -109,7 +121,12 @@ export default function HomeLoanTool() {
               caption="ยอดคงเหลือและดอกเบี้ยที่จ่ายในแต่ละปี"
               columns={[
                 { key: 'year', header: 'สิ้นปีที่', align: 'right', render: (r) => String(Math.ceil(r.period / 12)) },
-                { key: 'rate', header: 'ดอกเบี้ย', align: 'right', render: (r) => `${formatNumber(r.annualRate * 100, 2)}%` },
+                {
+                  key: 'rate',
+                  header: 'ดอกเบี้ย',
+                  align: 'right',
+                  render: (r) => `${formatNumber(r.annualRate * 100, 2)}%`,
+                },
                 { key: 'payment', header: 'ค่างวด', align: 'right', render: (r) => formatBaht(r.payment) },
                 { key: 'interest', header: 'ดอกเบี้ยงวดนั้น', align: 'right', render: (r) => formatBaht(r.interest) },
                 { key: 'balance', header: 'ยอดคงเหลือ', align: 'right', render: (r) => formatBaht(r.balance) },

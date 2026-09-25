@@ -42,7 +42,12 @@
 ```ts
 // types.ts
 export type OcrLanguage = 'tha+eng' | 'tha' | 'eng';
-export interface OcrPageResult { name: string; text: string; confidence: number; error?: string }
+export interface OcrPageResult {
+  name: string;
+  text: string;
+  confidence: number;
+  error?: string;
+}
 // text.ts
 export function tidyThaiSpacing(text: string): string;
 export function joinResults(results: OcrPageResult[], tidy: boolean): string;
@@ -56,7 +61,9 @@ export function outputFileName(names: string[]): string;
 **Produces:**
 
 ```ts
-export const MAX_FILES = 10; export const MAX_MB = 10; export const MAX_SIDE = 2400;
+export const MAX_FILES = 10;
+export const MAX_MB = 10;
+export const MAX_SIDE = 2400;
 export function validateFiles(files: File[]): string; // '' = ผ่าน
 export function targetSize(width: number, height: number): { width: number; height: number; scaled: boolean };
 export async function prepareImage(file: File): Promise<Blob | HTMLCanvasElement>;
@@ -71,7 +78,10 @@ export async function prepareImage(file: File): Promise<Blob | HTMLCanvasElement
 **Produces:**
 
 ```ts
-export interface EngineHooks { onLoad(fraction: number): void; onProgress(fraction: number): void }
+export interface EngineHooks {
+  onLoad(fraction: number): void;
+  onProgress(fraction: number): void;
+}
 export interface OcrEngine {
   recognize(image: Blob | HTMLCanvasElement, language: OcrLanguage): Promise<{ text: string; confidence: number }>;
   terminate(): void;

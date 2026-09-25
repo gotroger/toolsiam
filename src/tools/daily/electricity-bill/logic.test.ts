@@ -26,10 +26,12 @@ describe('รวมหน่วยไฟหลายเครื่อง', () =
   const fan = COMMON_APPLIANCES.find((a) => a.id === 'fan')!;
 
   it('คูณจำนวนเครื่องแล้วรวมกัน', () => {
-    expect(totalUnits([
-      { appliance: ac, quantity: 2, hoursPerDay: 8 },
-      { appliance: fan, quantity: 3, hoursPerDay: 8 },
-    ])).toBe(288 * 2 + 13.2 * 3);
+    expect(
+      totalUnits([
+        { appliance: ac, quantity: 2, hoursPerDay: 8 },
+        { appliance: fan, quantity: 3, hoursPerDay: 8 },
+      ]),
+    ).toBe(288 * 2 + 13.2 * 3);
   });
 
   it('ไม่มีเครื่องเลย = 0 หน่วย', () => {

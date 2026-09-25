@@ -12,8 +12,18 @@ export interface TabItem {
  * ใช้ roving tabindex: มีแท็บเดียวที่ tabIndex=0
  */
 export function Tabs({
-  tabs, value, onChange, label, idPrefix,
-}: { tabs: TabItem[]; value: string; onChange: (id: string) => void; label: string; idPrefix?: string }) {
+  tabs,
+  value,
+  onChange,
+  label,
+  idPrefix,
+}: {
+  tabs: TabItem[];
+  value: string;
+  onChange: (id: string) => void;
+  label: string;
+  idPrefix?: string;
+}) {
   const auto = useId();
   const prefix = idPrefix ?? auto;
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -32,7 +42,9 @@ export function Tabs({
         return (
           <button
             key={t.id}
-            ref={(el) => { refs.current[t.id] = el; }}
+            ref={(el) => {
+              refs.current[t.id] = el;
+            }}
             type="button"
             role="tab"
             id={tabId(prefix, t.id)}
@@ -41,14 +53,28 @@ export function Tabs({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(t.id)}
             onKeyDown={(e) => {
-              if (e.key === 'ArrowRight') { e.preventDefault(); move(1); }
-              else if (e.key === 'ArrowLeft') { e.preventDefault(); move(-1); }
-              else if (e.key === 'Home') { e.preventDefault(); onChange(tabs[0].id); refs.current[tabs[0].id]?.focus(); }
-              else if (e.key === 'End') { e.preventDefault(); const last = tabs[tabs.length - 1]; onChange(last.id); refs.current[last.id]?.focus(); }
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                move(1);
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                move(-1);
+              } else if (e.key === 'Home') {
+                e.preventDefault();
+                onChange(tabs[0].id);
+                refs.current[tabs[0].id]?.focus();
+              } else if (e.key === 'End') {
+                e.preventDefault();
+                const last = tabs[tabs.length - 1];
+                onChange(last.id);
+                refs.current[last.id]?.focus();
+              }
             }}
             className={cx(
               'flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-1',
-              selected ? 'bg-surface text-brand-700 shadow-[0_1px_2px_0_rgb(16_24_40/0.06)]' : 'text-slate-600 hover:text-slate-900',
+              selected
+                ? 'bg-surface text-brand-700 shadow-[0_1px_2px_0_rgb(16_24_40/0.06)]'
+                : 'text-slate-600 hover:text-slate-900',
             )}
           >
             {t.label}
@@ -59,12 +85,24 @@ export function Tabs({
   );
 }
 
-function tabId(prefix: string, id: string) { return `${prefix}-tab-${id}`; }
-function tabPanelId(prefix: string, id: string) { return `${prefix}-panel-${id}`; }
+function tabId(prefix: string, id: string) {
+  return `${prefix}-tab-${id}`;
+}
+function tabPanelId(prefix: string, id: string) {
+  return `${prefix}-panel-${id}`;
+}
 
 export function TabPanel({
-  id, active, idPrefix, children,
-}: { id: string; active: boolean; idPrefix: string; children: ReactNode }) {
+  id,
+  active,
+  idPrefix,
+  children,
+}: {
+  id: string;
+  active: boolean;
+  idPrefix: string;
+  children: ReactNode;
+}) {
   if (!active) return null;
   return (
     <div role="tabpanel" id={tabPanelId(idPrefix, id)} aria-labelledby={tabId(idPrefix, id)} tabIndex={0}>
