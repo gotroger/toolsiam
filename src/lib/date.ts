@@ -29,9 +29,14 @@ export function parseIsoDate(iso: string): number {
   return d.getTime();
 }
 
+const OUT_OF_RANGE = 'ผลลัพธ์อยู่นอกช่วงปีที่รองรับ (ค.ศ. 1–9999)';
+
+/** โยน error ภาษาไทยเมื่อเกินช่วงปี — ไม่งั้นบวก 1e9 วันจะได้ "NaN-NaN-NaN" แล้วไปฟ้องว่ารูปแบบวันที่ผิด */
 export function toIsoDate(ms: number): string {
   const d = new Date(ms);
-  const y = String(d.getUTCFullYear()).padStart(4, '0');
+  const year = d.getUTCFullYear();
+  if (!Number.isFinite(year) || year < 1 || year > 9999) throw new Error(OUT_OF_RANGE);
+  const y = String(year).padStart(4, '0');
   const m = String(d.getUTCMonth() + 1).padStart(2, '0');
   const day = String(d.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
@@ -98,7 +103,9 @@ export function dateDiffParts(aIso: string, bIso: string, monthEnd: 'clamp' | 'r
     const clamped = shiftDate(startIso, n, 'month');
     return monthEnd === 'clamp' ? clamped : addDays(clamped, start.getUTCDate() - Number(clamped.slice(8, 10)));
   };
-  if (anniversary(months) > endIso) months -= 1;
+  // ต้องวนถอย ไม่ใช่ถอยครั้งเดียว: โหมด rollover ของ 31 ม.ค. ครบเดือนแรกที่ 3 มี.ค. (2568)
+  // จึงเลยวันปลายทาง 1 มี.ค. ได้ทั้งเดือนที่ 2 และเดือนที่ 1 — ถอยครั้งเดียวจะเหลือวันติดลบ
+  while (months > 0 && anniversary(months) > endIso) months -= 1;
   const anchor = anniversary(months);
   return { years: Math.floor(months / 12), months: months % 12, days: daysBetweenDates(anchor, endIso) };
 }
@@ -157,7 +164,7 @@ export function shiftDate(iso: string, amount: number, unit: ShiftUnit): string 
   const totalMonths = unit === 'year' ? (year + n) * 12 + (month - 1) : year * 12 + (month - 1) + n;
   const targetYear = Math.floor(totalMonths / 12);
   const targetMonth = (totalMonths % 12) + 1;
-  if (targetYear < 1 || targetYear > 9999) throw new Error('ผลลัพธ์อยู่นอกช่วงปีที่รองรับ (ค.ศ. 1–9999)');
+  if (targetYear < 1 || targetYear > 9999) throw new Error(OUT_OF_RANGE);
 
   const targetDay = Math.min(day, daysInMonth(targetYear, targetMonth));
   return `${String(targetYear).padStart(4, '0')}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;

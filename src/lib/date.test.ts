@@ -50,6 +50,14 @@ describe('daysBetweenDates / addDays', () => {
     expect(addDays('2026-09-08', 0)).toBe('2026-09-08');
   });
 
+  it('บวกวันจำนวนมหาศาลต้องบอกว่าเกินช่วงปี ไม่ใช่บอกว่ารูปแบบวันที่ผิด', () => {
+    expect(() => addDays('2026-09-25', 1e9)).toThrow('นอกช่วงปีที่รองรับ');
+    expect(() => addDays('2026-09-25', -1e9)).toThrow('นอกช่วงปีที่รองรับ');
+    expect(() => addDays('9999-12-31', 1)).toThrow('นอกช่วงปีที่รองรับ');
+    expect(() => shiftDate('2026-09-25', 1e9, 'week')).toThrow('นอกช่วงปีที่รองรับ');
+    expect(addDays('9999-12-30', 1)).toBe('9999-12-31');
+  });
+
   it('MS_PER_DAY ถูกต้อง', () => {
     expect(MS_PER_DAY).toBe(86_400_000);
   });
@@ -130,6 +138,39 @@ describe('dateDiffParts', () => {
 
   it('สลับลำดับก็ได้ผลเท่ากัน', () => {
     expect(dateDiffParts('2026-09-08', '1990-05-15')).toEqual({ years: 36, months: 3, days: 24 });
+  });
+
+  it('โหมด rollover: 31 ม.ค. ถึง 1 มี.ค. ต้องไม่มีวันติดลบ (เคยได้ 1 เดือน -2 วัน)', () => {
+    // วันครบเดือนแรกของ 31 ม.ค. 2568 คือ 28 ก.พ. + 3 วัน = 3 มี.ค. ซึ่งเลย 1 มี.ค. ไปแล้ว → ยังไม่ครบเดือน
+    expect(dateDiffParts('2025-01-31', '2025-03-01', 'rollover')).toEqual({ years: 0, months: 0, days: 29 });
+    expect(dateDiffParts('2024-01-31', '2024-03-01', 'rollover')).toEqual({ years: 0, months: 0, days: 30 });
+    expect(dateDiffParts('2025-01-31', '2025-03-03', 'rollover')).toEqual({ years: 0, months: 1, days: 0 });
+  });
+
+  it('ไล่ทุกคู่วันที่สองปี: วันไม่ติดลบ และประกอบกลับเป็นวันปลายทางได้ทั้งสองโหมด', () => {
+    // anniversary ของแต่ละโหมดต้องนิยามตรงกับใน dateDiffParts
+    const anniversary = (startIso: string, n: number, mode: 'clamp' | 'rollover') => {
+      const clamped = shiftDate(startIso, n, 'month');
+      if (mode === 'clamp') return clamped;
+      return addDays(clamped, Number(startIso.slice(8, 10)) - Number(clamped.slice(8, 10)));
+    };
+    const first = '2024-01-01';
+    // ช่วง 2 เดือนแรกไล่ทุกวัน (ขอบปลายเดือน/ก.พ. อยู่ตรงนี้) ที่เหลือกระโดดทีละ 13 วัน
+    // ไล่ครบทุกคู่ 400 วันช้าเกิน timeout 5 วินาทีเมื่อเครื่อง CI ทำงานหนัก
+    for (let i = 0; i < 731; i++) {
+      const start = addDays(first, i);
+      for (let offset = 0; offset < 400; offset += offset < 63 ? 1 : 13) {
+        const end = addDays(start, offset);
+        for (const mode of ['clamp', 'rollover'] as const) {
+          const p = dateDiffParts(start, end, mode);
+          const total = p.years * 12 + p.months;
+          if (p.days < 0 || p.months < 0 || p.months > 11) throw new Error(`${mode} ${start}→${end} ${JSON.stringify(p)}`);
+          // ครบเดือนที่ total แล้ว แต่ยังไม่ครบเดือนถัดไป
+          if (addDays(anniversary(start, total, mode), p.days) !== end) throw new Error(`${mode} ${start}→${end} ประกอบกลับไม่ได้`);
+          if (anniversary(start, total + 1, mode) <= end) throw new Error(`${mode} ${start}→${end} นับเดือนขาด`);
+        }
+      }
+    }
   });
 });
 
