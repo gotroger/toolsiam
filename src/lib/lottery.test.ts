@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkTicket, checkTickets, InvalidTicketError, normalizeTicket } from './lottery';
+import { checkTicket, checkTickets, InvalidTicketError, normalizeTicket, parseTicketInput } from './lottery';
 import type { LotteryDraw } from '@/data/lottery/schema';
 
 const seq = (n: number, start: number) =>
@@ -36,6 +36,12 @@ describe('normalizeTicket', () => {
   it('ปฏิเสธจำนวนหลักที่ไม่ใช่ 6 พร้อมบอกว่ากรอกมากี่หลัก', () => {
     expect(() => normalizeTicket('12345')).toThrow('กรอกมา 5 หลัก');
     expect(() => normalizeTicket('1234567')).toThrow('กรอกมา 7 หลัก');
+  });
+
+  it('รับเลขไทยและเลขเต็มความกว้างจากแป้นพิมพ์มือถือ แล้วแปลงเป็นเลขอารบิก', () => {
+    expect(normalizeTicket('๑๒๓๔๕๖')).toBe('123456');
+    expect(normalizeTicket('０１２３４５')).toBe('012345');
+    expect(normalizeTicket('๐๑2-๓45')).toBe('012345');
   });
 
   it('ปฏิเสธตัวอักษรและค่าว่าง', () => {
@@ -107,7 +113,43 @@ describe('ตรวจหลายใบพร้อมกัน', () => {
     expect(r.totalAmount).toBe(6_002_000);
   });
 
+  it('เลขไทยในหลายใบตรวจได้เหมือนเลขอารบิก', () => {
+    expect(checkTickets(['๑๒๓๔๕๖'], draw).totalAmount).toBe(6_002_000);
+  });
+
   it('ไม่มีใบเลยได้ผลลัพธ์ว่าง', () => {
     expect(checkTickets([], draw)).toEqual({ results: [], errors: [], totalAmount: 0 });
+  });
+});
+
+describe('แยกข้อความที่ผู้ใช้กรอกเป็นรายใบ', () => {
+  it('แยกด้วยการขึ้นบรรทัดใหม่ จุลภาค และเว้นวรรค', () => {
+    expect(parseTicketInput('123456\n654321')).toEqual(['123456', '654321']);
+    expect(parseTicketInput('123456, 654321,111111')).toEqual(['123456', '654321', '111111']);
+    expect(parseTicketInput('123456 654321')).toEqual(['123456', '654321']);
+    expect(parseTicketInput('123456\t654321\r\n999999')).toEqual(['123456', '654321', '999999']);
+  });
+
+  it('เลขใบเดียวที่พิมพ์เว้นวรรคเป็นกลุ่มยังนับเป็นใบเดียว', () => {
+    expect(parseTicketInput('12 34 56')).toEqual(['12 34 56']);
+    expect(parseTicketInput('๑๒๓ ๔๕๖')).toEqual(['๑๒๓ ๔๕๖']);
+    expect(checkTickets(parseTicketInput('12 34 56'), draw).totalAmount).toBe(6_002_000);
+  });
+
+  it('ใบที่ผิดในบรรทัดที่มีหลายใบถูกรายงานแยกเป็นรายใบ', () => {
+    const r = checkTickets(parseTicketInput('123456 12345'), draw);
+    expect(r.results.map((x) => x.ticket)).toEqual(['123456']);
+    expect(r.errors.map((e) => e.input)).toEqual(['12345']);
+  });
+
+  it('ข้ามช่องว่างและบรรทัดว่าง', () => {
+    expect(parseTicketInput('\n  \n,,')).toEqual([]);
+    expect(parseTicketInput('')).toEqual([]);
+  });
+
+  it('เลขซ้ำกันยังคงเป็นคนละใบ — ผู้ใช้อาจมีสลากเลขเดียวกันหลายใบ', () => {
+    const r = checkTickets(parseTicketInput('123456\n123456'), draw);
+    expect(r.results).toHaveLength(2);
+    expect(r.totalAmount).toBe(12_004_000);
   });
 });

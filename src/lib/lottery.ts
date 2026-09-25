@@ -22,9 +22,19 @@ export interface TicketResult {
 
 export class InvalidTicketError extends Error {}
 
+/**
+ * แปลงเลขไทย (๐–๙) และเลขเต็มความกว้าง (０–９) เป็นเลขอารบิก
+ * แป้นพิมพ์ไทยบนมือถือพิมพ์เลขไทยได้ง่าย และข้อความที่คัดลอกมาจากบางแอปเป็นเลขเต็มความกว้าง
+ */
+function toAsciiDigits(input: string): string {
+  return input
+    .replace(/[\u0E50-\u0E59]/g, (d) => String(d.charCodeAt(0) - 0x0e50))
+    .replace(/[\uFF10-\uFF19]/g, (d) => String(d.charCodeAt(0) - 0xff10));
+}
+
 /** ตัดช่องว่างและขีดที่ผู้ใช้พิมพ์ติดมา แล้วตรวจว่าเป็นหมายเลขสลากที่ใช้ได้ */
 export function normalizeTicket(input: string): string {
-  const cleaned = input.replace(/[\s-]/g, '');
+  const cleaned = toAsciiDigits(input).replace(/[\s-]/g, '');
   if (cleaned === '') throw new InvalidTicketError('กรุณากรอกหมายเลขสลาก');
   if (!/^\d+$/.test(cleaned)) throw new InvalidTicketError('หมายเลขสลากต้องเป็นตัวเลขเท่านั้น');
   if (cleaned.length !== TICKET_DIGITS) {
@@ -65,6 +75,26 @@ export function checkTicket(ticket: string, draw: LotteryDraw): TicketResult {
     wins,
     totalAmount: wins.reduce((sum, w) => sum + w.amount, 0),
   };
+}
+
+/**
+ * แยกข้อความในช่องกรอกเป็นรายใบ — คั่นด้วยการขึ้นบรรทัดใหม่ จุลภาค อัฒภาค หรือเว้นวรรคก็ได้
+ *
+ * ยกเว้นบรรทัดที่ตัดช่องว่างและขีดออกแล้วเหลือ 6 หลักพอดี เช่น "12 34 56" ซึ่งคือสลากใบเดียว
+ * ที่พิมพ์เว้นเป็นกลุ่มตามที่พิมพ์บนตัวสลาก — แยกเป็นสามใบจะได้ error ที่ผู้ใช้งง
+ * คืนข้อความตามที่ผู้ใช้พิมพ์ (ไม่ normalize) เพื่อให้ข้อความ error อ้างถึงสิ่งที่เขาเห็นในช่องกรอก
+ */
+export function parseTicketInput(text: string): string[] {
+  const out: string[] = [];
+  for (const chunk of text.split(/[\r\n,;]+/)) {
+    const line = chunk.trim();
+    if (line === '') continue;
+    const tokens = line.split(/\s+/);
+    const joined = toAsciiDigits(line).replace(/[\s-]/g, '');
+    if (tokens.length > 1 && joined.length !== TICKET_DIGITS) out.push(...tokens);
+    else out.push(line);
+  }
+  return out;
 }
 
 /** ตรวจหลายใบพร้อมกัน — ใบที่รูปแบบผิดจะถูกรายงานแยก ไม่ทำให้ทั้งชุดล้ม */
