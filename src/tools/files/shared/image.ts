@@ -1,20 +1,60 @@
-import { dimensions } from './logic';
+import { planImage, type ImagePlan } from './logic';
 import type { Job, Output } from './types';
 
-export async function readBitmap(file: File) {
-  let bitmap;
+const OPEN_ERROR = 'เปิดรูปไม่สำเร็จ กรุณาเลือก JPG PNG หรือ WebP ที่ไม่เสียหาย';
+
+/** อ่านขนาดรูป (หลังหมุนตาม EXIF) ผ่าน <img> — ไม่ต้องถอดรหัสทั้งภาพลงหน่วยความจำก่อนรู้ว่าจะย่อเท่าไร */
+function naturalSize(file: File): Promise<{ width: number; height: number } | null> {
+  if (typeof Image === 'undefined') return Promise.resolve(null);
+  const url = URL.createObjectURL(file);
+  return new Promise((resolve) => {
+    const img = new Image();
+    const done = (size: { width: number; height: number } | null) => {
+      URL.revokeObjectURL(url);
+      img.onload = img.onerror = null;
+      resolve(size);
+    };
+    img.onload = () => done(img.naturalWidth ? { width: img.naturalWidth, height: img.naturalHeight } : null);
+    img.onerror = () => done(null);
+    img.src = url;
+  });
+}
+
+/**
+ * ถอดรหัสรูปตามขนาดผลลัพธ์ที่วางแผนไว้ — ถ้าต้องย่อจะขอให้เบราว์เซอร์ถอดรหัสแบบย่อเลย
+ * (รูป 50 ล้านพิกเซลไม่ต้องกางเต็มขนาดบน iPhone) ถ้าเบราว์เซอร์ไม่รองรับ resizeWidth
+ * หรือได้ขนาดไม่ตรง (บางรุ่นย่อก่อนหมุนตาม EXIF) จะถอยไปถอดรหัสเต็มแล้วให้ drawImage ย่อแทน
+ */
+export async function readBitmap(file: File, plan: (width: number, height: number) => ImagePlan) {
+  const size = await naturalSize(file);
+  if (size) {
+    const target = plan(size.width, size.height);
+    if (target.width !== size.width || target.height !== size.height) {
+      try {
+        const bitmap = await createImageBitmap(file, {
+          resizeWidth: target.width,
+          resizeHeight: target.height,
+          resizeQuality: 'high',
+        });
+        if (bitmap.width === target.width && bitmap.height === target.height) return { bitmap, ...target };
+        bitmap.close();
+      } catch {
+        // ถอยไปถอดรหัสเต็มขนาดด้านล่าง
+      }
+    }
+  }
+  let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(file);
   } catch {
-    throw new Error('เปิดรูปไม่สำเร็จ กรุณาเลือก JPG PNG หรือ WebP ที่ไม่เสียหาย');
+    throw new Error(OPEN_ERROR);
   }
   try {
-    dimensions(bitmap.width, bitmap.height);
+    return { bitmap, ...plan(bitmap.width, bitmap.height) };
   } catch (error) {
     bitmap.close();
     throw error;
   }
-  return bitmap;
 }
 function canvasBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) =>
@@ -35,12 +75,11 @@ export async function processImage({ id, files, options }: Job, signal: AbortSig
     const pdf = await PDFDocument.create();
     for (const file of files) {
       signal.throwIfAborted();
-      const bitmap = await readBitmap(file);
+      const { bitmap, ...size } = await readBitmap(file, (w, h) => planImage(id, w, h, options.width));
       const canvas = document.createElement('canvas');
       try {
-        const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
-        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.width = size.width;
+        canvas.height = size.height;
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error('เบราว์เซอร์ไม่รองรับการแปลงภาพ');
         ctx.fillStyle = '#ffffff';
@@ -67,15 +106,10 @@ export async function processImage({ id, files, options }: Job, signal: AbortSig
       summary: `PDF ขนาด A4 · ${files.length} หน้า`,
     };
   }
-  const bitmap = await readBitmap(files[0]);
+  const { bitmap, width, height, reduced } = await readBitmap(files[0], (w, h) => planImage(id, w, h, options.width));
   const canvas = document.createElement('canvas');
   try {
     signal.throwIfAborted();
-    const { width, height } = dimensions(
-      bitmap.width,
-      bitmap.height,
-      id === 'image-resize' ? options.width : undefined,
-    );
     const angle = id === 'image-rotate' ? options.angle : 0;
     const quarter = angle === 90 || angle === 270;
     canvas.width = quarter ? height : width;
@@ -97,7 +131,7 @@ export async function processImage({ id, files, options }: Job, signal: AbortSig
     return {
       blob,
       name: `${files[0].name.replace(/\.[^.]+$/, '')}-${id}.${ext}`,
-      summary: `${canvas.width} × ${canvas.height} พิกเซล · ${sizeChange >= 0 ? `ไฟล์เล็กลง ${sizeChange}%` : `ไฟล์ใหญ่ขึ้น ${-sizeChange}%`}`,
+      summary: `${canvas.width} × ${canvas.height} พิกเซล${reduced ? ' (ย่อจากต้นฉบับเพราะรูปใหญ่เกินที่เบราว์เซอร์วาดได้)' : ''} · ${sizeChange >= 0 ? `ไฟล์เล็กลง ${sizeChange}%` : `ไฟล์ใหญ่ขึ้น ${-sizeChange}%`}`,
     };
   } finally {
     bitmap.close();

@@ -1,4 +1,5 @@
 import { PLAN_LIMITS } from '@/lib/plan-limits';
+import type { FileToolId } from '../catalog';
 
 /** ค่าเริ่มต้น = แพลนฟรี — ตัวเลขจริงมาจาก src/lib/plan-limits.ts และถูกส่งมากับ Job ตามแพลนของผู้ใช้ */
 export const MAX_PAGES = PLAN_LIMITS.free.pages;
@@ -68,6 +69,8 @@ export function parseCsv(text: string, delimiter = ',', maxCells = MAX_CELLS): s
   }
   return rows;
 }
+/** ตัวเลขล้วน เช่น -1500 · +66812345678 · -1,234.50 · 1.5e3 — ส่วน -2+3 หรือ +A1 ยังนับเป็นสูตร */
+const PLAIN_NUMBER = /^[+-]?\d[\d,]*(\.\d+)?(e[+-]?\d+)?$/i;
 export function toCsv(rows: string[][], delimiter = ','): string {
   // Neutralize spreadsheet formula injection when the downloaded CSV is opened in Excel.
   return (
@@ -76,7 +79,9 @@ export function toCsv(rows: string[][], delimiter = ','): string {
       .map((row) =>
         row
           .map((value) => {
-            const safe = /^[\s]*[=+@-]|^[\t\r\n]/.test(value) ? "'" + value : value;
+            // ตัวเลขล้วนที่มีเครื่องหมาย (ยอดติดลบ -1500, เบอร์ +668…) ไม่ใช่สูตร — อย่าเติม ' ให้ข้อมูลเพี้ยน
+            const formula = /^[\s]*[=+@-]|^[\t\r\n]/.test(value) && !PLAIN_NUMBER.test(value);
+            const safe = formula ? "'" + value : value;
             return '"' + safe.replaceAll('"', '""') + '"';
           })
           .join(delimiter),
@@ -84,16 +89,60 @@ export function toCsv(rows: string[][], delimiter = ','): string {
       .join('\r\n')
   );
 }
-export function dimensions(width: number, height: number, targetWidth?: number) {
-  const w = targetWidth ?? width;
+/** เพดานรูปต้นฉบับ — รูปกล้องมือถือ 24–108 ล้านพิกเซลต้องผ่าน แต่เกินนี้เสี่ยงหน่วยความจำเบราว์เซอร์หมด */
+export const MAX_SOURCE_PIXELS = 120_000_000;
+/** เพดาน canvas ผลลัพธ์ — iOS Safari วาด canvas ได้ราว 16.7 ล้านพิกเซล และด้านยาวสุด 16384 */
+export const MAX_OUTPUT_PIXELS = 16_000_000;
+export const MAX_OUTPUT_SIDE = 16384;
+/** ด้านยาวสุดของรูปที่ฝังลง PDF — A4 ที่ 2400 พิกเซลคมพอพิมพ์ และไฟล์ไม่บวม */
+export const PDF_IMAGE_SIDE = 2400;
+
+export interface ImagePlan {
+  width: number;
+  height: number;
+  /** true = ต้องย่อจากขนาดเดิมเพื่อให้เบราว์เซอร์วาดได้ — UI ต้องบอกผู้ใช้ */
+  reduced: boolean;
+}
+
+/** ย่อขนาดให้อยู่ในเพดานโดยคงสัดส่วน (ปัดลงเพื่อไม่ให้ล้นเพดาน) */
+export function fitOutput(
+  width: number,
+  height: number,
+  maxSide = MAX_OUTPUT_SIDE,
+  maxPixels = MAX_OUTPUT_PIXELS,
+): ImagePlan {
+  const scale = Math.min(1, maxSide / Math.max(width, height), Math.sqrt(maxPixels / (width * height)));
+  if (scale >= 1) return { width, height, reduced: false };
+  return {
+    width: Math.max(1, Math.floor(width * scale)),
+    height: Math.max(1, Math.floor(height * scale)),
+    reduced: true,
+  };
+}
+
+/** ขนาดผลลัพธ์ของการปรับความกว้าง — ตรวจเฉพาะผลลัพธ์ ต้นฉบับใหญ่แค่ไหนก็ย่อได้ (ถ้าไม่เกิน MAX_SOURCE_PIXELS) */
+export function dimensions(width: number, height: number, targetWidth: number) {
+  const w = targetWidth;
+  if (!Number.isInteger(w) || w < 1 || w > 4096) throw new Error('กรุณาระบุความกว้างเป็นจำนวนเต็ม 1–4096 พิกเซล');
   const h = Math.max(1, Math.round((height * w) / width));
-  if (
-    !Number.isInteger(w) ||
-    w < 1 ||
-    (targetWidth !== undefined && w > 4096) ||
-    w * h > 16_000_000 ||
-    Math.max(w, h) > 16384
-  )
-    throw new Error('ขนาดรูปเกินกำหนด ใช้ความกว้าง 1–4096 พิกเซล และพื้นที่ไม่เกิน 16 ล้านพิกเซล');
+  if (w * h > MAX_OUTPUT_PIXELS || h > MAX_OUTPUT_SIDE)
+    throw new Error(
+      `รูปนี้สูงมาก ถ้ากว้าง ${w} พิกเซลจะสูง ${h.toLocaleString('th-TH')} พิกเซล เกินที่เบราว์เซอร์วาดได้ กรุณาลดความกว้าง`,
+    );
   return { width: w, height: h };
+}
+
+/**
+ * วางแผนขนาดผลลัพธ์จากขนาดต้นฉบับ — ต้นฉบับใหญ่ได้ถึง MAX_SOURCE_PIXELS
+ * งานที่คงขนาดเดิม (บีบอัด/แปลงชนิด/หมุน) จะย่ออัตโนมัติให้อยู่ในเพดาน canvas แทนการปฏิเสธ
+ */
+export function planImage(id: FileToolId, width: number, height: number, targetWidth: number): ImagePlan {
+  if (!(width >= 1 && height >= 1)) throw new Error('อ่านขนาดรูปไม่ได้ กรุณาเลือกไฟล์รูปที่ไม่เสียหาย');
+  if (width * height > MAX_SOURCE_PIXELS)
+    throw new Error(
+      `รูปต้นฉบับใหญ่เกินไป (${Math.round((width * height) / 1_000_000)} ล้านพิกเซล) รองรับไม่เกิน ${MAX_SOURCE_PIXELS / 1_000_000} ล้านพิกเซล กรุณาย่อรูปก่อน`,
+    );
+  if (id === 'image-resize') return { ...dimensions(width, height, targetWidth), reduced: false };
+  if (id === 'images-to-pdf') return { ...fitOutput(width, height, PDF_IMAGE_SIDE, Infinity), reduced: false };
+  return fitOutput(width, height);
 }
