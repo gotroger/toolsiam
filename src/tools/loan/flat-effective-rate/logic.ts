@@ -1,4 +1,4 @@
-import { effectiveRateFromPayment, flatLoan, monthlyPayment } from '@/lib/loan';
+import { amortize, effectiveRateFromPayment, flatLoan, monthlyPayment } from '@/lib/loan';
 
 export { effectiveRateFromPayment, flatLoan, monthlyPayment };
 
@@ -38,8 +38,11 @@ export function flatToEffective(principal: number, flatRate: number, months: num
  */
 export function effectiveToFlat(principal: number, effectiveRate: number, months: number): ConversionResult {
   const payment = monthlyPayment(principal, effectiveRate, months);
-  const totalPaid = round2(payment * months);
-  const totalInterest = round2(totalPaid - principal);
+  // ยอดรวมจากตารางผ่อนจริง: งวดสุดท้ายปิดเศษที่เกิดจากการปัดค่างวดเป็นสตางค์
+  // ถ้าใช้ค่างวด × จำนวนงวด อัตรา 0% จะได้ดอกเบี้ยติดลบไม่กี่สตางค์
+  const schedule = amortize(principal, [{ months: Infinity, annualRate: effectiveRate }], months, payment);
+  const totalInterest = Math.max(0, schedule.totalInterest);
+  const totalPaid = round2(principal + totalInterest);
   const years = months / 12;
   const flatRate = round6(totalInterest / principal / years);
 
@@ -56,7 +59,9 @@ export function effectiveToFlat(principal: number, effectiveRate: number, months
 /** จากค่างวดที่ไฟแนนซ์เสนอมา → อัตราจริงทั้งสองแบบ (ไม่ต้องเชื่อตัวเลขที่เขาบอก) */
 export function fromPayment(principal: number, payment: number, months: number): ConversionResult {
   const effectiveRate = effectiveRateFromPayment(principal, payment, months);
-  const totalPaid = round2(payment * months);
+  // ค่างวดที่ปัดลงรวมกันต่ำกว่าเงินต้นเล็กน้อยได้ (เช่น 100,000 ÷ 7) — งวดสุดท้ายจริงต้องปิดยอดเงินต้น
+  // จึงไม่ปล่อยให้ดอกเบี้ยติดลบ
+  const totalPaid = Math.max(round2(payment * months), principal);
   const totalInterest = round2(totalPaid - principal);
   const flatRate = round6(totalInterest / principal / (months / 12));
 

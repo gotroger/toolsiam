@@ -53,3 +53,36 @@ describe('หาอัตราจากค่างวดที่ไฟแน�
     expect(() => fromPayment(100_000, 0, 12)).toThrow();
   });
 });
+
+describe('ดอกเบี้ย 0% ไม่แสดงดอกเบี้ยติดลบจากการปัดค่างวด', () => {
+  it('ลดต้นลดดอก 0% → ดอกเบี้ยรวม 0 และจ่ายรวมเท่าเงินต้นพอดี', () => {
+    for (const [principal, months] of [
+      [100_000, 7],
+      [100_000, 36],
+      [640_000, 60],
+      [999_999, 84],
+    ]) {
+      const r = effectiveToFlat(principal, 0, months);
+      expect(r.totalInterest).toBe(0);
+      expect(r.totalPaid).toBe(principal);
+      expect(r.flatRate).toBe(0);
+    }
+  });
+
+  it('ค่างวดที่ปัดแล้วรวมกันต่ำกว่าเงินต้นเล็กน้อย → ดอกเบี้ย 0 ไม่ใช่ติดลบ', () => {
+    // 100,000 ÷ 7 = 14,285.714… ปัดเป็น 14,285.71 × 7 = 99,999.97
+    const r = fromPayment(100_000, 14_285.71, 7);
+    expect(r.totalInterest).toBe(0);
+    expect(r.totalPaid).toBe(100_000);
+    expect(r.flatRate).toBe(0);
+    expect(r.effectiveRate).toBe(0);
+  });
+
+  it('อัตราบวกยังให้ดอกเบี้ยรวมไม่ติดลบและจ่ายรวม = เงินต้น + ดอกเบี้ย', () => {
+    for (const rate of [0.0001, 0.01, 0.059, 0.15]) {
+      const r = effectiveToFlat(250_000, rate, 48);
+      expect(r.totalInterest).toBeGreaterThanOrEqual(0);
+      expect(r.totalPaid).toBe(Math.round((250_000 + r.totalInterest) * 100) / 100);
+    }
+  });
+});
