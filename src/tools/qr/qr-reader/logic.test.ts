@@ -42,6 +42,14 @@ describe('classifyQrText', () => {
     expect(r.label).toBe('QR PromptPay');
   });
 
+  it('QR ชำระบิล (Thai QR Payment bill payment, AID A000000677010112)', () => {
+    const r = classifyQrText(
+      '000201010212305000160A00000067701011201150107536000315080214INV0000001234530376454061500.005802TH6304ABCD',
+    );
+    expect(r.kind).toBe('promptpay');
+    expect(r.label).toBe('QR ชำระบิล (Thai QR Payment)');
+  });
+
   it('เบอร์โทรและอีเมล', () => {
     expect(classifyQrText('tel:0812345678').kind).toBe('tel');
     expect(classifyQrText('mailto:hi@toolsiam.com').fields[0].value).toBe('hi@toolsiam.com');

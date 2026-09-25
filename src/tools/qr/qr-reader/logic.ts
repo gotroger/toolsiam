@@ -99,13 +99,15 @@ export function classifyQrText(raw: string): QrParsed {
   if (/^BEGIN:VCARD/i.test(text)) {
     return { kind: 'vcard', label: 'นามบัตร (vCard)', fields: parseVCard(text), raw };
   }
-  // EMVCo payload ของ PromptPay: ขึ้นต้นด้วย 0002 และมี Application ID ของ PromptPay
-  if (/^0002/.test(text) && text.includes('A000000677010111')) {
+  // EMVCo payload ของ Thai QR Payment: ขึ้นต้นด้วย 0002 และมี Application ID
+  // A000000677010111 = โอนเงิน PromptPay · A000000677010112 = ชำระบิล (Biller ID + Ref) ยังไม่ถอดรายละเอียด
+  const bill = text.includes('A000000677010112');
+  if (/^0002/.test(text) && (bill || text.includes('A000000677010111'))) {
     return {
       kind: 'promptpay',
-      label: 'QR PromptPay',
+      label: bill ? 'QR ชำระบิล (Thai QR Payment)' : 'QR PromptPay',
       fields: [
-        { label: 'รูปแบบ', value: 'EMVCo PromptPay' },
+        { label: 'รูปแบบ', value: bill ? 'EMVCo Thai QR Payment (ชำระบิล)' : 'EMVCo PromptPay' },
         { label: 'ข้อมูลดิบ', value: text },
       ],
       raw,

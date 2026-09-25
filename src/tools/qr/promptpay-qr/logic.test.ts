@@ -38,4 +38,10 @@ describe('buildPromptPayPayload', () => {
   it('จำนวนเงินติดลบโยน error', () => {
     expect(() => buildPromptPayPayload('0812345678', -1)).toThrow('จำนวนเงินต้องไม่ติดลบ');
   });
+  it('จำนวนเงินเกิน 999,999,999.99 บาทโยน error (tag 54 ยาวได้ไม่เกิน 13 ตัวอักษร)', () => {
+    expect(buildPromptPayPayload('0812345678', 999_999_999.99)).toContain('5412999999999.99');
+    expect(() => buildPromptPayPayload('0812345678', 1_000_000_000)).toThrow('999,999,999.99');
+    expect(() => buildPromptPayPayload('0812345678', 999_999_999.999)).toThrow('999,999,999.99');
+    expect(() => buildPromptPayPayload('0812345678', 1e21)).toThrow('999,999,999.99');
+  });
 });

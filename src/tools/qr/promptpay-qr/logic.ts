@@ -15,6 +15,9 @@ export function normalizeTarget(raw: string): { type: PromptPayTargetType; value
   throw new Error('กรุณากรอกเบอร์โทร 10 หลัก, เลขบัตรประชาชน 13 หลัก หรือ e-Wallet 15 หลัก');
 }
 
+/** ยอดสูงสุดที่ QR ระบุได้ */
+export const MAX_AMOUNT = 999_999_999.99;
+
 /** คืน EMVCo payload สำหรับสร้าง QR PromptPay (amount ไม่ระบุ/0 = ให้ผู้จ่ายกรอกเอง) */
 export function buildPromptPayPayload(target: string, amount?: number): string {
   const { value } = normalizeTarget(target);
@@ -22,6 +25,9 @@ export function buildPromptPayPayload(target: string, amount?: number): string {
     throw new Error('จำนวนเงินต้องไม่ติดลบ');
   }
   if (amount !== undefined && amount > 0 && amount < 0.01) throw new Error('ยอดระบุจำนวนเงินต้องอย่างน้อย 0.01 บาท');
-  const opts = amount && amount > 0 ? { amount: Math.round(amount * 100) / 100 } : {};
+  const rounded = amount && amount > 0 ? Math.round(amount * 100) / 100 : 0;
+  // EMVCo tag 54 ยาวได้ไม่เกิน 13 ตัวอักษร — เกินนี้ promptpay-qr สร้าง payload ที่แอปธนาคารอ่านไม่ได้ (1e21 กลายเป็นสัญกรณ์ e)
+  if (rounded > MAX_AMOUNT) throw new Error('จำนวนเงินต้องไม่เกิน 999,999,999.99 บาท');
+  const opts = rounded ? { amount: rounded } : {};
   return generatePayload(value, opts);
 }
