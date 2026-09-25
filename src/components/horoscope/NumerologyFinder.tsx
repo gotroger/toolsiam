@@ -2,9 +2,10 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { useDateInput } from '@/lib/use-today';
 import { numerologyFromDate } from '@/lib/thai-astro';
 import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 /** เลขศาสตร์วันเกิด — แสดงขั้นตอนการบวกให้ผู้ใช้ตรวจตามได้ ไม่ใช่ยิงผลลัพธ์ลอย ๆ */
-export default function NumerologyFinder() {
+function NumerologyFinderInner() {
   const [birth, setBirth] = useDateInput();
 
   let error = '';
@@ -56,5 +57,14 @@ export default function NumerologyFinder() {
         </>
       )}
     </div>
+  );
+}
+
+/** ห่อด้วย ErrorBoundary แบบเดียวกับ island ของเครื่องมือ — พังแล้วยังเหลือข้อความบอกผู้ใช้ ไม่ใช่กล่องว่าง */
+export default function NumerologyFinder() {
+  return (
+    <ErrorBoundary name="horoscope-numerology">
+      <NumerologyFinderInner />
+    </ErrorBoundary>
   );
 }

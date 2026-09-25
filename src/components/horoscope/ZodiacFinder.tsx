@@ -4,12 +4,13 @@ import { compatibleSigns, zodiacFromDate, zodiacRange } from '@/lib/thai-astro';
 import { getHoroscopePageUrl } from '@/lib/routes';
 import ZodiacBadge from './ZodiacBadge';
 import { ErrorText, Field } from '@/components/ui';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const MIN_DATE = '1900-01-01';
 const MAX_DATE = '2200-12-31';
 
 /** ค้นราศีจากวันเกิด — ส่วน interactive เล็ก ๆ บนหน้าที่เนื้อหาหลักเป็น HTML อยู่แล้ว (§9.5 SEO) */
-export default function ZodiacFinder() {
+function ZodiacFinderInner() {
   const [birth, setBirth] = useDateInput();
 
   let error = '';
@@ -95,5 +96,14 @@ export default function ZodiacFinder() {
         </div>
       )}
     </div>
+  );
+}
+
+/** ห่อด้วย ErrorBoundary แบบเดียวกับ island ของเครื่องมือ — พังแล้วยังเหลือข้อความบอกผู้ใช้ ไม่ใช่กล่องว่าง */
+export default function ZodiacFinder() {
+  return (
+    <ErrorBoundary name="horoscope-zodiac">
+      <ZodiacFinderInner />
+    </ErrorBoundary>
   );
 }

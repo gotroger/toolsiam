@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useDateInput } from '@/lib/use-today';
 import { dayColorsFromDate } from '@/lib/thai-astro';
 import { Checkbox, ErrorText, Field, ResultBox, Stat } from '@/components/ui';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const GROUPS = [
   { key: 'work', label: 'สีเสริมการงาน' },
@@ -12,7 +13,7 @@ const GROUPS = [
 ] as const;
 
 /** สีมงคลจากวันเกิด — ผู้ใช้กรอกวันเกิด ไม่ใช่วันนี้ เพราะสีประจำตัวยึดวันที่เกิด */
-export default function LuckyColorFinder() {
+function LuckyColorFinderInner() {
   const [birth, setBirth] = useDateInput();
   const [night, setNight] = useState(false);
 
@@ -69,5 +70,14 @@ export default function LuckyColorFinder() {
         </>
       )}
     </div>
+  );
+}
+
+/** ห่อด้วย ErrorBoundary แบบเดียวกับ island ของเครื่องมือ — พังแล้วยังเหลือข้อความบอกผู้ใช้ ไม่ใช่กล่องว่าง */
+export default function LuckyColorFinder() {
+  return (
+    <ErrorBoundary name="horoscope-lucky-color">
+      <LuckyColorFinderInner />
+    </ErrorBoundary>
   );
 }

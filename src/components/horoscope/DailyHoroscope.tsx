@@ -5,6 +5,7 @@ import { DAILY_CATEGORIES, DAILY_POOL, type DailyCategory } from '@/content/horo
 import { pickForGroup } from '@/lib/seeded';
 import { formatThaiDate } from '@/lib/thai-date';
 import ZodiacBadge from './ZodiacBadge';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 /**
  * ดวงรายวัน 12 ราศี (§9.5)
@@ -45,7 +46,7 @@ function readPreferredSign(): string | null {
   return [fromUrl, saved].find((id) => id && zodiacById(id)) ?? null;
 }
 
-export default function DailyHoroscope({ initialSign }: { initialSign?: string }) {
+function DailyHoroscopeInner({ initialSign }: { initialSign?: string }) {
   const preferred = useSyncExternalStore(subscribe, readPreferredSign, () => null);
   // เก็บเฉพาะค่าที่ผู้ใช้กดเลือกในรอบนี้ (null = ยังไม่ได้กด) แล้ว fallback ตามลำดับ
   const [chosen, setChosen] = useState<string | null>(null);
@@ -137,5 +138,14 @@ export default function DailyHoroscope({ initialSign }: { initialSign?: string }
         เครื่องนี้จะจำราศีที่เลือกไว้ให้
       </p>
     </div>
+  );
+}
+
+/** ห่อด้วย ErrorBoundary แบบเดียวกับ island ของเครื่องมือ — พังแล้วยังเหลือข้อความบอกผู้ใช้ ไม่ใช่กล่องว่าง */
+export default function DailyHoroscope(props: { initialSign?: string }) {
+  return (
+    <ErrorBoundary name="horoscope-daily-horoscope">
+      <DailyHoroscopeInner {...props} />
+    </ErrorBoundary>
   );
 }

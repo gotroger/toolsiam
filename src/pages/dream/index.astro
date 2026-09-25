@@ -3,12 +3,23 @@ import Base from '@/layouts/Base.astro';
 import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
-import DreamSearch from '@/components/DreamSearch';
+import DreamSearch, { type DreamCardData } from '@/components/DreamSearch';
 import { collectionPageJsonLd } from '@/lib/seo';
 import { getDreamEntryUrl, getDreamUrl, getHomeUrl, getHoroscopeUrl } from '@/lib/routes';
-import { DREAM_ENTRIES } from '@/content/dream/entries';
+import { DREAM_ENTRIES, DREAM_GROUPS } from '@/content/dream/entries';
+import { luckyNumbersFor } from '@/content/dream/lucky-numbers';
 
 const title = 'ทำนายฝัน — ความหมายของความฝันตามตำราไทย';
+// ส่งเฉพาะช่องที่การ์ดค้นหาใช้ — บริบทและคำแนะนำอยู่ในหน้ารายเรื่อง ไม่ต้องลากเข้า bundle ของ island
+const cards: DreamCardData[] = DREAM_ENTRIES.map((e) => ({
+  slug: e.slug,
+  title: e.title,
+  keywords: e.keywords,
+  group: e.group,
+  meaning: e.meaning,
+  lucky: luckyNumbersFor(e.slug),
+}));
+const groups = DREAM_GROUPS.map((g) => ({ id: g.id, label: g.label }));
 const description = `รวมความหมายของความฝัน ${DREAM_ENTRIES.length} เรื่องตามตำราไทย ทั้งฝันเห็นงู ปลา ฟันหลุด น้ำ ไฟ และอื่น ๆ พร้อมเลขนำโชคตามความเชื่อและบริบทที่ทำให้ความหมายต่างกัน`;
 ---
 
@@ -36,7 +47,7 @@ const description = `รวมความหมายของความฝ�
     ]}
   >
     <Card>
-      <DreamSearch client:load />
+      <DreamSearch client:load entries={cards} groups={groups} />
     </Card>
 
     <Section title="ทำไมคนเราถึงฝัน" class="mt-10">

@@ -3,9 +3,10 @@ import { useDateInput } from '@/lib/use-today';
 import { chineseZodiacFromDate, CHINESE_ZODIAC_MAX_YEAR, CHINESE_ZODIAC_MIN_YEAR } from '@/lib/thai-astro';
 import { formatThaiDate } from '@/lib/thai-date';
 import { ErrorText, Field, ResultBox, Stat } from '@/components/ui';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 /** ค้นปีนักษัตรจากวันเกิด โดยใช้ตรุษจีนเป็นเกณฑ์ตัดปี (ล็อกไว้ในแผน §9.4) */
-export default function ChineseZodiacFinder() {
+function ChineseZodiacFinderInner() {
   const [birth, setBirth] = useDateInput();
 
   let error = '';
@@ -64,5 +65,14 @@ export default function ChineseZodiacFinder() {
         </>
       )}
     </div>
+  );
+}
+
+/** ห่อด้วย ErrorBoundary แบบเดียวกับ island ของเครื่องมือ — พังแล้วยังเหลือข้อความบอกผู้ใช้ ไม่ใช่กล่องว่าง */
+export default function ChineseZodiacFinder() {
+  return (
+    <ErrorBoundary name="horoscope-chinese-zodiac">
+      <ChineseZodiacFinderInner />
+    </ErrorBoundary>
   );
 }

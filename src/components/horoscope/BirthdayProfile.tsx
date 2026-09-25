@@ -13,12 +13,13 @@ import {
 import { formatThaiDate } from '@/lib/thai-date';
 import { Checkbox, ErrorText, Field, ResultBox, Stat } from '@/components/ui';
 import { getHoroscopePageUrl } from '@/lib/routes';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 /**
  * หน้ารวมดวงจากวันเกิด — เรียก logic ของหน้าย่อยทุกหน้ามาแสดงในที่เดียว
  * ไม่มี logic ของตัวเอง เพื่อไม่ให้ผลลัพธ์ขัดกับหน้าย่อยเมื่อแก้ตำราในอนาคต
  */
-export default function BirthdayProfile() {
+function BirthdayProfileInner() {
   const [birth, setBirth] = useDateInput();
   const [night, setNight] = useState(false);
 
@@ -147,5 +148,14 @@ export default function BirthdayProfile() {
         </>
       )}
     </div>
+  );
+}
+
+/** ห่อด้วย ErrorBoundary แบบเดียวกับ island ของเครื่องมือ — พังแล้วยังเหลือข้อความบอกผู้ใช้ ไม่ใช่กล่องว่าง */
+export default function BirthdayProfile() {
+  return (
+    <ErrorBoundary name="horoscope-birthday">
+      <BirthdayProfileInner />
+    </ErrorBoundary>
   );
 }
