@@ -1,4 +1,4 @@
-import { dateDiffParts, daysBetweenDates, parseIsoDate, shiftDate, type DiffParts } from '@/lib/date';
+import { addDays, dateDiffParts, daysBetweenDates, parseIsoDate, shiftDate, type DiffParts } from '@/lib/date';
 
 export interface TenureResult extends DiffParts {
   totalDays: number;
@@ -11,19 +11,31 @@ export interface TenureResult extends DiffParts {
   daysToNextAnniversary: number;
 }
 
+export interface TenureOptions {
+  /**
+   * true = วันที่อ้างอิงคือ "วันสุดท้ายที่ทำงาน" จึงนับวันนั้นด้วย (ลาออก/ออกจากงานแล้ว)
+   * ตรงกับการนับอายุงานของเครื่องมือค่าชดเชยที่รวมทั้งวันเริ่มงานและวันสุดท้าย
+   * false (ค่าตั้งต้น) = นับแบบครบรอบถึงวันที่อ้างอิง เหมาะกับคนที่ยังทำงานอยู่
+   */
+  includeEndDay?: boolean;
+}
+
 /**
  * อายุงานนับจากวันเริ่มงานถึงวันที่อ้างอิง (วันสุดท้ายของการทำงาน หรือวันนี้)
  *
  * นับแบบ "ครบรอบ" ตามปฏิทิน ไม่ใช่หารด้วย 365 — คนเริ่มงาน 1 ม.ค. 2563 ถึง 1 ม.ค. 2569
  * ต้องได้ 6 ปีพอดี ไม่ว่าช่วงนั้นจะมีปีอธิกสุรทินกี่ปี
+ * ส่วนคนที่ทำงานวันสุดท้าย 31 ธ.ค. 2568 (includeEndDay) ก็ได้ 6 ปีพอดีเช่นกัน
  */
-export function calculateTenure(startIso: string, refIso: string): TenureResult {
+export function calculateTenure(startIso: string, refIso: string, options: TenureOptions = {}): TenureResult {
   const start = parseIsoDate(startIso);
   const ref = parseIsoDate(refIso);
   if (start > ref) throw new Error('วันเริ่มงานต้องไม่อยู่หลังวันที่อ้างอิง');
 
-  const parts = dateDiffParts(startIso, refIso);
-  const totalDays = daysBetweenDates(startIso, refIso);
+  // นับวันสุดท้ายด้วย = เทียบกับวันถัดไปแบบไม่รวมปลาย — สูตรเดียวกับ severance-pay
+  const endExclusive = options.includeEndDay ? addDays(refIso, 1) : refIso;
+  const parts = dateDiffParts(startIso, endExclusive);
+  const totalDays = daysBetweenDates(startIso, endExclusive);
 
   const nextAnniversary = shiftDate(startIso, parts.years + 1, 'year');
 
