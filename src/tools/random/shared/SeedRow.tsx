@@ -31,7 +31,7 @@ export function SeedRow({
           maxLength={32}
           autoComplete="off"
           spellCheck={false}
-          placeholder="เช่น K7M2-QX4P"
+          placeholder="เช่น K7M2-QX4P-8HRT-D3WN"
           aria-describedby={`${seedId}-hint`}
           onChange={(e) => onChange(e.target.value)}
         />

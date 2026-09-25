@@ -218,9 +218,16 @@ describe('newSeed', () => {
   it('อ่านออก คัดลอกง่าย และไม่มีตัวอักษรที่สับสน', () => {
     for (let i = 0; i < 50; i++) {
       const seed = newSeed();
-      expect(seed).toMatch(/^[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}$/);
+      expect(seed).toMatch(/^[2-9A-HJKMNP-Z]{4}(-[2-9A-HJKMNP-Z]{4}){3}$/);
       expect(seed).not.toMatch(/[01OIL]/);
     }
+  });
+
+  it('seed อัตโนมัติยาว 16 ตัว (~79 บิต) พอให้ทุกการเรียงสลับของรายชื่อ 20 คนมีสิทธิ์ออก', () => {
+    const letters = newSeed().replace(/-/g, '');
+    expect(letters).toHaveLength(16);
+    // 31^16 ต้องมากกว่า 20! ไม่งั้นบางการเรียงสลับสุ่มไม่ออกเลย
+    expect(16 * Math.log2(31)).toBeGreaterThan(Math.log2(2432902008176640000));
   });
 
   it('ไม่ซ้ำกันในทางปฏิบัติ', () => {
@@ -238,11 +245,18 @@ describe('resolveDraw — นโยบายการสุ่มของทั
 
   it('ไม่กรอก seed = ปั่น seed ใหม่ให้ และบอกว่าใช้ตัวไหน', () => {
     const { seed } = resolveDraw('');
-    expect(seed).toMatch(/^[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}$/);
+    expect(seed).toMatch(/^[2-9A-HJKMNP-Z]{4}(-[2-9A-HJKMNP-Z]{4}){3}$/);
   });
 
   it('ไม่กรอก seed สองครั้งได้คนละ seed', () => {
     expect(resolveDraw('').seed).not.toBe(resolveDraw('').seed);
+  });
+
+  it('seed แบบเก่า 8 ตัวยังให้ผลเดิมทุกบิต — ห้ามแก้การแปลง seed เป็น RNG', () => {
+    // ค่าที่บันทึกไว้ก่อนเปลี่ยนความยาว seed อัตโนมัติ (25 ก.ย. 2569)
+    const rng = resolveDraw('k7m2-qx4p').rng;
+    expect([rng(), rng(), rng()]).toEqual([1727664385, 3498711710, 441999985]);
+    expect(shuffle(['ก', 'ข', 'ค', 'ง', 'จ'], seededRng('AB12CD34'))).toEqual(['ข', 'ค', 'ง', 'ก', 'จ']);
   });
 
   it('กรอก seed เดิมกลับมาได้ผลเดิมเป๊ะ — สัญญาหลักของหมวดนี้', () => {

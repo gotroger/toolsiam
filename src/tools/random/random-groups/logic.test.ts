@@ -36,8 +36,25 @@ describe('makeGroups — แบ่งเป็นจำนวนกลุ่ม'
 });
 
 describe('makeGroups — แบ่งตามขนาดกลุ่ม', () => {
-  it('10 คน กลุ่มละ 3 ได้ 3/3/3/1', () => {
-    expect(sizes(makeGroups(TEN, { mode: 'bySize', value: 3 }, rng()))).toEqual([3, 3, 3, 1]);
+  it('10 คน กลุ่มละ 3 ได้ 4 กลุ่มแบบเกลี่ย 3/3/2/2 ไม่ใช่ 3/3/3/1', () => {
+    expect(sizes(makeGroups(TEN, { mode: 'bySize', value: 3 }, rng()))).toEqual([3, 3, 2, 2]);
+  });
+
+  it('10 คน กลุ่มละ 4 ได้ 4/3/3 ไม่ใช่ 4/4/2', () => {
+    expect(sizes(makeGroups(TEN, { mode: 'bySize', value: 4 }, rng()))).toEqual([4, 3, 3]);
+  });
+
+  it('ทุกขนาด: จำนวนกลุ่มเท่าเดิม ไม่มีกลุ่มเกินขนาดที่กำหนด และต่างกันไม่เกิน 1 คน', () => {
+    for (let n = 1; n <= 40; n++) {
+      const names = Array.from({ length: n }, (_, i) => `${i}`);
+      for (let size = 1; size <= n + 2; size++) {
+        const got = sizes(makeGroups(names, { mode: 'bySize', value: size }, rng()));
+        expect(got).toHaveLength(Math.ceil(n / size));
+        expect(Math.max(...got)).toBeLessThanOrEqual(size);
+        expect(Math.max(...got) - Math.min(...got)).toBeLessThanOrEqual(1);
+        expect(got.reduce((a, b) => a + b, 0)).toBe(n);
+      }
+    }
   });
 
   it('ลงตัวพอดีไม่มีกลุ่มเศษ', () => {

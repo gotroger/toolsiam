@@ -22,26 +22,27 @@ export function makeGroups(items: readonly string[], { mode, value }: GroupOptio
       throw new Error(`มี ${items.length} คน จึงแบ่งได้มากที่สุด ${items.length} กลุ่ม โดยไม่มีกลุ่มว่าง`);
     }
     if (value > MAX_GROUPS) throw new Error(`แบ่งได้มากที่สุด ${MAX_GROUPS} กลุ่ม`);
-
-    // แจกเศษให้กลุ่มแรก ๆ กลุ่มละคน ขนาดกลุ่มจึงต่างกันไม่เกิน 1 คนเสมอ
-    const base = Math.floor(items.length / value);
-    const remainder = items.length % value;
-    const groups: string[][] = [];
-    let cursor = 0;
-    for (let i = 0; i < value; i++) {
-      const size = base + (i < remainder ? 1 : 0);
-      groups.push(shuffled.slice(cursor, cursor + size));
-      cursor += size;
-    }
-    return groups;
+    return splitEvenly(shuffled, value);
   }
 
+  // กำหนดคนต่อกลุ่ม = เพดานของขนาดกลุ่ม จำนวนกลุ่มจึงเท่ากับปัดขึ้น แล้วเกลี่ยแบบเดียวกับโหมดจำนวนกลุ่ม
+  // 10 คน กลุ่มละ 4 → 3 กลุ่ม ได้ 4/3/3 ไม่ใช่ 4/4/2 ที่ทิ้งให้กลุ่มสุดท้ายโดดเดี่ยว
+  // ceil ทำให้ n ≤ กลุ่ม × ขนาด กลุ่มที่ใหญ่ที่สุดจึงไม่เกินขนาดที่ผู้ใช้กำหนดเสมอ
   const groupCount = Math.ceil(items.length / value);
   if (groupCount > MAX_GROUPS) throw new Error(`แบ่งแล้วได้ ${groupCount} กลุ่ม เกินเพดาน ${MAX_GROUPS} กลุ่ม`);
+  return splitEvenly(shuffled, groupCount);
+}
 
+/** แจกเศษให้กลุ่มแรก ๆ กลุ่มละคน ขนาดกลุ่มจึงต่างกันไม่เกิน 1 คนเสมอ */
+function splitEvenly(shuffled: readonly string[], groupCount: number): string[][] {
+  const base = Math.floor(shuffled.length / groupCount);
+  const remainder = shuffled.length % groupCount;
   const groups: string[][] = [];
-  for (let cursor = 0; cursor < shuffled.length; cursor += value) {
-    groups.push(shuffled.slice(cursor, cursor + value));
+  let cursor = 0;
+  for (let i = 0; i < groupCount; i++) {
+    const size = base + (i < remainder ? 1 : 0);
+    groups.push(shuffled.slice(cursor, cursor + size));
+    cursor += size;
   }
   return groups;
 }

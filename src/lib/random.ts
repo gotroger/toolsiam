@@ -141,12 +141,23 @@ export function sampleWithReplacement<T>(items: readonly T[], n: number, rng: Rn
 /** ตัวอักษรของ seed — ตัด 0 O 1 I L ออก เพราะ seed ต้องอ่านจากจอแล้วพิมพ์ต่อได้ไม่ผิด */
 const SEED_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
-/** seed ใหม่ที่อ่านออกและบอกต่อด้วยปากได้ เช่น "K7M2-QX4P" */
+/** จำนวนตัวอักษรของ seed อัตโนมัติ (ไม่นับขีด) */
+const SEED_LENGTH = 16;
+
+/**
+ * seed ใหม่ที่อ่านออกและบอกต่อได้ เช่น "K7M2-QX4P-8HRT-D3WN"
+ *
+ * ต้องยาว 16 ตัว: 31^16 ≈ 2^79 แบบ ซึ่งมากกว่า 24! ≈ 2^79 เล็กน้อย รายชื่อไม่เกิน 24 คน
+ * จึงมีสิทธิ์ออกได้ทุกการเรียงสลับ — เดิม 8 ตัวได้แค่ ≈ 2^39.6 แบบ น้อยกว่า 16! ≈ 2^44
+ * เท่ากับว่าการเรียงสลับส่วนใหญ่ของรายชื่อ 16 คนขึ้นไปสุ่มไม่ออกเลย ขัดกับที่ sfc32 ตั้งใจไว้
+ *
+ * เปลี่ยนเฉพาะความยาว seed ที่ปั่นใหม่ — การแปลง seed เป็น RNG (seededRng) ห้ามแตะ
+ * seed 8 ตัวที่ผู้ใช้เคยจดไว้ต้องกรอกกลับมาแล้วได้ผลเดิมทุกบิต (มีเทสต์ค่าคงที่กันไว้)
+ */
 export function newSeed(): string {
   const rng = cryptoRng();
-  const block = () =>
-    Array.from({ length: 4 }, () => SEED_ALPHABET[randomInt(rng, 0, SEED_ALPHABET.length - 1)]).join('');
-  return `${block()}-${block()}`;
+  const letters = Array.from({ length: SEED_LENGTH }, () => SEED_ALPHABET[randomInt(rng, 0, SEED_ALPHABET.length - 1)]);
+  return letters.join('').replace(/(.{4})(?=.)/g, '$1-');
 }
 
 export interface ResolvedDraw {
