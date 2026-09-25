@@ -27,6 +27,54 @@ export {
   VAT,
 };
 
+export interface BillFt {
+  period: FtPeriod;
+  /** true = เดือนนี้ยังไม่มีประกาศค่า Ft จึงใช้งวดล่าสุดที่มีข้อมูลไปก่อน */
+  provisional: boolean;
+}
+
+/**
+ * ค่า Ft สำหรับบิลเดือนที่เลือก
+ *
+ * ftAt ยังเข้มงวด (คืน null เมื่อไม่มีงวด) ส่วนตรงนี้คือทางเลือกของหน้าเครื่องมือ:
+ * เดือนหลังงวดล่าสุดใช้ค่า Ft งวดล่าสุดไปก่อนพร้อมธง provisional ให้หน้าเว็บบอกผู้ใช้
+ * ดีกว่าหน้าเว็บคำนวณไม่ได้เลยระหว่างรอคนอัปเดต FT_PERIODS
+ */
+export function ftForBill(asOf: string): BillFt | null {
+  const exact = ftAt(asOf);
+  if (exact) return { period: exact, provisional: false };
+  const latest = latestFt();
+  // วันที่ผิดรูปแบบ ftAt คืน null ไว้แล้ว — ตรวจซ้ำด้วยรูปแบบก่อนเทียบสตริง
+  if (/^\d{4}-\d{2}-\d{2}$/.test(asOf) && asOf > latest.effectiveTo) return { period: latest, provisional: true };
+  return null;
+}
+
+/** เดือนแรกที่มีข้อมูลอัตราในระบบ */
+const FIRST_BILLING_MONTH = '2026-01';
+
+/**
+ * เดือนของบิลที่ให้เลือก (YYYY-MM) — ตั้งแต่เดือนแรกที่มีข้อมูลจนถึงเดือนหลังสุดระหว่าง
+ * ธันวาคมของปีที่มีงวด Ft ล่าสุด กับเดือนปัจจุบัน เพื่อไม่ให้รายการค้างอยู่ที่ปีเก่าเมื่อข้ามปี
+ */
+export function billingMonths(currentMonth: string): string[] {
+  const lastFtYear = Number(latestFt().effectiveTo.slice(0, 4));
+  const endOfFtYear = `${lastFtYear}-12`;
+  const end = /^\d{4}-\d{2}$/.test(currentMonth) && currentMonth > endOfFtYear ? currentMonth : endOfFtYear;
+  const months: string[] = [];
+  let [y, m] = FIRST_BILLING_MONTH.split('-').map(Number);
+  for (;;) {
+    const month = `${y}-${String(m).padStart(2, '0')}`;
+    months.push(month);
+    if (month >= end) break;
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+  return months;
+}
+
 export interface Appliance {
   id: string;
   name: string;

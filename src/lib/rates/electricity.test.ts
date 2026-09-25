@@ -136,8 +136,15 @@ describe('อัตราตามเดือนบิลและการป�
   });
 
   it('ไม่ใช้อัตราปัจจุบันทับวันที่ไม่มีข้อมูลหรือวันที่ไม่ถูกต้อง', () => {
-    for (const date of ['2025-12-31', '2027-01-01', '2026-02-30', 'invalid']) {
+    for (const date of ['2025-12-31', '2026-02-30', 'invalid']) {
       expect(residentialTariffsAt('pea', date)).toBeNull();
+    }
+  });
+
+  it('โครงสร้างอัตราล่าสุดไม่มีวันหมดอายุ — ปีหน้าใช้อัตราเดียวกันจนกว่าจะมีประกาศใหม่', () => {
+    for (const utility of ['mea', 'pea'] as const) {
+      expect(residentialTariffsAt(utility, '2027-01-01')).toEqual(RESIDENTIAL_TARIFFS[utility]);
+      expect(residentialTariffsAt(utility, '2027-03-01')).toEqual(RESIDENTIAL_TARIFFS[utility]);
     }
   });
 

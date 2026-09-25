@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useTodayInBangkok } from '@/lib/use-today';
 import {
+  billingMonths,
   calculateBill,
   COMMON_APPLIANCES,
-  ftAt,
+  ftForBill,
   residentialTariffsAt,
   RESIDENTIAL_TARIFFS,
   totalUnits,
@@ -28,7 +29,6 @@ import { formatThaiDate } from '@/lib/thai-date';
 import { formatBaht, formatNumber } from '@/lib/format';
 
 const ID = 'bill';
-const BILLING_MONTHS = Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`);
 const monthLabel = (month: string) => formatThaiDate(`${month}-01`, { style: 'medium' }).replace(/^1 /, '');
 
 const num = (s: string) => {
@@ -54,7 +54,10 @@ export default function ElectricityBillTool() {
 
   const billingMonth = selectedMonth ?? today.slice(0, 7);
   const billingDate = billingMonth ? `${billingMonth}-01` : '';
-  const ft = ftAt(billingDate);
+  const billFt = ftForBill(billingDate);
+  const ft = billFt?.period ?? null;
+  // รายการเดือนขยายตามวันปัจจุบัน — ข้ามปีแล้วเดือนปัจจุบันยังเลือกได้
+  const months = billingMonths(today.slice(0, 7));
   const datedTariffs = residentialTariffsAt(utility, billingDate);
   const tariffs = datedTariffs ?? RESIDENTIAL_TARIFFS[utility];
   const tariff = tariffs.find((t) => t.id === tariffId) ?? tariffs[0];
@@ -122,10 +125,10 @@ export default function ElectricityBillTool() {
             aria-describedby="billing-month-hint"
           >
             {!billingMonth && <option value="">กำลังเลือกเดือนปัจจุบัน…</option>}
-            {billingMonth && !BILLING_MONTHS.includes(billingMonth) && (
+            {billingMonth && !months.includes(billingMonth) && (
               <option value={billingMonth}>{monthLabel(billingMonth)} — ยังไม่มีข้อมูลอัตรา</option>
             )}
-            {BILLING_MONTHS.map((month) => (
+            {months.map((month) => (
               <option key={month} value={month}>
                 {monthLabel(month)}
               </option>
@@ -140,6 +143,11 @@ export default function ElectricityBillTool() {
             <p>
               ค่า Ft {ft.ratePerUnit.toFixed(4)} บาท/หน่วย · VAT {formatNumber(VAT.rate * 100)}%
             </p>
+            {billFt?.provisional && (
+              <p className="text-amber-700">
+                ยังไม่มีประกาศค่า Ft ของเดือนนี้ ใช้ค่า Ft งวด {ft.label} ไปก่อน ยอดจริงอาจต่างจากนี้
+              </p>
+            )}
           </div>
         )}
       </div>

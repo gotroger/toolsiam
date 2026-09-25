@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { COMMON_APPLIANCES, totalUnits, unitsPerMonth } from './logic';
+import { billingMonths, COMMON_APPLIANCES, ftForBill, latestFt, totalUnits, unitsPerMonth } from './logic';
 
 describe('หน่วยไฟจากกำลังไฟ', () => {
   it('แอร์ 1,200 วัตต์ เปิดวันละ 8 ชม. 30 วัน = 288 หน่วย', () => {
@@ -47,5 +47,39 @@ describe('รวมหน่วยไฟหลายเครื่อง', () =
 
   it('ปฏิเสธจำนวนเครื่องติดลบ', () => {
     expect(() => totalUnits([{ appliance: ac, quantity: -1, hoursPerDay: 8 }])).toThrow('จำนวนเครื่อง');
+  });
+});
+
+describe('ค่า Ft ของบิล', () => {
+  it('เดือนที่มีประกาศใช้ค่า Ft ของงวดนั้นตรง ๆ', () => {
+    const r = ftForBill('2026-05-01')!;
+    expect(r.period.ratePerUnit).toBe(0.1623);
+    expect(r.provisional).toBe(false);
+  });
+
+  it('เดือนหลังงวดล่าสุดใช้ค่า Ft งวดล่าสุดไปก่อน และติดธงว่าเป็นค่าชั่วคราว', () => {
+    const r = ftForBill('2027-03-01')!;
+    expect(r.period).toEqual(latestFt());
+    expect(r.provisional).toBe(true);
+  });
+
+  it('ก่อนงวดแรกที่มีข้อมูลหรือวันที่ผิดคืน null', () => {
+    expect(ftForBill('2025-12-01')).toBeNull();
+    expect(ftForBill('invalid')).toBeNull();
+  });
+});
+
+describe('รายการเดือนของบิล', () => {
+  it('อย่างน้อยครบทั้งปี 2569', () => {
+    const months = billingMonths('2026-09');
+    expect(months[0]).toBe('2026-01');
+    expect(months.at(-1)).toBe('2026-12');
+    expect(months).toHaveLength(12);
+  });
+
+  it('ขยายไปถึงเดือนปัจจุบันเมื่อข้ามปี', () => {
+    const months = billingMonths('2027-03');
+    expect(months.at(-1)).toBe('2027-03');
+    expect(months).toHaveLength(15);
   });
 });

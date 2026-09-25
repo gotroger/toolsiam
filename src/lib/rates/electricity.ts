@@ -100,15 +100,26 @@ export const RESIDENTIAL_TARIFFS: Record<Utility, ResidentialTariff[]> = {
   pea: residentialTariffs('pea'),
 };
 
-/** Supported billing dates only; never apply the September revision to older bills. */
+/** วันแรกที่มีข้อมูลอัตราในระบบ — บิลก่อนหน้านี้คืน null */
+const TARIFF_DATA_FROM = '2026-01-01';
+/** วันเริ่มใช้โครงสร้างอัตราล่าสุด */
+const CURRENT_TARIFF_FROM = '2026-09-01';
+
+/**
+ * อัตราฐานของบิลตามวันที่ — null เมื่อก่อนช่วงที่มีข้อมูลหรือวันที่ไม่ถูกต้อง
+ *
+ * โครงสร้างล่าสุด **ไม่มีวันสิ้นสุด**: อัตราฐานเปลี่ยนนาน ๆ ครั้ง (ต่างจาก Ft ที่เปลี่ยนทุก 4 เดือน)
+ * จึงใช้ต่อไปจนกว่าจะมีประกาศใหม่ แล้วค่อยเพิ่มช่วงใหม่ที่นี่ — งานอัปเดตปกติเหลือแค่เติม FT_PERIODS
+ * และไม่เอาโครงสร้างกันยายน 2569 ไปใช้กับบิลเก่ากว่านั้น
+ */
 export function residentialTariffsAt(utility: Utility, asOf: string): ResidentialTariff[] | null {
   try {
     parseIsoDate(asOf);
   } catch {
     return null;
   }
-  if (asOf < '2026-01-01' || asOf > '2026-12-31') return null;
-  return asOf < '2026-09-01' ? residentialTariffs(utility, true) : RESIDENTIAL_TARIFFS[utility];
+  if (asOf < TARIFF_DATA_FROM) return null;
+  return asOf < CURRENT_TARIFF_FROM ? residentialTariffs(utility, true) : RESIDENTIAL_TARIFFS[utility];
 }
 
 export interface FtPeriod {
