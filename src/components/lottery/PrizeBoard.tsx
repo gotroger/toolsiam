@@ -10,17 +10,18 @@ import { formatBaht } from '@/lib/format';
  *
  * เป็น React เพื่อใช้ร่วมกันทั้งหน้า static (`PrizeTable.astro` render ตอน build ไม่มี JS)
  * และ `LiveResults` ที่สลับเป็นงวดใหม่จาก KV — markup ชุดเดียว
+ * อยู่ใต้ h1 ของหน้าโดยตรงเสมอ จึงเริ่มที่ h2 (กลุ่มรางวัล) → h3 (ชื่อรางวัล) ไม่ข้ามระดับ
  * key ใช้ index เพราะเลขในรางวัลเดียวกันซ้ำกันได้ (เลขหน้า/ท้าย 3 ตัวออกแยกกันคนละครั้ง)
  */
 export default function PrizeBoard({ draw }: { draw: LotteryDraw }) {
   return (
     <div className="space-y-6">
       <section>
-        <h3 className="sr-only">รางวัลหลัก</h3>
+        <h2 className="sr-only">รางวัลหลัก</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {HEADLINE_PRIZES.map((spec) => (
             <div key={spec.id} className="rounded-xl border border-slate-200 bg-surface p-4">
-              <p className="font-semibold text-slate-900">{spec.name}</p>
+              <h3 className="font-semibold text-slate-900">{spec.name}</h3>
               <p className="text-xs text-slate-500">รางวัลละ {formatBaht(spec.amount)} บาท</p>
               <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-2xl font-bold tabular-nums text-slate-900">
                 {draw.prizes[spec.id].map((n, i) => (
@@ -34,7 +35,7 @@ export default function PrizeBoard({ draw }: { draw: LotteryDraw }) {
 
       {draw.n3 && (
         <section>
-          <h3 className="text-base font-medium text-slate-900">สลากตัวเลขสามหลัก (N3)</h3>
+          <h2 className="text-base font-medium text-slate-900">สลากตัวเลขสามหลัก (N3)</h2>
           <p className="mt-0.5 text-sm text-slate-600">
             เป็นสลากคนละใบกับสลากกินแบ่งรัฐบาล 6 หลัก และเงินรางวัลไม่คงที่ เพราะแบ่งจากยอดขายของงวดนั้น
             จึงเปลี่ยนไปทุกงวด
@@ -44,7 +45,7 @@ export default function PrizeBoard({ draw }: { draw: LotteryDraw }) {
               const result = draw.n3![spec.id];
               return (
                 <div key={spec.id} className="rounded-xl border border-slate-200 bg-surface p-4">
-                  <p className="font-semibold text-slate-900">{spec.name}</p>
+                  <h3 className="font-semibold text-slate-900">{spec.name}</h3>
                   <p className="text-xs text-slate-500">รางวัลละ {formatBaht(result.price)} บาท</p>
                   <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xl font-bold tabular-nums text-slate-900">
                     {result.numbers.map((n, i) => (
@@ -60,11 +61,11 @@ export default function PrizeBoard({ draw }: { draw: LotteryDraw }) {
       )}
 
       <section className="space-y-4">
-        <h3 className="sr-only">รางวัลอื่นของสลากกินแบ่งรัฐบาล</h3>
+        <h2 className="sr-only">รางวัลอื่นของสลากกินแบ่งรัฐบาล</h2>
         {MAJOR_PRIZES.map((spec) => (
           <div key={spec.id} className="rounded-xl border border-slate-200 bg-surface p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h4 className="font-medium text-slate-900">{spec.name}</h4>
+              <h3 className="font-medium text-slate-900">{spec.name}</h3>
               <p className="text-sm text-slate-500">
                 รางวัลละ {formatBaht(spec.amount)} บาท · {spec.count} รางวัล
               </p>

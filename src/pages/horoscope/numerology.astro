@@ -3,6 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
+import HoroscopeRelated from '@/components/horoscope/HoroscopeRelated.astro';
 import NumerologyFinder from '@/components/horoscope/NumerologyFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 
@@ -58,5 +59,7 @@ const description =
         </p>
       </div>
     </Section>
+
+    <HoroscopeRelated current="numerology" />
   </VerticalShell>
 </Base>

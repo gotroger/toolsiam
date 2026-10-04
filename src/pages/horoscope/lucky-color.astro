@@ -3,6 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
+import HoroscopeRelated from '@/components/horoscope/HoroscopeRelated.astro';
 import LuckyColorFinder from '@/components/horoscope/LuckyColorFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 import { THAI_DAY_COLORS, THAI_WEEKDAYS } from '@/lib/thai-date';
@@ -77,5 +78,7 @@ const description =
         </p>
       </div>
     </Section>
+
+    <HoroscopeRelated current="lucky-color" />
   </VerticalShell>
 </Base>

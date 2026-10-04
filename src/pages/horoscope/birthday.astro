@@ -3,10 +3,11 @@ import Base from '@/layouts/Base.astro';
 import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
+import HoroscopeRelated from '@/components/horoscope/HoroscopeRelated.astro';
 import BirthdayProfile from '@/components/horoscope/BirthdayProfile';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 
-const title = 'ดูดวงจากวันเกิด — ราศี นักษัตร สีมงคล และเลขศาสตร์ในหน้าเดียว';
+const title = 'ดูดวงจากวันเกิด — ราศี นักษัตร สีมงคล และเลขศาสตร์';
 const description =
   'กรอกวันเกิดครั้งเดียวแล้วได้ครบทั้งราศีสากล ปีนักษัตรที่ตัดปีด้วยตรุษจีน วันในสัปดาห์ที่เกิด สีมงคลประจำวัน และเลขชีวิตตามเลขศาสตร์';
 ---
@@ -50,5 +51,7 @@ const description =
         </p>
       </div>
     </Section>
+
+    <HoroscopeRelated current="birthday" />
   </VerticalShell>
 </Base>

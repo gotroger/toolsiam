@@ -3,6 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
+import HoroscopeRelated from '@/components/horoscope/HoroscopeRelated.astro';
 import ChineseZodiacFinder from '@/components/horoscope/ChineseZodiacFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 import { CHINESE_ZODIAC } from '@/lib/thai-astro';
@@ -67,5 +68,7 @@ const description =
         </p>
       </div>
     </Section>
+
+    <HoroscopeRelated current="chinese-zodiac" />
   </VerticalShell>
 </Base>

@@ -3,6 +3,7 @@ import Base from '@/layouts/Base.astro';
 import Card from '@/components/Card.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
+import HoroscopeRelated from '@/components/horoscope/HoroscopeRelated.astro';
 import DailyHoroscope from '@/components/horoscope/DailyHoroscope';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 import ZodiacBadge from '@/components/horoscope/ZodiacBadge';
@@ -67,5 +68,7 @@ const description =
         }
       </ul>
     </Section>
+
+    <HoroscopeRelated current="daily" />
   </VerticalShell>
 </Base>

@@ -3,7 +3,12 @@ import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import { readdirSync } from 'node:fs';
 import { isNoindexPath } from './src/lib/noindex';
+import { latestDrawPath } from './src/lib/sitemap';
+
+// งวดล่าสุดชี้ canonical ไป /lottery/results จึงตัดออกจาก sitemap (ดู src/lib/sitemap.ts)
+const canonicalElsewhere = latestDrawPath(readdirSync(new URL('./src/data/lottery/', import.meta.url)));
 
 export default defineConfig({
   site: 'https://toolsiam.com',
@@ -14,7 +19,12 @@ export default defineConfig({
   // sitemap อ่าน noindex list ชุดเดียวกับ Base.astro → หน้า noindex ไม่มีทางหลุดเข้า sitemap (§7.3)
   integrations: [
     react(),
-    sitemap({ filter: (page) => !isNoindexPath(new URL(page).pathname) }),
+    sitemap({
+      filter: (page) => {
+        const path = new URL(page).pathname;
+        return !isNoindexPath(path) && path !== canonicalElsewhere;
+      },
+    }),
     {
       name: 'toolsiam-isolated-dependency-cache',
       hooks: {

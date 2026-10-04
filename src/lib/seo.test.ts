@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { breadcrumbJsonLd, collectionPageJsonLd, organizationJsonLd, toolJsonLd, websiteJsonLd } from './seo';
+import {
+  breadcrumbJsonLd,
+  collectionPageJsonLd,
+  organizationJsonLd,
+  toolJsonLd,
+  truncateDescription,
+  websiteJsonLd,
+} from './seo';
 import type { ToolMeta } from '@/tools/types';
 
 const tool: ToolMeta = {
@@ -27,6 +34,12 @@ describe('toolJsonLd', () => {
     expect(faq['@type']).toBe('FAQPage');
     expect(faq.mainEntity).toHaveLength(2);
     expect(faq.mainEntity[0].acceptedAnswer.text).toBe('ตอบ1');
+  });
+  it('dateModified มาจาก contentUpdatedAt และไม่ใส่เมื่อไม่มีวันที่ (§16)', () => {
+    const [withDate] = toolJsonLd({ ...tool, contentUpdatedAt: '2026-09-08' }, 'https://toolsiam.com/tools/x') as any[];
+    expect(withDate.dateModified).toBe('2026-09-08');
+    const [withoutDate] = toolJsonLd(tool, 'https://toolsiam.com/tools/x') as any[];
+    expect(withoutDate).not.toHaveProperty('dateModified');
   });
   it('ไม่ประกาศราคาใด ๆ เพราะไม่มี paywall จริง (§20 M7)', () => {
     const json = JSON.stringify(toolJsonLd(tool, 'https://toolsiam.com/tools/x'));
@@ -61,6 +74,13 @@ describe('structured data ของหน้ารวมและ breadcrumb', (
     expect(o.url).toBe('https://toolsiam.com/');
   });
 
+  it('โลโก้ Organization เป็นภาพจัตุรัสอย่างน้อย 112×112 ตามข้อกำหนดของ Google', () => {
+    const { logo } = organizationJsonLd() as any;
+    expect(logo.url).toBe('https://toolsiam.com/favicon-192.png');
+    expect(logo.width).toBeGreaterThanOrEqual(112);
+    expect(logo.height).toBe(logo.width);
+  });
+
   it('CollectionPage ห่อ ItemList ที่นับจำนวนถูก', () => {
     const c = collectionPageJsonLd({
       name: 'การเงินและภาษี',
@@ -76,5 +96,20 @@ describe('structured data ของหน้ารวมและ breadcrumb', (
     expect(c.mainEntity['@type']).toBe('ItemList');
     expect(c.mainEntity.numberOfItems).toBe(2);
     expect(c.mainEntity.itemListElement[1].url).toBe('https://toolsiam.com/tools/b');
+  });
+});
+
+describe('truncateDescription', () => {
+  it('ข้อความสั้นคืนตามเดิม', () => {
+    expect(truncateDescription('สั้น ๆ')).toBe('สั้น ๆ');
+  });
+  it('ตัดที่ช่องว่างสุดท้าย ไม่ตัดกลางคำ', () => {
+    const text = `${'ก'.repeat(100)} ความหมายเชิงจิตวิทยา ${'ข'.repeat(60)}`;
+    const out = truncateDescription(text);
+    expect(out).toBe(`${'ก'.repeat(100)} ความหมายเชิงจิตวิทยา…`);
+    expect(out.length).toBeLessThanOrEqual(155);
+  });
+  it('ไม่มีช่องว่างให้ตัด ก็ยังไม่เกินความยาวที่กำหนด', () => {
+    expect(truncateDescription('ก'.repeat(300))).toHaveLength(155);
   });
 });
