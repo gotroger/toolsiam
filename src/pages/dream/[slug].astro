@@ -6,6 +6,7 @@ import LuckyBalls from '@/components/dream/LuckyBalls';
 import { DREAM_ENTRIES, DREAM_GROUPS, dreamBySlug } from '@/content/dream/entries';
 import { luckyNumbersFor } from '@/content/dream/lucky-numbers';
 import { getDreamEntryUrl, getDreamUrl, getHomeUrl } from '@/lib/routes';
+import { truncateDescription } from '@/lib/seo';
 
 export function getStaticPaths() {
   return DREAM_ENTRIES.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
@@ -14,7 +15,7 @@ const { entry } = Astro.props;
 const groupLabel = DREAM_GROUPS.find((g) => g.id === entry.group)?.label ?? '';
 const related = entry.related.map(dreamBySlug).filter((e) => e !== undefined);
 const lucky = luckyNumbersFor(entry.slug);
-const description = entry.meaning.length > 155 ? `${entry.meaning.slice(0, 152)}…` : entry.meaning;
+const description = truncateDescription(entry.meaning);
 ---
 
 <Base title={`${entry.title} หมายถึงอะไร เลขนำโชค — ทำนายฝัน ทูลสยาม`} description={description}>

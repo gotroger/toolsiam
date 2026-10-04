@@ -3,6 +3,20 @@ import { SITE, absoluteUrl, getHomeUrl } from '@/lib/routes';
 
 const SITE_NAME = 'ทูลสยาม ToolSiam';
 
+/**
+ * ย่อข้อความยาวให้พอเป็น meta description โดยตัดที่ช่องว่าง
+ *
+ * ภาษาไทยไม่เว้นวรรคระหว่างคำ แต่เว้นระหว่างวลี — ตัดที่ช่องว่างจึงไม่ทิ้งคำขาดกลางคัน
+ * อย่าง "เชิงจ…" หรือสระที่หลุดจากพยัญชนะ (slice ตรง ๆ ตัด "จำเป็น" เหลือ "จำเป็")
+ */
+export function truncateDescription(text: string, max = 155): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  const space = cut.lastIndexOf(' ');
+  // ไม่มีช่องว่างในช่วงครึ่งหลัง — ยอมตัดตรง ๆ ดีกว่าได้คำอธิบายสั้นกุด
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).trimEnd()}…`;
+}
+
 export function toolJsonLd(tool: ToolMeta, url: string): Record<string, unknown>[] {
   return [
     {
@@ -17,6 +31,7 @@ export function toolJsonLd(tool: ToolMeta, url: string): Record<string, unknown>
       inLanguage: 'th',
       // ทุกเครื่องมือใช้ฟรี ไม่มี paywall — ประกาศตรง ๆ แทนการ emit offers ที่ราคาไม่จริง (§20 M7)
       isAccessibleForFree: true,
+      ...(tool.contentUpdatedAt && { dateModified: tool.contentUpdatedAt }),
     },
     faqJsonLd(tool.faq),
   ];
@@ -60,7 +75,11 @@ export function organizationJsonLd(): Record<string, unknown> {
     '@type': 'Organization',
     name: SITE_NAME,
     url: absoluteUrl(getHomeUrl()),
-    logo: absoluteUrl('/logo.png'),
+    /**
+     * ใช้สัญลักษณ์สี่เหลี่ยมจัตุรัส ไม่ใช่ /logo.png บน header — Google กำหนดโลโก้ขององค์กร
+     * ต้องไม่เล็กกว่า 112×112 px แต่โลโก้แนวนอนสูงแค่ 96 px จึงไม่ถูกนำไปใช้
+     */
+    logo: { '@type': 'ImageObject', url: absoluteUrl('/favicon-192.png'), width: 192, height: 192 },
   };
 }
 

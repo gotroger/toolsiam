@@ -69,7 +69,7 @@ const META = {
   results: {
     title: 'ผลสลากกินแบ่งรัฐบาลงวดล่าสุด',
     description:
-      'ผลรางวัลสลากกินแบ่งรัฐบาลงวดล่าสุดครบทุกรางวัล ทั้งรางวัลที่ 1 เลขหน้า 3 ตัว เลขท้าย 3 ตัว เลขท้าย 2 ตัว รางวัลข้างเคียง รางวัลที่ 2 ถึง 5 และผลสลากตัวเลขสามหลัก N3 ทั้งสามตรง สามสลับหลัก สองตรง และรางวัลพิเศษ',
+      'ผลรางวัลสลากกินแบ่งรัฐบาลงวดล่าสุดครบทุกรางวัล ทั้งรางวัลที่ 1 เลขหน้า 3 ตัว เลขท้าย 3 ตัว เลขท้าย 2 ตัว รางวัลข้างเคียง รางวัลที่ 2 ถึง 5 และสลากตัวเลขสามหลัก N3',
     path: getLotteryLatestUrl(),
   },
   archive: {
@@ -90,8 +90,24 @@ const META = {
  * หน้าผลของงวดล่าสุด (`/lottery/results/<วันที่ล่าสุด>`) มีเนื้อหาเดียวกับ `/lottery/results`
  * จึงชี้ canonical ไปที่ `/lottery/results` ให้ search engine เลือกหน้าเดียว · พองวดถัดไปออก
  * หน้าของงวดนี้กลายเป็นหน้าย้อนหลังและกลับมา canonical ตัวเองเองตอน build ครั้งถัดไป
+ * (sitemap ตัดหน้านี้ออกด้วยกฎเดียวกัน — ดู src/lib/sitemap.ts)
  */
 const canonicalPath = view === 'draw' && shown?.drawDate === latest?.drawDate ? getLotteryLatestUrl() : undefined;
+
+/**
+ * งวดก่อนหน้า/ถัดไปของหน้าผลแต่ละงวด — DRAWS เรียงใหม่ไปเก่า
+ *
+ * เดิมหน้างวดย้อนหลังมีลิงก์เข้าจากหน้า archive ที่เดียว ลิงก์ต่อกันเป็นสายทำให้ทั้งคนและ crawler
+ * ไล่ดูงวดติดกันได้ · งวดล่าสุดลิงก์ไป /lottery/results ซึ่งเป็น canonical ของมัน
+ */
+const drawIndex = view === 'draw' && shown ? DRAWS.indexOf(shown) : -1;
+const drawLink = (d: LotteryDraw | undefined) =>
+  d && {
+    href: d === latest ? getLotteryLatestUrl() : getLotteryDrawUrl(d.drawDate),
+    label: `งวด ${formatThaiDate(d.drawDate, { style: 'medium' })}`,
+  };
+const olderDraw = drawIndex >= 0 ? drawLink(DRAWS[drawIndex + 1]) : undefined;
+const newerDraw = drawIndex > 0 ? drawLink(DRAWS[drawIndex - 1]) : undefined;
 
 const crumbs = [
   { name: 'ทูลสยาม', path: getHomeUrl() },
@@ -221,6 +237,30 @@ const links = [
                 <PrizeTable draw={shown} />
               </div>
             </>
+          )}
+          {(olderDraw || newerDraw) && (
+            <nav aria-label="งวดอื่น" class="mt-8 grid gap-3 sm:grid-cols-2">
+              {olderDraw && (
+                <a
+                  href={olderDraw.href}
+                  rel="prev"
+                  class="rounded-xl border border-slate-200 bg-surface p-4 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+                >
+                  <span class="block text-xs text-slate-500">← งวดก่อนหน้า</span>
+                  <span class="mt-0.5 block font-medium text-slate-900">ผลสลาก{olderDraw.label}</span>
+                </a>
+              )}
+              {newerDraw && (
+                <a
+                  href={newerDraw.href}
+                  rel="next"
+                  class="rounded-xl border border-slate-200 bg-surface p-4 text-right transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 sm:col-start-2"
+                >
+                  <span class="block text-xs text-slate-500">งวดถัดไป →</span>
+                  <span class="mt-0.5 block font-medium text-slate-900">ผลสลาก{newerDraw.label}</span>
+                </a>
+              )}
+            </nav>
           )}
           <p class="mt-6 text-sm text-slate-600">
             <a href={getLotteryCheckUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">

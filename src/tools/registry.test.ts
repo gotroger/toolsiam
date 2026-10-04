@@ -36,6 +36,12 @@ describe('registry', () => {
     }
   });
 
+  it('คำอธิบายไม่ยาวจนถูกตัดในผลค้นหา (meta description)', () => {
+    // นับเฉพาะตัวที่กินที่ — สระบน/ล่างและวรรณยุกต์ซ้อนอยู่บนพยัญชนะ ไม่เพิ่มความกว้าง
+    const visible = (s: string) => s.replace(/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g, '').length;
+    for (const t of tools) expect(visible(t.description), t.slug).toBeLessThanOrEqual(160);
+  });
+
   it('ทุกเครื่องมือมี loader และ loader ไม่มีส่วนเกิน', () => {
     expect(Object.keys(toolLoaders).sort()).toEqual(tools.map((t) => t.slug).sort());
   });

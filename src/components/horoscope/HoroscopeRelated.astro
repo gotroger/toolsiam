@@ -1,0 +1,40 @@
+---
+import Section from '@/components/Section.astro';
+import { HOROSCOPE_PAGES, type HoroscopePageId } from '@/lib/horoscope-pages';
+import { getHoroscopeUrl } from '@/lib/routes';
+
+/**
+ * ท้ายหน้าย่อยของ /horoscope — ลิงก์ไปหน้าย่อยอื่นในหมวดเดียวกัน
+ *
+ * เดิมหน้าย่อยแต่ละหน้ามีลิงก์เข้าจากหน้า hub ที่เดียว คนที่ค้นมาเจอหน้าราศีไม่มีทางไปต่อหน้าสีมงคล
+ * และ crawler เห็นหน้าย่อยเป็นปลายทางตัน — ลิงก์ข้ามกันช่วยทั้งสองอย่าง
+ */
+interface Props {
+  current: HoroscopePageId;
+}
+const { current } = Astro.props;
+const others = HOROSCOPE_PAGES.filter((p) => p.id !== current);
+---
+
+<Section title="ดูดวงเรื่องอื่น" class="mt-10">
+  <ul class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      others.map((p) => (
+        <li>
+          <a
+            href={p.path}
+            class="block h-full rounded-xl border border-slate-200 bg-surface p-4 transition-colors duration-150 hover:border-brand-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+          >
+            <span class="block font-medium text-slate-900">{p.name}</span>
+            <span class="mt-1 block text-sm text-slate-600">{p.desc}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="mt-4 text-sm text-slate-600">
+    <a href={getHoroscopeUrl()} class="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+      ดูเครื่องมือดูดวงทั้งหมด
+    </a>
+  </p>
+</Section>

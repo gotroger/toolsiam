@@ -4,6 +4,7 @@ import Card from '@/components/Card.astro';
 import DataTable from '@/components/DataTable.astro';
 import Section from '@/components/Section.astro';
 import VerticalShell from '@/components/VerticalShell.astro';
+import HoroscopeRelated from '@/components/horoscope/HoroscopeRelated.astro';
 import ZodiacFinder from '@/components/horoscope/ZodiacFinder';
 import { getHomeUrl, getHoroscopePageUrl, getHoroscopeUrl } from '@/lib/routes';
 import { ZODIAC_SIGNS, zodiacGlyph } from '@/lib/thai-astro';
@@ -105,5 +106,7 @@ const description =
         </p>
       </div>
     </Section>
+
+    <HoroscopeRelated current="zodiac" />
   </VerticalShell>
 </Base>
