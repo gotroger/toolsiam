@@ -22,6 +22,9 @@ import {
   getPremiumUrl,
   getPrivacyUrl,
   getTermsUrl,
+  getFavoritesApiUrl,
+  getAccountFavoritesUrl,
+  getUsageApiUrl,
 } from './routes';
 import { isNoindexPath, normalizePath } from './noindex';
 
@@ -49,6 +52,9 @@ describe('routes', () => {
     expect(getLoginUrl('/tools/pdf-merge?x=1')).toBe('/api/auth/google/start?next=%2Ftools%2Fpdf-merge%3Fx%3D1');
     expect(getLogoutUrl()).toBe('/api/auth/logout');
     expect(getBillingStatusUrl('a b')).toBe('/api/billing/status?ref=a%20b');
+    expect(getFavoritesApiUrl()).toBe('/api/favorites');
+    expect(getAccountFavoritesUrl()).toBe('/account#favorites');
+    expect(getUsageApiUrl()).toBe('/api/usage');
   });
 
   it('หมวดที่เป็น vertical ใช้ landingPath แทนหน้า /categories/', () => {

@@ -9,14 +9,18 @@ export function memoryStore(): MembershipStore & {
   users: Map<string, User>;
   payments: Map<string, Payment>;
   expiry: Map<string, number>;
+  favorites: Map<string, Map<string, number>>;
 } {
   const users = new Map<string, User>();
   const payments = new Map<string, Payment>();
   const expiry = new Map<string, number>();
+  /** userId → (slug → created_at) */
+  const favorites = new Map<string, Map<string, number>>();
   return {
     users,
     payments,
     expiry,
+    favorites,
     async upsertUserFromGoogle(p, _now, newId) {
       const existing = [...users.values()].find((u) => u.googleSub === p.googleSub);
       const user: User = {
@@ -75,6 +79,19 @@ export function memoryStore(): MembershipStore & {
       expiry.set(payment.userId, next);
       payments.set(id, { ...payment, status: 'paid', beamChargeId: p.beamChargeId, paidAt: p.now });
       return { applied: true, expiresAt: next };
+    },
+    async listFavorites(userId) {
+      return [...(favorites.get(userId) ?? new Map<string, number>())]
+        .sort(([a, at], [b, bt]) => bt - at || (a < b ? -1 : a > b ? 1 : 0))
+        .map(([slug]) => slug);
+    },
+    async addFavorite(userId, slug, now) {
+      const mine = favorites.get(userId) ?? new Map<string, number>();
+      if (!mine.has(slug)) mine.set(slug, now);
+      favorites.set(userId, mine);
+    },
+    async removeFavorite(userId, slug) {
+      favorites.get(userId)?.delete(slug);
     },
   };
 }

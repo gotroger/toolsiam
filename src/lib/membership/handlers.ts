@@ -33,6 +33,11 @@ export interface Deps {
   fetchImpl?: typeof fetch;
   /** id ของ user/payment — เทสต์ส่งค่าคงที่ */
   newId?: () => string;
+  /**
+   * slug ของเครื่องมือทั้งหมดใน registry — รายการโปรดรับเฉพาะ slug ในนี้
+   * (ไม่มี = ปฏิเสธทุก slug) จึงไม่ต้องมีเพดานจำนวน: แต่ละคนมีได้ไม่เกินจำนวนเครื่องมือ
+   */
+  toolSlugs?: ReadonlySet<string>;
 }
 
 const OAUTH_COOKIE = 'oauth';
@@ -43,6 +48,8 @@ interface OauthCookie {
 }
 const OAUTH_TTL = 600;
 const WEBHOOK_MAX_BYTES = 64 * 1024;
+/** `{"slug":"…","favorite":false}` ยาวสุดราว 60 ไบต์ */
+const FAVORITE_MAX_BYTES = 200;
 
 const nowSec = () => Math.floor(Date.now() / 1000);
 
@@ -446,4 +453,39 @@ export const handleWebhook = guarded('webhook', async (request, env, deps) => {
     now: (deps.now ?? nowSec)(),
   });
   return json(200, { ok: true, applied: result.applied });
+});
+
+/**
+ * `GET /api/favorites` — รายการโปรดของผู้ใช้เอง ใหม่ไปเก่า
+ *
+ * แยกจาก `/api/me` เหตุผลเดียวกับประวัติการชำระเงิน: `/api/me` ถูกเรียกทุกหน้า ส่วนรายการโปรด
+ * ต้องใช้เฉพาะหน้าเครื่องมือ หน้า /tools และหน้าบัญชี
+ */
+export const handleFavoritesGet = guarded('favorites', async (request, env, deps) => {
+  if (!ready(env, deps)) return empty(204);
+  const session = await requireSession(request, deps);
+  if (!session) return empty(401);
+  return json(200, { slugs: await deps.store.listFavorites(session.userId) });
+});
+
+/** `POST /api/favorites` body `{"slug":"…","favorite":true|false}` → รายการโปรดชุดใหม่ทั้งชุด */
+export const handleFavoritesPost = guarded('favorites update', async (request, env, deps) => {
+  if (!ready(env, deps)) return empty(204);
+  if (!isTrustedOrigin(request.headers.get('origin'), env.SITE_ORIGIN)) return empty(403);
+  const session = await requireSession(request, deps);
+  if (!session) return empty(401);
+  const raw = await readBody(request, FAVORITE_MAX_BYTES);
+  if (raw === null) return empty(413);
+  let body: { slug?: unknown; favorite?: unknown };
+  try {
+    body = (JSON.parse(raw) ?? {}) as typeof body;
+  } catch {
+    return empty(400);
+  }
+  const { slug, favorite } = body;
+  if (typeof slug !== 'string' || !deps.toolSlugs?.has(slug) || typeof favorite !== 'boolean') return empty(400);
+  if (favorite) await deps.store.addFavorite(session.userId, slug, (deps.now ?? nowSec)());
+  else await deps.store.removeFavorite(session.userId, slug);
+  // ส่งชุดเต็มกลับไป — สองแท็บที่แก้พร้อมกันจะได้ค่าจริงล่าสุดเสมอ ไม่ต้องเดาจากสถานะในเครื่อง
+  return json(200, { slugs: await deps.store.listFavorites(session.userId) });
 });

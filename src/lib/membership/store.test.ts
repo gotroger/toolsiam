@@ -1,9 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-import { d1Store } from './store';
+import { d1Store, type MembershipStore } from './store';
 import { memoryStore } from './memory-store';
 import { DAY } from './plan';
+import { sqliteD1 } from '@/test-utils/sqlite-d1';
 
 /**
  * D1 จำลองแบบบันทึก SQL + bind — ไม่รัน SQL จริง แต่ให้ตั้งคำตอบของ `first` ได้
@@ -219,71 +218,6 @@ describe('จำนวนวันผูกกับรายการ ไม่
   });
 });
 
-/**
- * D1 บน SQLite จริง (node:sqlite) — รัน SQL ของ d1Store จริงกับ schema จาก migrations/
- * ทุกเมธอดเป็น async และ yield ก่อนทำงาน เพื่อให้ Promise.all สลับลำดับได้เหมือน request พร้อมกันบน Worker
- * batch รันใน transaction เดียวแบบไม่มีช่องว่างระหว่าง statement — ตรงกับที่ D1 รับประกัน
- */
-function sqliteD1() {
-  const sqlite = new DatabaseSync(':memory:');
-  const dir = new URL('../../../migrations/', import.meta.url);
-  for (const f of readdirSync(dir)
-    .filter((n) => n.endsWith('.sql'))
-    .sort()) {
-    sqlite.exec(readFileSync(new URL(f, dir), 'utf8'));
-  }
-  const tick = () => new Promise((r) => setTimeout(r, 0));
-  const stmt = (d1Sql: string) => {
-    // D1 ใช้ ?1 ?2 … (ซ้ำได้) แต่ node:sqlite bind ?NNN ตามตำแหน่งไม่ได้ — แปลงเป็น ? แล้วเรียง args ตามที่ปรากฏ
-    const order: number[] = [];
-    const sql = d1Sql.replace(/\?(\d+)/g, (_, n: string) => {
-      order.push(Number(n) - 1);
-      return '?';
-    });
-    let args: never[] = [];
-    const run = () => {
-      const r = sqlite.prepare(sql).run(...args);
-      return { meta: { changes: Number(r.changes) } };
-    };
-    const s = {
-      bind(...a: unknown[]) {
-        args = order.map((i) => a[i]) as never[];
-        return s;
-      },
-      async first() {
-        await tick();
-        return sqlite.prepare(sql).get(...args) ?? null;
-      },
-      async all() {
-        await tick();
-        return { results: sqlite.prepare(sql).all(...args) };
-      },
-      async run() {
-        await tick();
-        return run();
-      },
-      _run: run,
-    };
-    return s;
-  };
-  const db = {
-    prepare: stmt,
-    async batch(stmts: ReturnType<typeof stmt>[]) {
-      await tick();
-      sqlite.exec('BEGIN');
-      try {
-        const out = stmts.map((s) => s._run());
-        sqlite.exec('COMMIT');
-        return out;
-      } catch (e) {
-        sqlite.exec('ROLLBACK');
-        throw e;
-      }
-    },
-  };
-  return db as unknown as D1Database;
-}
-
 describe('d1Store บน SQLite จริง', () => {
   async function seed(db: D1Database, payments: { id: string; days: number }[]) {
     const store = d1Store(db);
@@ -344,5 +278,31 @@ describe('d1Store บน SQLite จริง', () => {
       expiresAt: late + 30 * DAY,
     });
     expect(await store.getPayment('p1')).toMatchObject({ status: 'paid', paidAt: late });
+  });
+});
+
+describe('รายการโปรด — d1Store บน SQLite จริงเทียบกับ memoryStore', () => {
+  async function exercise(store: MembershipStore) {
+    await store.upsertUserFromGoogle({ googleSub: 'g', email: 'e', displayName: 'n', avatarUrl: null }, 0, () => 'u1');
+    await store.upsertUserFromGoogle({ googleSub: 'h', email: 'f', displayName: 'm', avatarUrl: null }, 0, () => 'u2');
+    await store.addFavorite('u1', 'baht-text', 100);
+    await store.addFavorite('u1', 'thai-income-tax', 200);
+    await store.addFavorite('u1', 'age-days', 200); // เวลาเท่ากัน → เรียงด้วย slug
+    await store.addFavorite('u1', 'baht-text', 999); // ซ้ำ: ไม่ error และไม่ย้ายขึ้นบนสุด
+    await store.addFavorite('u2', 'json-formatter', 300);
+    const before = await store.listFavorites('u1');
+    await store.removeFavorite('u1', 'thai-income-tax');
+    await store.removeFavorite('u1', 'not-there');
+    return { before, after: await store.listFavorites('u1'), other: await store.listFavorites('u2') };
+  }
+
+  it('ใหม่ไปเก่า · เพิ่มซ้ำไม่เปลี่ยนเวลา · ลบเฉพาะของผู้ใช้คนนั้น · สอง store ให้ผลตรงกัน', async () => {
+    const expected = {
+      before: ['age-days', 'thai-income-tax', 'baht-text'],
+      after: ['age-days', 'baht-text'],
+      other: ['json-formatter'],
+    };
+    expect(await exercise(d1Store(sqliteD1()))).toEqual(expected);
+    expect(await exercise(memoryStore())).toEqual(expected);
   });
 });

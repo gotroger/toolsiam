@@ -1,13 +1,16 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import Fuse from 'fuse.js';
 import type { CategoryId, CategoryMeta } from '@/tools/types';
-import { Button, EmptyState } from '@/components/ui';
+import { Button, EmptyState, SegmentedControl } from '@/components/ui';
 import { SearchField } from '@/components/ui/search-field';
 import ToolCard from './ToolCard';
 import ToolIcon from './ToolIcon';
 import CategoryPill from './CategoryPill';
 import { categoryLabels, toolPresentation, type DiscoveryTool } from './tool-presentation';
 import { getCategoryUrl, getToolsUrl, getToolUrl } from '@/lib/routes';
+import { useUsageSummary } from '@/lib/usage-client';
+import { canSortByPopularity, displayCount, sortByPopularity, type UsageSummary } from '@/lib/usage';
+import { useFavorites } from '@/lib/favorites-client';
 
 type SearchCategory = Pick<CategoryMeta, 'id' | 'name' | 'nameEn' | 'description' | 'landingPath'>;
 interface Props {
@@ -17,10 +20,46 @@ interface Props {
   mode?: 'catalog' | 'command';
 }
 
-export default function ToolSearch({ tools, categories, initialCategory, mode = 'catalog' }: Props) {
+/** ตัวกรองพิเศษนอกเหนือจากหมวด — อยู่ใน URL เป็น `?category=favorites` แบบเดียวกับหมวดจริง */
+const FAVORITES = 'favorites';
+type Filter = CategoryId | 'all' | typeof FAVORITES;
+type Sort = 'category' | 'popular';
+const SORT_OPTIONS = [
+  { value: 'category', label: 'ตามหมวด' },
+  { value: 'popular', label: 'ยอดนิยม' },
+];
+
+/**
+ * หน้าแรกใช้โหมด command — ไม่ต้องรู้ยอดใช้งานหรือรายการโปรด จึงไม่เรียก hook สองตัวนั้นเลย
+ * (ไม่มี request /api/usage หรือ /api/me เพิ่มจากหน้าแรก)
+ */
+export default function ToolSearch(props: Props) {
+  return props.mode === 'command' ? <SearchView {...props} /> : <CatalogSearch {...props} />;
+}
+
+function CatalogSearch(props: Props) {
+  const usage = useUsageSummary();
+  const fav = useFavorites();
+  const favorites = fav.plan.status === 'signedIn' && fav.status === 'ready' ? fav.slugs : null;
+  return <SearchView {...props} usage={usage} favorites={favorites} />;
+}
+
+function SearchView({
+  tools,
+  categories,
+  initialCategory,
+  mode = 'catalog',
+  usage = null,
+  favorites = null,
+}: Props & {
+  usage?: UsageSummary | null;
+  /** null = ไม่ได้ล็อกอินหรือยังโหลดไม่เสร็จ → ไม่มีตัวกรองรายการโปรด */
+  favorites?: readonly string[] | null;
+}) {
   const command = mode === 'command';
   const [q, setQ] = useState('');
-  const [category, setCategory] = useState<CategoryId | 'all'>(initialCategory ?? 'all');
+  const [category, setCategory] = useState<Filter>(initialCategory ?? 'all');
+  const [sort, setSort] = useState<Sort>('category');
   const [open, setOpen] = useState(false);
   const [composing, setComposing] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -56,10 +95,11 @@ export default function ToolSearch({ tools, categories, initialCategory, mode = 
       setQ(params.get('q') ?? '');
       const id = params.get('category');
       setCategory(
-        id === 'all' || categories.some((c) => c.id === id && !c.landingPath)
-          ? (id as CategoryId)
+        id === 'all' || id === FAVORITES || categories.some((c) => c.id === id && !c.landingPath)
+          ? (id as Filter)
           : (initialCategory ?? 'all'),
       );
+      setSort(params.get('sort') === 'popular' ? 'popular' : 'category');
       if (params.get('focus') === 'search') root.current?.querySelector('input')?.focus();
     };
     restore();
@@ -67,13 +107,15 @@ export default function ToolSearch({ tools, categories, initialCategory, mode = 
     return () => window.removeEventListener('popstate', restore);
   }, [command, categories, initialCategory]);
 
-  function persist(query: string, selected: CategoryId | 'all', push = false) {
+  function persist(query: string, selected: Filter, push = false, order: Sort = sort) {
     if (command) return;
     const url = new URL(window.location.href);
     if (query.trim()) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
     if (selected !== (initialCategory ?? 'all')) url.searchParams.set('category', selected);
     else url.searchParams.delete('category');
+    if (order === 'popular') url.searchParams.set('sort', 'popular');
+    else url.searchParams.delete('sort');
     url.searchParams.delete('focus');
     if (push) window.history.pushState(null, '', url);
     else window.history.replaceState(null, '', url);
@@ -90,14 +132,19 @@ export default function ToolSearch({ tools, categories, initialCategory, mode = 
     root.current?.querySelector('input')?.focus();
   }
 
+  // ค่าใน URL อาจขอสิ่งที่ยังใช้ไม่ได้ (ไม่ได้ล็อกอิน / ข้อมูลยังน้อย) — ถอยไปค่าเริ่มต้นเงียบ ๆ ไม่ล้าง URL
+  const filter: Filter = category === FAVORITES && !favorites ? (initialCategory ?? 'all') : category;
+  // นับเฉพาะตัวที่อยู่ในรายการนี้ — slug ของเครื่องมือที่ปลดระวางไปแล้วอาจยังค้างอยู่ในบัญชี
+  const favoriteCount = favorites ? tools.filter((t) => favorites.includes(t.slug)).length : 0;
+  const popularAvailable = canSortByPopularity(usage);
+  const popular = popularAvailable && sort === 'popular';
   const query = q.trim();
-  const results = useMemo(
-    () =>
-      (query ? fuse.search(query).map((r) => r.item) : tools).filter(
-        (t) => category === 'all' || t.category === category,
-      ),
-    [query, fuse, tools, category],
-  );
+  const results = useMemo(() => {
+    const matched = (query ? fuse.search(query).map((r) => r.item) : tools).filter((t) =>
+      filter === FAVORITES ? favorites?.includes(t.slug) : filter === 'all' || t.category === filter,
+    );
+    return popular ? sortByPopularity(matched, usage) : matched;
+  }, [query, fuse, tools, filter, favorites, popular, usage]);
   const categoryMatches = query
     ? categories.filter((c) =>
         `${c.name} ${c.nameEn} ${categoryLabels[c.id]} ${c.description}`.toLowerCase().includes(query.toLowerCase()),
@@ -160,26 +207,57 @@ export default function ToolSearch({ tools, categories, initialCategory, mode = 
       {!command && (
         <div className="category-pills mt-5" aria-label="กรองหมวดหมู่">
           <CategoryPill
-            active={category === 'all'}
+            active={filter === 'all'}
             count={tools.length}
             onClick={() => {
               setCategory('all');
               persist(q, 'all', true);
             }}
           />
+          {favoriteCount > 0 && (
+            <button
+              type="button"
+              className="category-pill"
+              aria-pressed={filter === FAVORITES}
+              onClick={() => {
+                setCategory(FAVORITES);
+                persist(q, FAVORITES, true);
+              }}
+            >
+              <span aria-hidden="true">★</span>
+              <span>รายการโปรด</span>
+              <span className="pill-count">{favoriteCount}</span>
+            </button>
+          )}
           {categories
             .filter((c) => !c.landingPath)
             .map((c) => (
               <CategoryPill
                 key={c.id}
                 category={c.id}
-                active={category === c.id}
+                active={filter === c.id}
                 onClick={() => {
                   setCategory(c.id);
                   persist(q, c.id, true);
                 }}
               />
             ))}
+        </div>
+      )}
+      {/* ตัวเลือกเรียงโผล่เมื่อมียอดใช้งานจริงพอเท่านั้น (DESIGN.md: ห้ามแสดงความนิยมโดยไม่มีหลักฐาน) */}
+      {!command && popularAvailable && (
+        <div className="mt-4 max-w-xs">
+          <SegmentedControl
+            name="tool-sort"
+            legend="เรียงตาม"
+            value={popular ? 'popular' : 'category'}
+            options={SORT_OPTIONS}
+            onChange={(value) => {
+              const next: Sort = value === 'popular' ? 'popular' : 'category';
+              setSort(next);
+              persist(q, category, true, next);
+            }}
+          />
         </div>
       )}
       {showResults && (
@@ -231,12 +309,16 @@ export default function ToolSearch({ tools, categories, initialCategory, mode = 
             <ul className="card-grid">
               {results.map((tool) => (
                 <li key={tool.slug} className="min-w-0">
-                  <ToolCard tool={tool} />
+                  <ToolCard
+                    tool={tool}
+                    useCount={displayCount(usage, tool.slug)}
+                    favorite={favorites?.includes(tool.slug) ?? false}
+                  />
                 </li>
               ))}
             </ul>
           )}
-          {!command && (query || category !== (initialCategory ?? 'all')) && results.length > 0 && (
+          {!command && (query || filter !== (initialCategory ?? 'all')) && results.length > 0 && (
             <Button className="mt-4" variant="secondary" onClick={reset}>
               ล้างตัวกรอง
             </Button>

@@ -55,5 +55,9 @@
     // merchant จริงของ ToolSiam (Beam Lighthouse) — เงินเข้าบัญชีจริง
     // ปิดรับเงินชั่วคราว: ตั้งค่านี้เป็น "" แล้ว push → /api/billing/* ตอบ 204 · login ไม่กระทบ
     "BEAM_MERCHANT_ID": "toolsiam-93nuzw",
+
+    // ตัวนับการใช้งานเครื่องมือ (spec 2026-09-10-usage-counter-design) — ใช้ตาราง usage_daily ใน DB ตัวเดียวกัน
+    // kill switch: ตั้งเป็นค่าอื่นที่ไม่ใช่ "on" แล้ว /api/usage ตอบ 204 ทันที เว็บไม่แสดงตัวเลขและเรียงตามลำดับเดิม
+    "USAGE_COUNTER": "on",
   },
 }

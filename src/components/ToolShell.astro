@@ -5,6 +5,8 @@ import { toolPresentation } from './tool-presentation';
 import type { ToolMeta } from '@/tools/types';
 import { getCategory, getRelatedTools } from '@/tools/registry';
 import ToolCard from './ToolCard.astro';
+import FavoriteButton from './favorites/FavoriteButton';
+import { USAGE_SINCE_LABEL } from '@/lib/usage';
 import Breadcrumb from './Breadcrumb.astro';
 import Card from './Card.astro';
 import DataTable from './DataTable.astro';
@@ -20,8 +22,10 @@ const { tool } = Astro.props;
 const cat = tool.category ? getCategory(tool.category) : null;
 const related = getRelatedTools(tool, 4);
 // เครื่องมือไฟล์มีขีดจำกัดพรีเมียม — ลิงก์ static ใน workspace bar เฉพาะเมื่อเปิดระบบสมาชิกตอน build
-const premiumLimits =
-  import.meta.env.PUBLIC_MEMBERSHIP === 'on' && (tool.category === 'documents' || tool.category === 'images');
+const membershipOn = import.meta.env.PUBLIC_MEMBERSHIP === 'on';
+// เครื่องมือที่ปลดระวาง (hidden) ไม่อยู่ในรายการใดให้กลับมาเปิด จึงไม่มีปุ่มรายการโปรด
+const favoritable = membershipOn && !tool.hidden;
+const premiumLimits = membershipOn && (tool.category === 'documents' || tool.category === 'images');
 // breadcrumb ชี้ /tools ไม่ใช่หมวด เพราะ URL ของเครื่องมือไม่ฝังหมวด (§25.2)
 // หมวดยังแสดงอยู่เป็นชิปลิงก์ใต้หัวข้อ
 const crumbs = [
@@ -37,10 +41,16 @@ const crumbs = [
   <div>
     <h1>{tool.name}</h1><p>{toolPresentation(tool).description}</p>
     {
-      cat && (
-        <a class="tool-page-category" href={getCategoryUrl(cat)}>
-          {cat.name} <span aria-hidden="true">↗</span>
-        </a>
+      (cat || favoritable) && (
+        <div class="tool-page-actions">
+          {cat && (
+            <a class="tool-page-category" href={getCategoryUrl(cat)}>
+              {cat.name} <span aria-hidden="true">↗</span>
+            </a>
+          )}
+          {/* รายการโปรดต้องล็อกอิน — มีเฉพาะ build ที่เปิดระบบสมาชิก · HTML มีตัวจองที่ขนาดเท่าปุ่มจริงอยู่แล้ว */}
+          {favoritable && <FavoriteButton client:idle slug={tool.slug} />}
+        </div>
       )
     }
   </div>
@@ -62,7 +72,14 @@ const crumbs = [
   </div>
   <div class="workspace-content"><slot /></div>
 </Card>
-<div class="mt-6 text-sm leading-relaxed text-slate-600"><p>{tool.description}</p></div>
+<div class="mt-6 text-sm leading-relaxed text-slate-600">
+  <p>{tool.description}</p>
+  <!-- ยอดใช้งาน: src/scripts/usage-counts.ts เติมหลังโหลดหน้า (ไม่อยู่ใน HTML ที่ crawler เห็น) อยู่ใต้พื้นที่ทำงาน จึงไม่ดันเครื่องมือ -->
+  <p class="mt-2 text-slate-500" data-usage-note hidden>
+    <span data-usage-slug={tool.slug} data-usage-format="long"></span>
+    <span class="text-xs"> · นับหนึ่งครั้งต่อการเข้าใช้ เริ่มนับตั้งแต่ {USAGE_SINCE_LABEL} เป็นตัวเลขโดยประมาณ</span>
+  </p>
+</div>
 
 <!--
   แผงความน่าเชื่อถือ (§17.2) — render อัตโนมัติจาก meta ไม่ต้องให้แต่ละเครื่องมือประกอบเอง
@@ -100,3 +117,8 @@ const crumbs = [
     </Section>
   )
 }
+
+<script>
+  import { fillUsageCounts } from '@/scripts/usage-counts';
+  void fillUsageCounts();
+</script>
