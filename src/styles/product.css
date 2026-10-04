@@ -783,6 +783,34 @@
     font-size: 22px;
     transition: transform var(--motion-normal);
   }
+  /* หมวด + ยอดใช้งานซ้อนกัน: สูงรวม ~46px ไม่เกินไอคอน 48px ที่ล็อกความสูงแถว
+     ตัวเลขที่มาทีหลังจึงไม่ทำให้การ์ดสูงขึ้น และได้ความกว้างเต็มคอลัมน์ไม่ต้องแย่งกับชิปหมวด */
+  .tile-meta {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+  }
+  .tile-usage {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--color-slate-500);
+  }
+  .tile-usage:empty {
+    display: none;
+  }
+  .tile-favorite {
+    flex-shrink: 0;
+    color: var(--color-amber-700);
+    font-size: 16px;
+    line-height: 1;
+  }
   .tool-tile-copy {
     margin-top: 16px;
   }
@@ -966,10 +994,61 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-top: 12px;
     color: var(--color-brand-700);
     font-size: 13px;
     min-height: 32px;
+  }
+  /* แถวใต้คำอธิบาย: ชิปหมวด + ปุ่มรายการโปรด — ปุ่มจองที่ไว้ตั้งแต่ HTML (ดู FavoriteButton) */
+  .tool-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 18px;
+    margin-top: 12px;
+  }
+  .favorite-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-slate-700);
+    font-size: 13px;
+    transition:
+      background var(--motion-fast),
+      border-color var(--motion-fast);
+  }
+  .favorite-button:hover {
+    border-color: var(--color-brand-600);
+    background: var(--color-brand-50);
+  }
+  .favorite-button:focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+  .favorite-button[aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--color-amber-700) 45%, var(--color-slate-200));
+    background: color-mix(in srgb, var(--color-amber-700) 8%, var(--color-surface));
+  }
+  .favorite-button .favorite-star {
+    font-size: 15px;
+    line-height: 1;
+  }
+  .favorite-button[aria-pressed='true'] .favorite-star {
+    color: var(--color-amber-700);
+  }
+  .favorite-button[aria-disabled='true'] {
+    cursor: progress;
+  }
+  .favorite-button[data-placeholder] {
+    visibility: hidden;
+  }
+  .favorite-error {
+    color: var(--color-red-700);
+    font-size: 13px;
   }
   .tool-workspace {
     border-radius: var(--radius-tile);

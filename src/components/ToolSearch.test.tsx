@@ -4,9 +4,19 @@ import userEvent from '@testing-library/user-event';
 import ToolSearch from './ToolSearch';
 import { getActiveCategories, getVisibleTools } from '@/tools/registry';
 import { toDiscoveryTool } from './tool-presentation';
+import { __setUsageSummaryForTests } from '@/lib/usage-client';
+import { __setPlanForTests } from '@/lib/plan-client';
+import { __setFavoritesForTests } from '@/lib/favorites-client';
+import { POPULAR_SORT_MIN_TOOLS, USE_DISPLAY_THRESHOLD, type UsageSummary } from '@/lib/usage';
 
 const props = { tools: getVisibleTools().map(toDiscoveryTool), categories: getActiveCategories() };
-beforeEach(() => window.history.replaceState(null, '', '/tools'));
+beforeEach(() => {
+  window.history.replaceState(null, '', '/tools');
+  // ไม่ยิงเครือข่ายจริง: ไม่มีข้อมูลยอดใช้งาน และไม่ได้ล็อกอิน
+  __setUsageSummaryForTests(null);
+  __setPlanForTests({ status: 'anonymous' });
+  __setFavoritesForTests(null);
+});
 
 it('restores query/category from URL and clears with focus recovery', async () => {
   window.history.replaceState(null, '', '/tools?q=เงินเดือน&category=finance');
@@ -80,4 +90,69 @@ it('restores an explicit all-category selection on a category route', () => {
   render(<ToolSearch {...props} initialCategory="finance" />);
   expect(screen.getByRole('button', { name: /^ทั้งหมด/ })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.getAllByRole('link', { name: /^เปิด/ })).toHaveLength(props.tools.length);
+});
+
+describe('ยอดนิยมและรายการโปรด', () => {
+  const slugs = props.tools.map((t) => t.slug);
+  /** เครื่องมือตัวท้าย ๆ ของ registry ได้ยอดสูงสุด — เรียงแล้วต้องขึ้นมาก่อน */
+  function busySummary(): UsageSummary {
+    const tools: UsageSummary['tools'] = {};
+    slugs.slice(-POPULAR_SORT_MIN_TOOLS).forEach((slug, i) => {
+      tools[slug] = { total: USE_DISPLAY_THRESHOLD + i, recent: 10 + i };
+    });
+    return { generatedAt: 'x', tools };
+  }
+  const cardOrder = () => screen.getAllByRole('link', { name: /^เปิด/ }).map((a) => a.getAttribute('href'));
+
+  it('ข้อมูลยังน้อย → ไม่มีตัวเลือกเรียงและไม่มีตัวเลขบนการ์ด แม้ URL ขอ ?sort=popular', () => {
+    window.history.replaceState(null, '', '/tools?sort=popular');
+    render(<ToolSearch {...props} />);
+    expect(screen.queryByRole('radio', { name: 'ยอดนิยม' })).not.toBeInTheDocument();
+    expect(cardOrder()[0]).toBe(`/tools/${slugs[0]}`);
+    expect(screen.queryByText(/ใช้ไปแล้ว/)).not.toBeInTheDocument();
+  });
+
+  it('ข้อมูลพอ → เรียงยอดนิยมได้ จำใน URL และ restore ได้', async () => {
+    __setUsageSummaryForTests(busySummary());
+    const user = userEvent.setup();
+    const { unmount } = render(<ToolSearch {...props} />);
+    expect(cardOrder()[0]).toBe(`/tools/${slugs[0]}`);
+    expect(
+      screen.getByText(`ใช้ไปแล้ว ${USE_DISPLAY_THRESHOLD + POPULAR_SORT_MIN_TOOLS - 1} ครั้ง`),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: 'ยอดนิยม' }));
+    expect(window.location.search).toBe('?sort=popular');
+    expect(cardOrder()[0]).toBe(`/tools/${slugs.at(-1)}`);
+    unmount();
+    render(<ToolSearch {...props} />);
+    expect(screen.getByRole('radio', { name: 'ยอดนิยม' })).toBeChecked();
+    expect(cardOrder()[0]).toBe(`/tools/${slugs.at(-1)}`);
+  });
+
+  it('ล็อกอินและมีรายการโปรด → มีตัวกรองรายการโปรด และการ์ดมีดาว', async () => {
+    __setPlanForTests({ status: 'signedIn', user: { displayName: 'ก', email: 'e', avatarUrl: null } });
+    __setFavoritesForTests({ status: 'ready', slugs: ['baht-text', 'age-days'] });
+    const user = userEvent.setup();
+    render(<ToolSearch {...props} />);
+    await user.click(screen.getByRole('button', { name: /รายการโปรด/ }));
+    expect(window.location.search).toBe('?category=favorites');
+    expect(cardOrder().sort()).toEqual(['/tools/age-days', '/tools/baht-text']);
+    expect(screen.getAllByRole('link', { name: /อยู่ในรายการโปรด/ })).toHaveLength(2);
+  });
+
+  it('?category=favorites แต่ไม่ได้ล็อกอิน → แสดงทั้งหมดเงียบ ๆ', () => {
+    window.history.replaceState(null, '', '/tools?category=favorites');
+    render(<ToolSearch {...props} />);
+    expect(screen.queryByRole('button', { name: /รายการโปรด/ })).not.toBeInTheDocument();
+    expect(cardOrder()).toHaveLength(slugs.length);
+  });
+
+  it('โหมด command (หน้าแรก) ไม่ถามยอดใช้งานหรือรายการโปรด', () => {
+    __setUsageSummaryForTests(null, false);
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    render(<ToolSearch {...props} mode="command" />);
+    expect(fetch).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
 });

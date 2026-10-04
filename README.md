@@ -9,6 +9,7 @@
 - `npm run build` — build ลง `dist/`
 - `npm run preview` — build แล้วรันด้วย wrangler (เหมือน production) ที่ :8787
 - `npm run deploy` — build + deploy ขึ้น Cloudflare
+- `npm run usage` — ยอดเปิด/ใช้เครื่องมือแต่ละตัวย้อนหลัง 30 วันจาก D1 production (`-- --days 7`, `-- --local`, `-- --csv`) ใช้เลือกเครื่องมือถัดไป
 
 ## เพิ่มเครื่องมือใหม่
 
@@ -25,6 +26,13 @@ Spec: `docs/superpowers/specs/2026-09-07-toolsiam-design.md`
 - เปิด/ปิดได้สองชั้น: var `MEMBERSHIP=on` ใน `wrangler.jsonc` (runtime, ทุก API) และ `PUBLIC_MEMBERSHIP=on` ตอน build (แสดงปุ่ม login ใน HTML)
 - ตัวแปรและ secret ที่ต้องตั้ง ดู `.env.example` · migration D1 อยู่ใน `migrations/`
 - Spec: `docs/superpowers/specs/2026-09-19-membership-premium-design.md`
+- สมาชิกที่ล็อกอิน (ฟรี) บันทึก **รายการโปรด** ได้ — ปุ่มดาวในหน้าเครื่องมือ, ส่วนรายการโปรดใน `/account`, ตัวกรองใน `/tools` ([spec](docs/superpowers/specs/2026-10-04-favorites-design.md))
+
+## ตัวนับการใช้งาน
+
+- นับ "เปิด" และ "ลงมือใช้" ต่อเครื่องมือต่อวันใน D1 ตาราง `usage_daily` (ไม่มีข้อมูลระบุตัวผู้ใช้) — ยิงจาก `ToolIsland` จุดเดียว
+- ยอดสะสมแสดงบนการ์ดและหน้าเครื่องมือเมื่อถึง 50 ครั้ง · ตัวเลือกเรียง "ยอดนิยม" ใน `/tools` โผล่เมื่อมีเครื่องมือถึงเกณฑ์ 5 ตัว
+- ปิดได้ทันทีด้วย var `USAGE_COUNTER` ใน `wrangler.jsonc` · Spec: `docs/superpowers/specs/2026-09-10-usage-counter-design.md`
 
 ## โดเมน
 

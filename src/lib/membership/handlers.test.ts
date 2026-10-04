@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   handleCallback,
   handleCheckout,
+  handleFavoritesGet,
+  handleFavoritesPost,
   handleHistory,
   handleLogout,
   handleMe,
@@ -812,5 +814,63 @@ describe('D1/KV ล่ม', () => {
     } finally {
       error.mockRestore();
     }
+  });
+});
+
+describe('รายการโปรด', () => {
+  const toolSlugs = new Set(['baht-text', 'thai-income-tax']);
+  const body = (slug: unknown, favorite: unknown) => JSON.stringify({ slug, favorite });
+
+  it('ระบบปิด → 204 · ไม่ได้ล็อกอิน → 401', async () => {
+    const d = setup();
+    const deps = { ...d.deps, toolSlugs };
+    const off = fullEnv({ MEMBERSHIP: 'off' });
+    expect((await handleFavoritesGet(get('/api/favorites'), off, deps)).status).toBe(204);
+    expect(
+      (await handleFavoritesPost(post('/api/favorites', { origin: SITE }, body('baht-text', true)), off, deps)).status,
+    ).toBe(204);
+    expect((await handleFavoritesGet(get('/api/favorites'), fullEnv(), deps)).status).toBe(401);
+    expect(
+      (await handleFavoritesPost(post('/api/favorites', { origin: SITE }, body('baht-text', true)), fullEnv(), deps))
+        .status,
+    ).toBe(401);
+  });
+
+  it('เพิ่ม/ลบแล้วได้ชุดเต็มกลับ ใหม่ไปเก่า · GET ไม่ถูก cache', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    let t = NOW;
+    const deps = { ...d.deps, toolSlugs, now: () => ++t };
+    const send = (slug: string, favorite: boolean) =>
+      handleFavoritesPost(post('/api/favorites', { cookie, origin: SITE }, body(slug, favorite)), fullEnv(), deps);
+
+    expect(await (await send('baht-text', true)).json()).toEqual({ slugs: ['baht-text'] });
+    expect(await (await send('thai-income-tax', true)).json()).toEqual({ slugs: ['thai-income-tax', 'baht-text'] });
+    expect(await (await send('baht-text', false)).json()).toEqual({ slugs: ['thai-income-tax'] });
+    const res = await handleFavoritesGet(get('/api/favorites', { cookie }), fullEnv(), deps);
+    expect(res.headers.get('Cache-Control')).toBe('private, no-store');
+    expect(await res.json()).toEqual({ slugs: ['thai-income-tax'] });
+  });
+
+  it('POST ต้องมี Origin ที่เชื่อถือได้ และรับเฉพาะ slug ใน registry กับค่า boolean', async () => {
+    const d = setup();
+    const { cookie } = await signedIn(d);
+    const deps = { ...d.deps, toolSlugs };
+    const send = (raw: string, origin = SITE) =>
+      handleFavoritesPost(post('/api/favorites', { cookie, origin }, raw), fullEnv(), deps);
+    expect((await send(body('baht-text', true), 'https://evil.com')).status).toBe(403);
+    expect((await send(body('made-up-tool', true))).status).toBe(400);
+    expect((await send(body('baht-text', 'yes'))).status).toBe(400);
+    expect((await send('{oops')).status).toBe(400);
+    expect((await send('null')).status).toBe(400);
+    expect((await send(body('baht-text'.repeat(40), true))).status).toBe(413);
+    // ไม่มี toolSlugs ส่งมา = ปฏิเสธทุก slug (ไม่ใช่ปล่อยผ่านทุก slug)
+    const bare = await handleFavoritesPost(
+      post('/api/favorites', { cookie, origin: SITE }, body('baht-text', true)),
+      fullEnv(),
+      d.deps,
+    );
+    expect(bare.status).toBe(400);
+    expect(await d.store.listFavorites('u1')).toEqual([]);
   });
 });

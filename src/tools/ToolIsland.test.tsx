@@ -5,8 +5,9 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import ToolIsland from './ToolIsland';
 
-const { load } = vi.hoisted(() => ({ load: vi.fn() }));
+const { load, record } = vi.hoisted(() => ({ load: vi.fn(), record: vi.fn() }));
 vi.mock('./loaders', () => ({ toolLoaders: { test: load } }));
+vi.mock('@/lib/usage-client', () => ({ recordUsage: record }));
 
 function Calculator() {
   const [value, setValue] = useState('0');
@@ -20,6 +21,7 @@ function Calculator() {
 
 beforeEach(() => {
   load.mockReset();
+  record.mockReset();
 });
 
 it('server HTML cannot accept input before calculator handlers are ready', () => {
@@ -43,4 +45,26 @@ it('a slow module keeps the loading state, then its first input updates the resu
   await act(async () => finish({ default: Calculator }));
   fireEvent.change(await screen.findByRole('textbox', { name: 'จำนวน' }), { target: { value: '300000' } });
   expect(screen.getByLabelText('ผลลัพธ์')).toHaveTextContent('600000');
+});
+
+it('นับ view เมื่อเครื่องมือพร้อม และนับ use ครั้งเดียวเมื่อผู้ใช้ลงมือครั้งแรก', async () => {
+  load.mockResolvedValue({ default: Calculator });
+  render(<ToolIsland slug="test" />);
+  const input = await screen.findByRole('textbox', { name: 'จำนวน' });
+  expect(record.mock.calls).toEqual([['test', 'view']]);
+  // คลิกพื้นที่ว่าง (ไม่ใช่ตัวควบคุม) ไม่นับ
+  fireEvent.click(screen.getByLabelText('ผลลัพธ์'));
+  expect(record).toHaveBeenCalledTimes(1);
+  fireEvent.change(input, { target: { value: '5' } });
+  fireEvent.change(input, { target: { value: '6' } });
+  fireEvent.click(input);
+  expect(record.mock.calls).toEqual([
+    ['test', 'view'],
+    ['test', 'use'],
+  ]);
+});
+
+it('server HTML ไม่ยิงตัวนับ', () => {
+  renderToString(<ToolIsland slug="test" />);
+  expect(record).not.toHaveBeenCalled();
 });

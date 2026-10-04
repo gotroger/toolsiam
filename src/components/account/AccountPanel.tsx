@@ -15,6 +15,7 @@ import {
 import { formatBaht } from '@/lib/format';
 import { formatThaiDate } from '@/lib/thai-date';
 import { todayInBangkok } from '@/lib/today';
+import { FavoritesList, type FavoriteTool } from '@/components/favorites/FavoritesList';
 
 export { __setPlanForTests };
 
@@ -24,7 +25,7 @@ export { __setPlanForTests };
  * โปรไฟล์และแพลนมาจาก usePlan() (module store ตัวเดียวกับ FileTool)
  * ส่วนซื้ออยู่ใน BuyPremium ด้านล่าง (เลือกแพ็กจาก PREMIUM_PACKS): POST checkout?pack= → QR → poll status → refreshPlan()
  */
-export default function AccountPanel() {
+export default function AccountPanel({ tools = [] }: { tools?: readonly FavoriteTool[] }) {
   const state = usePlan();
   const loginError = useLoginErrorFlag();
   if (state.status === 'unknown') {
@@ -65,7 +66,7 @@ export default function AccountPanel() {
         )}
         <EmptyState
           title="ยังไม่ได้เข้าสู่ระบบ"
-          description={`เข้าสู่ระบบด้วยบัญชี Google เพื่อสมัครสมาชิกพรีเมียม ${PREMIUM_PRICE_BAHT} บาทต่อ ${PREMIUM_DAYS} วัน — เครื่องมือทุกตัวยังใช้ฟรีโดยไม่ต้องเข้าสู่ระบบ`}
+          description={`เข้าสู่ระบบด้วยบัญชี Google เพื่อบันทึกเครื่องมือที่ใช้บ่อยไว้ในรายการโปรด หรือสมัครสมาชิกพรีเมียม ${PREMIUM_PRICE_BAHT} บาทต่อ ${PREMIUM_DAYS} วัน — เครื่องมือทุกตัวยังใช้ฟรีโดยไม่ต้องเข้าสู่ระบบ`}
           action={
             <a
               href={getLoginUrl(getAccountUrl())}
@@ -79,7 +80,7 @@ export default function AccountPanel() {
       </div>
     );
   }
-  return <SignedIn state={state} />;
+  return <SignedIn state={state} tools={tools} />;
 }
 
 /**
@@ -102,7 +103,7 @@ function bangkokIso(sec: number): string {
   return todayInBangkok(new Date(sec * 1000));
 }
 
-function SignedIn({ state }: { state: PlanState }) {
+function SignedIn({ state, tools }: { state: PlanState; tools: readonly FavoriteTool[] }) {
   const user = state.user!;
   const premium = state.plan === 'premium' && state.premiumUntil != null;
   const untilIso = state.premiumUntil ? bangkokIso(state.premiumUntil) : null;
@@ -154,6 +155,7 @@ function SignedIn({ state }: { state: PlanState }) {
           }
         />
       </div>
+      <FavoritesList tools={tools} />
       <BuyPremium premium={premium} onPaid={handlePaid} />
       <PaymentHistory reloadKey={paidCount} />
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4 text-sm">

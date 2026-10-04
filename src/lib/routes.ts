@@ -33,6 +33,12 @@ export const getCheckoutApiUrl = (pack?: string) =>
 export const getBillingStatusUrl = (ref: string) => `/api/billing/status?ref=${encodeURIComponent(ref)}`;
 export const getBillingHistoryUrl = () => '/api/billing/history';
 export const getBillingWebhookPath = () => '/api/billing/webhook';
+/** รายการโปรดของสมาชิก — GET อ่าน · POST {slug, favorite} เพิ่ม/ลบ */
+export const getFavoritesApiUrl = () => '/api/favorites';
+/** หน้าบัญชีส่วนรายการโปรด — ลิงก์จากเมนูบัญชี */
+export const getAccountFavoritesUrl = () => '/account#favorites';
+/** ตัวนับการใช้งานเครื่องมือ — POST บันทึก (beacon) · GET สรุปยอด (spec 2026-09-10-usage-counter-design) */
+export const getUsageApiUrl = () => '/api/usage';
 
 /** หมวดที่เป็น vertical จะมี landingPath ของตัวเอง (เพิ่มจริงที่ Phase 0B) */
 export const getCategoryUrl = (c: { id: CategoryId; landingPath?: string }) => c.landingPath ?? `/categories/${c.id}`;

@@ -81,6 +81,11 @@ export interface MembershipStore {
     id: string,
     p: { beamChargeId: string | null; rawWebhookJson: string; now: number },
   ): Promise<SettleResult>;
+  /** slug ในรายการโปรด ใหม่ไปเก่า */
+  listFavorites(userId: string): Promise<string[]>;
+  /** เพิ่มซ้ำได้ไม่ error (ไม่เปลี่ยนเวลาที่บันทึกไว้เดิม) */
+  addFavorite(userId: string, slug: string, now: number): Promise<void>;
+  removeFavorite(userId: string, slug: string): Promise<void>;
 }
 
 interface UserRow {
@@ -248,6 +253,29 @@ export function d1Store(db: D1Database): MembershipStore {
       const applied = (results[1]?.meta?.changes ?? 0) > 0;
       // อ่านกลับหลังเขียน — ค่าจริงในแถว ไม่ว่ารายการนี้จะเป็นตัวที่บวกวันหรือไม่
       return { applied, expiresAt: await this.getExpiresAt(payment.userId) };
+    },
+
+    async listFavorites(userId) {
+      // เวลาเท่ากัน (กดรัวในวินาทีเดียว) ใช้ slug ตัดสิน ลำดับจึงนิ่ง
+      const { results } = await db
+        .prepare('SELECT tool_slug FROM favorites WHERE user_id = ?1 ORDER BY created_at DESC, tool_slug')
+        .bind(userId)
+        .all<{ tool_slug: string }>();
+      return (results ?? []).map((r) => r.tool_slug);
+    },
+
+    async addFavorite(userId, slug, now) {
+      await db
+        .prepare(
+          `INSERT INTO favorites (user_id, tool_slug, created_at) VALUES (?1, ?2, ?3)
+           ON CONFLICT (user_id, tool_slug) DO NOTHING`,
+        )
+        .bind(userId, slug, now)
+        .run();
+    },
+
+    async removeFavorite(userId, slug) {
+      await db.prepare('DELETE FROM favorites WHERE user_id = ?1 AND tool_slug = ?2').bind(userId, slug).run();
     },
   };
 }
