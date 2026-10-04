@@ -344,8 +344,8 @@ export function BuyPremium({ premium, onPaid }: { premium: boolean; onPaid?: () 
                     key={p.id}
                     className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition-colors ${
                       p.id === packId
-                        ? 'border-brand-600 bg-white shadow-[0_0_0_1px_var(--color-brand-600)]'
-                        : 'border-slate-200 bg-white/60 hover:border-slate-300'
+                        ? 'border-brand-600 bg-surface shadow-[0_0_0_1px_var(--color-brand-600)]'
+                        : 'border-slate-200 bg-surface/60 hover:border-slate-300'
                     }`}
                   >
                     <input
