@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+# หน้าผลหวยดึงงวดล่าสุดจาก endpoint นี้ตอนเปิดหน้า — ถ้าบล็อก Googlebot render ได้แค่งวดที่ build ไว้
+# กฎที่ยาวกว่าชนะ (Google/Bing) จึงเปิดเฉพาะ path นี้ได้แม้ /api/ ถูกบล็อก · ตัว JSON เองมี X-Robots-Tag: noindex
+Allow: /api/lottery/
 Sitemap: https://toolsiam.com/sitemap-index.xml

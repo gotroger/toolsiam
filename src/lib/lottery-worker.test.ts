@@ -261,6 +261,7 @@ describe('GET /api/lottery/latest', () => {
     const res = await handleLatest(e);
     expect(res.status).toBe(200);
     expect(res.headers.get('Cache-Control')).toContain('s-maxage=300');
+    expect(res.headers.get('X-Robots-Tag')).toBe('noindex');
     expect(await res.json()).toEqual(payload);
   });
 

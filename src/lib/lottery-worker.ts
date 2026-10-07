@@ -199,6 +199,8 @@ export async function handleLatest(env: LotteryEnv): Promise<Response> {
   const headers = {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': `public, max-age=${LATEST_MAX_AGE}, s-maxage=${LATEST_MAX_AGE}`,
+    // robots.txt เปิด path นี้ให้ Googlebot ดึงตอน render หน้าผลหวย — แต่ตัว JSON ไม่ควรขึ้นผลค้นหา
+    'X-Robots-Tag': 'noindex',
   };
 
   if (env.LOTTERY_AUTO !== 'on') return new Response(null, { status: 204, headers });
